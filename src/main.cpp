@@ -21,15 +21,16 @@
 #define MIN 'm'
 #define MAX 'M'
 
-//Servo microsecond pulse limits (Calibration)-------[500 ; 2500]--------------------------
-#define SERVO_1_MIN 520
-#define SERVO_1_MAX 2480
-#define SERVO_2_MIN 560
-#define SERVO_2_MAX 2520
-#define SERVO_3_MIN 560
-#define SERVO_3_MAX 2500
-#define SERVO_4_MIN 540
-#define SERVO_4_MAX 2400
+//Servo microsecond pulse limits (Calibration)-------Valores normais: Min = 500 ; Max = 2500]--------------------------
+#define SERVO_1_MIN 620
+#define SERVO_1_MAX 2520
+#define SERVO_2_MIN 615
+#define SERVO_2_MAX 2480
+#define SERVO_3_MIN 620
+#define SERVO_3_MAX 2550
+  //Servo_1 -> thetta3 min 550, max 2450
+  //Servo_2 -> thetta1 min 545, max 2410
+  //Servo_3 -> thetta2 min 520, max 2450
 //-----------------------------------------------------------------------------------------
 
 #define INVERTED -1
@@ -45,9 +46,10 @@ struct Coordinate_f {
 //float posY = 0.0F;
 //float posZ = 62.0F;
 
-float posX[] = {0.0,  0.0,   0.0,    0.0,   0.0,    0.0,      0.0,     0.0,  30.0};
-float posY[] = {0.0,  0.0,   0.0,    0.0,   30.0,   60.0,   -30.0,   -60.0,   0.0};
-float posZ[] = {70.0, 90.0,  110.0, 130.0,  90.0,   90.0,    90.0,    90.0,   90.0};
+float posX[] = {0.0,  15.0,   15.0,    0.0,   -15.0,  -15.0,     -15.0,     0.0,   15.0,   15.0,    15.0,    0.0,   -15.0,  -15.0,   -15.0,    0.0,    15.0,    15.0,    15.0,    0.0,   -15.0,   -15.0,     -15.0,     0.0,   15.0,  15.0,   15.0,    0.0,   -15.0,  -15.0};
+float posY[] = {0.0,  0.0,   15.0,    15.0,   15.0,    0.0,     -15.0,    -15.0,  -15.0,   0.0,    15.0,    15.0,   15.0,    0.0,   -15.0,   -15.0,   -15.0,    0.0,    15.0,    15.0,    15.0,    0.0,     -15.0,    -15.0,  -15.0,  0.0,   15.0,    15.0,   15.0,    0.0, };
+float posZ[] = {70.0, 72.0,  74.0,  76.0,   78.0,   80.0,    85.0,    90.0,  100.0, 105.0,  110.0, 112.0, 114.0,  116.0,  118.0,  120.0,  118.0,  116.0,  114.0,  112.0,  110.0,  105.0,    100.0,    90.0,  85.0,  80.0, 78.0,   76.0,   74.0,   72.0};
+int Step_delay_t[] = {0, 0,  0,  0,   0,   0,    0,    0,  0};
 
 const float stepXYZ = 1.0F;
 
@@ -65,6 +67,7 @@ const float cos120 = -0.5;
 const float tan60 = sqrt3;
 const float sin30 = 0.5;
 const float tan30 = 1.0 / sqrt3;
+
 
 //---------Declaração das variaveis------------------
 int delta_calcForward(float theta1, float theta2, float theta3, float &x0, float &y0, float &z0);
@@ -107,8 +110,10 @@ int servo_2_pulse_count = 0;
 int servo_3_pulse_count = 0;
 int servo_4_pulse_count = 0;
 
-int step_pulses = 1; //1us increments
-int step_delay_joint = 3; //3ms 
+int step_delay_linear = 2; //0ms 
+float step_increment = 0.5; //0.4mm
+int step_pulses = 4; //1us increments
+int step_delay_joint = 1; //3ms 
 byte axis_direction = 0; 
 float servo_offset_z = SERVO_OFFSET_Z;
 
@@ -143,7 +148,7 @@ Adafruit_NeoPixel pixel(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(921600);
   
 
   pinMode(BTN_UP, INPUT);
@@ -166,20 +171,24 @@ void setup() {
   ESP32PWM::allocateTimer(2);
   ESP32PWM::allocateTimer(3);
 
+  end_effector.x=0.0;
+    end_effector.y=0.0;
+   end_effector.z=60.1;
+
   Serial.println("Teste MG90S Servo");
   // Configurações específicas para servo MG90S (50Hz, pulsos 500-2400us)
   mg90s_1.setPeriodHertz(50);      // Frequência PWM 50 Hz
-  mg90s_1.attach(SERVO_PIN_1, 500, 2400);  // min=500us, max=2400us
+  mg90s_1.attach(SERVO_PIN_1, SERVO_1_MIN, SERVO_1_MAX);  
 
   mg90s_2.setPeriodHertz(50);      // Frequência PWM 50 Hz
-  mg90s_2.attach(SERVO_PIN_2, 500, 2400);  // min=500us, max=2400us
+  mg90s_2.attach(SERVO_PIN_2, SERVO_2_MIN, SERVO_2_MAX);  
 
   mg90s_3.setPeriodHertz(50);      // Frequência PWM 50 Hz
-  mg90s_3.attach(SERVO_PIN_3, 500, 2400);  // min=500us, max=2400us
+  mg90s_3.attach(SERVO_PIN_3, SERVO_3_MIN, SERVO_3_MAX); 
   
-  //mg90s_1.write(90);  // posição inicial central
-  //mg90s_2.write(90);  // posição inicial central
-  //mg90s_3.write(90);  // posição inicial central
+  //mg90s_1.write(50);  // posição inicial central //thetta3 min 550, max 2450
+  //mg90s_2.write(50);  // posição inicial central //thetta1 min 545, max 2410
+  //mg90s_3.write(50);  // posição inicial central //thetta2 min 520, max 2450
   delay(1000);
   Serial.println("Delta robot kinematics ready");
 }
@@ -189,17 +198,50 @@ void loop() {
 
   float theta1, theta2, theta3;
     float x, y, z;
-  x = 0;
-  y = 0;
-  z = 60.1;  
-  printf("\n dentro do loop"); 
+  x = 0.0;
+  y = 30.0;
+  z = 80.1;  
+  //printf("\n dentro do loop"); 
   //Serial.println("Servo -> 0°");
   //mg90s_1.write(5);
   //mg90s_2.write(25);
   //mg90s_3.write(45);
   //readJoystickButtons();
   //LED_LOOP();
+  /*
   bool verification = inverse_kinematics(x, y, z);
+  if(verification == 1){
+    printf("\n Success Inverse Kinematics");
+    printf("\n thetta3 Angulo do servo 1: %f", radsToDeg(servo_1_angle));
+    printf("\n thetta1 Angulo do servo 2: %f", radsToDeg(servo_2_angle));
+    printf("\n thetta2 Angulo do servo 3: %f", radsToDeg(servo_3_angle));
+  }
+  if(verification == 0){
+    printf("\n Erro Inverse Kinematics");
+  }
+  mg90s_1.writeMicroseconds(servo_1_pulse_count); 
+  mg90s_2.writeMicroseconds(servo_2_pulse_count);
+  mg90s_3.writeMicroseconds(servo_3_pulse_count);
+  */
+  //mg90s_1.writeMicroseconds(SERVO_1_MIN);  //thetta3 min 550, max 2450
+  //mg90s_2.writeMicroseconds(SERVO_2_MIN);  //thetta1 min 545, max 2410
+  //mg90s_3.writeMicroseconds(SERVO_3_MIN);  //thetta2 min 520, max 2450
+  //mg90s_1.write(45);
+  //mg90s_2.write(45);
+  //mg90s_3.write(45);
+  //delay(5000);
+  //mg90s_1.writeMicroseconds(SERVO_1_MAX);
+  //mg90s_2.writeMicroseconds(SERVO_2_MAX);
+  //mg90s_3.writeMicroseconds(SERVO_3_MAX);
+  //mg90s_1.write(180); 
+  //mg90s_2.write(180);
+  //mg90s_3.write(180);
+  //delay(5000);
+
+  
+  /*
+  for (int i = 0; i < 9; i++) {
+    bool verification = inverse_kinematics(posX[i], posY[i], posZ[i]);
   if(verification == 1){
     printf("\n Success Inverse Kinematics");
     printf("\n Angulo do servo 1: %f", servo_1_angle);
@@ -210,11 +252,13 @@ void loop() {
   if(verification == 0){
     printf("\n Erro Inverse Kinematics");
   }
-  mg90s_1.writeMicroseconds(500);
-  mg90s_2.writeMicroseconds(530);
-  mg90s_3.writeMicroseconds(460);
-  
-
+    mg90s_1.writeMicroseconds(servo_1_pulse_count); 
+  mg90s_2.writeMicroseconds(servo_2_pulse_count);
+  mg90s_3.writeMicroseconds(servo_3_pulse_count);
+  delay(5000);
+  }
+  */
+  //delay(5000);
       //mg90s_1.write(10); //theta3 
       //mg90s_2.write(35);  //theta1
       //mg90s_3.write(55); //theta2
@@ -222,8 +266,15 @@ void loop() {
   //x = 0;
   //y = -20;
   //z = 80;   //minimo 61.2
+  for(int i = 0; i < 30; i++){
+            joint_move(posX[i], posY[i], posZ[i], step_pulses, step_delay_joint);
+            //linear_move(posX[i], posY[i], posZ[i], step_increment, step_delay_linear );
+            //delay(Step_delay_t[i]);
+            end_effector.x=posX[i];
+            end_effector.y=posY[i];
+            end_effector.z=posZ[i];
+        }
 
-  //linear_move(xTarget, yTarget, zTarget, get_step_increment(), get_step_delay_linear());
 
 /*
   for (int i = 0; i < 9; i++) {
@@ -245,7 +296,7 @@ void loop() {
 
   delay(500);
   }*/
- delay(1000);
+ delay(1);
 }
 
 
@@ -269,30 +320,30 @@ void attach_servos(void){
 /*------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 bool inverse_kinematics_1(float xt, float yt, float zt){
-    printf("\n x= %f, y=%f, z=%f", xt, yt, zt);
+    //printf("\n x= %f, y=%f, z=%f", xt, yt, zt);
     zt -= servo_offset_z; //Remove the differance in height from ground level to the centre of rotation of the servos
     
     float arm_end_x = xt + L3; //Adding the distance between the end effector centre and ball joints to the target x coordinate
-    printf("\n Arm_end_x= %f", arm_end_x);
+    //printf("\n Arm_end_x= %f", arm_end_x);
     float l2p = sqrt(pow(L2, 2) - pow(yt, 2)); //The length of link 2 when projected onto the XZ plane
-    printf("\n l2p= %f", l2p);
+    //printf("\n l2p= %f", l2p);
     
     float l2pAngle = asin(yt / L2); //Gives the angle between link2 and the ball joints. (Not actually necessary to calculate the inverse kinematics. Just used to prevent the arms ripping themselves apart.)
-    printf("\n rad l2pAngle= %f", l2pAngle);
-    printf("\n rad l2pAngle= %f", radsToDeg(l2pAngle));
+    //printf("\n rad l2pAngle= %f", l2pAngle);
+    //printf("\n rad l2pAngle= %f", radsToDeg(l2pAngle));
     if(!(abs(l2pAngle) < 0.59341194567807205615405486128613f)){ //Prevents the angle between the ball joints and link 2 (L2) going out of range. (Angle was determined by emprical testing.)
-        printf("ERROR: Ball joint 1 out of range: l2pAngle = %f", radsToDeg(l2pAngle));
+        //printf("ERROR: Ball joint 1 out of range: l2pAngle = %f", radsToDeg(l2pAngle));
         return false;
     }
-printf("\n zt= %f", zt);
-printf("\n SERVO_OFFSET_X= %f", SERVO_OFFSET_X);
-printf("\n arm_end_x= %f", arm_end_x);
+//printf("\n zt= %f", zt);
+//printf("\n SERVO_OFFSET_X= %f", SERVO_OFFSET_X);
+//printf("\n arm_end_x= %f", arm_end_x);
     float ext = sqrt(pow (zt, 2) + pow(SERVO_OFFSET_X - arm_end_x, 2)); //Extension of the arm from the centre of the servo rotation to the end ball joint of link2
-printf("\n ext= %f", ext);
-printf("\n l2p - L1= %f", l2p - L1);
-printf("\n L1 + l2p= %f", L1 + l2p);
+//printf("\n ext= %f", ext);
+//printf("\n l2p - L1= %f", l2p - L1);
+//printf("\n L1 + l2p= %f", L1 + l2p);
     if(ext <= l2p - L1 || ext >= L1 + l2p){ //Checks the extension in the reachable range (This limit assumes that L2 is greater than L1)
-       printf("\n ERROR: Extension 1 out of range: ext = %f", ext);
+       //printf("\n ERROR: Extension 1 out of range: ext = %f", ext);
         return false;
     }
        
@@ -301,10 +352,10 @@ printf("\n L1 + l2p= %f", L1 + l2p);
     float theta = phi + omega; //Theta is the angle between horizontal (X) and L1
 
     if(!(theta >= SERVO_ANGLE_MIN && theta <= SERVO_ANGLE_MAX)){ //Checks the angle is in the reachable range
-        printf("\n ERROR: Servo angle 1 out of range: Angle = %f", radsToDeg(theta));
+        //printf("\n ERROR: Servo angle 1 out of range: Angle = %f", radsToDeg(theta));
         return false;
     }
-    printf("\n servo_1_angle = %f", radsToDeg(theta));
+    //printf("\n servo_1_angle = %f", radsToDeg(theta));
     servo_1_angle = theta;
     return true;
 }
@@ -323,14 +374,14 @@ bool inverse_kinematics_2(float xt, float yt, float zt){
     
     float l2pAngle = asin(yt / L2);
     if(!(abs(l2pAngle) < 0.59341194567807205615405486128613f)){ //Prevents the angle between the ball joints and link 2 (L2) going out of range.
-        printf("ERROR: Ball joint 2 out of range: l2pAngle = ", radsToDeg(l2pAngle));        
+        //printf("ERROR: Ball joint 2 out of range: l2pAngle = ", radsToDeg(l2pAngle));        
         return false;
     }
     
     float ext = sqrt(pow (zt, 2) + pow(SERVO_OFFSET_X - arm_end_x, 2));
 
     if(ext <= l2p - L1 || ext >= L1 + l2p){ //This limit assumes that L2 is greater than L1
-        printf("ERROR: Extension 2 out of range: ext = ", ext);
+        //printf("ERROR: Extension 2 out of range: ext = ", ext);
         return false;
     }
        
@@ -339,10 +390,10 @@ bool inverse_kinematics_2(float xt, float yt, float zt){
     float theta = phi + omega;
 
     if(!(theta >= SERVO_ANGLE_MIN && theta <= SERVO_ANGLE_MAX)){
-        printf("ERROR: Servo angle 2 out of range: Angle = ", radsToDeg(theta));
+        //printf("ERROR: Servo angle 2 out of range: Angle = ", radsToDeg(theta));
         return false;
     }
-    printf("\n servo_2_angle = %f", radsToDeg(theta));
+    //printf("\n servo_2_angle = %f", radsToDeg(theta));
     servo_2_angle = theta;
     return true;
 }
@@ -362,14 +413,14 @@ bool inverse_kinematics_3(float xt, float yt, float zt){
     
     float l2pAngle = asin(yt / L2);
     if(!(abs(l2pAngle) < 0.59341194567807205615405486128613f)){ //Prevents the angle between the ball joints and link 2 (L2) going out of range.
-        printf("ERROR: Ball joint 1 out of range: l2pAngle = ", radsToDeg(l2pAngle));
+        //printf("ERROR: Ball joint 1 out of range: l2pAngle = ", radsToDeg(l2pAngle));
         return false;
     }
     
     float ext = sqrt(pow (zt, 2) + pow(SERVO_OFFSET_X - arm_end_x, 2));
 
     if(ext <= l2p - L1 || ext >= L1 + l2p){ //This limit assumes that L2 is greater than L1
-        printf("ERROR: Extension 3 out of range: ext = ", ext);
+        //printf("ERROR: Extension 3 out of range: ext = ", ext);
         return false;
     }
        
@@ -378,10 +429,10 @@ bool inverse_kinematics_3(float xt, float yt, float zt){
     float theta = phi + omega;
 
     if(!(theta >= SERVO_ANGLE_MIN && theta <= SERVO_ANGLE_MAX)){
-        printf("ERROR: Servo angle 3 out of range: Angle = ", radsToDeg(theta));
+        //printf("ERROR: Servo angle 3 out of range: Angle = ", radsToDeg(theta));
         return false;
     }
-    printf("\n servo_3_angle = %f", radsToDeg(theta));
+    //printf("\n servo_3_angle = %f", radsToDeg(theta));
     servo_3_angle = theta;
     return true;
 }
@@ -430,7 +481,7 @@ void linear_move(float x1, float y1, float z1, float stepDist, int stepDelay){//
 
     //Step size of each axis
     if(numberOfSteps == 0){
-//        printi("ERROR: No change in position: numberOfSteps = ", numberOfSteps);
+        //printf("ERROR: No change in position: numberOfSteps = ", numberOfSteps);
         return;
     }
     
@@ -449,11 +500,65 @@ void linear_move(float x1, float y1, float z1, float stepDist, int stepDelay){//
         zInterpolation = z0 + i * zStep;
 
         inverse_kinematics(xInterpolation, yInterpolation, zInterpolation);//calculates the inverse kinematics for the interpolated values
+        //printf("\n thetta3 Angulo do servo 1: %f", radsToDeg(servo_1_angle));
+    //printf("\n thetta1 Angulo do servo 2: %f", radsToDeg(servo_2_angle));
+    //printf("\n thetta2 Angulo do servo 3: %f", radsToDeg(servo_3_angle));
         move_servos();
         delay(stepDelay);
     }
 }
 
+void joint_move(float xt, float yt, float zt, int stepPulses, int stepDelay){//interpolates between the current and tartget joint pule counts. All joints will reach the target position at the same time.
+    if(stepPulses <= 0) return;//Checks that the step size if valid
+    
+    //Sets variables to store the current pulse counts
+    int servo1PulseCount0 = servo_1_pulse_count;
+    int servo2PulseCount0 = servo_2_pulse_count;
+    int servo3PulseCount0 = servo_3_pulse_count;
+
+    if(inverse_kinematics(xt, yt, zt) == false) return;//Exit the function if the position is out of the workspace
+   
+    //Sets variables to store the differences in pulse counts
+    int servo1PulseDiff = servo_1_pulse_count - servo1PulseCount0;
+    int servo2PulseDiff = servo_2_pulse_count - servo2PulseCount0;
+    int servo3PulseDiff = servo_3_pulse_count - servo3PulseCount0;
+    
+    int maxDiff;
+
+    //Gets the biggest difference in pulse count
+    if(abs(servo1PulseDiff) >= abs(servo2PulseDiff) && abs(servo1PulseDiff) >= abs(servo3PulseDiff)){
+        maxDiff = abs(servo1PulseDiff);
+    }
+    else if(abs(servo2PulseDiff) >= abs(servo1PulseDiff) && abs(servo2PulseDiff) >= abs(servo3PulseDiff)){
+        maxDiff = abs(servo2PulseDiff);
+    }
+    else if(abs(servo3PulseDiff) >= abs(servo1PulseDiff) && abs(servo3PulseDiff) >= abs(servo2PulseDiff)){
+        maxDiff = abs(servo3PulseDiff);
+    }
+    else{
+//        printi("ERROR: No difference in pulse counts. ");
+        return;
+    }
+
+    float servo1Step = (float)servo1PulseDiff / (float)maxDiff;
+    float servo2Step = (float)servo2PulseDiff / (float)maxDiff;
+    float servo3Step = (float)servo3PulseDiff / (float)maxDiff;
+
+    for(int i = 1; i <= maxDiff; i += stepPulses){
+        servo_1_pulse_count = round(servo1PulseCount0 + i * servo1Step);
+        servo_2_pulse_count = round(servo2PulseCount0 + i * servo2Step);
+        servo_3_pulse_count = round(servo3PulseCount0 + i * servo3Step);
+        move_servos();
+        if(stepDelay > 0) delay(stepDelay);//If there is a delay then delay
+    }
+
+    //Sets the correct final position
+    servo_1_pulse_count = servo1PulseCount0 + servo1PulseDiff;
+    servo_2_pulse_count = servo2PulseCount0 + servo2PulseDiff;
+    servo_3_pulse_count = servo3PulseCount0 + servo3PulseDiff;
+    move_servos();
+    delay(stepDelay);
+}
 
 void move_servos(void){
     mg90s_1.writeMicroseconds(servo_1_pulse_count);
