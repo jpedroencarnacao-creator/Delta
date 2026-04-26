@@ -171,9 +171,9 @@ void setup() {
   ESP32PWM::allocateTimer(2);
   ESP32PWM::allocateTimer(3);
 
-  end_effector.x=0.0;
+    end_effector.x=0.0;
     end_effector.y=0.0;
-   end_effector.z=60.1;
+    end_effector.z=60.1;
 
   Serial.println("Teste MG90S Servo");
   // Configurações específicas para servo MG90S (50Hz, pulsos 500-2400us)
@@ -185,10 +185,7 @@ void setup() {
 
   mg90s_3.setPeriodHertz(50);      // Frequência PWM 50 Hz
   mg90s_3.attach(SERVO_PIN_3, SERVO_3_MIN, SERVO_3_MAX); 
-  
-  //mg90s_1.write(50);  // posição inicial central //thetta3 min 550, max 2450
-  //mg90s_2.write(50);  // posição inicial central //thetta1 min 545, max 2410
-  //mg90s_3.write(50);  // posição inicial central //thetta2 min 520, max 2450
+
   delay(1000);
   Serial.println("Delta robot kinematics ready");
 }
@@ -198,23 +195,26 @@ void loop() {
 
   float theta1, theta2, theta3;
     float x, y, z;
-  x = 0.0;
-  y = 30.0;
-  z = 80.1;  
+  x = 0.0;    //minimo 0.0
+  y = 30.0;   //minimo 0.0
+  z = 80.1;   //minimo 61.2
+
   //printf("\n dentro do loop"); 
-  //Serial.println("Servo -> 0°");
-  //mg90s_1.write(5);
-  //mg90s_2.write(25);
-  //mg90s_3.write(45);
   //readJoystickButtons();
   //LED_LOOP();
-  /*
-  bool verification = inverse_kinematics(x, y, z);
+  //Servo_test();
+  //mg90s_1.writeMicroseconds(SERVO_1_MIN);  //thetta3 min 550, max 2450
+  //mg90s_2.writeMicroseconds(SERVO_2_MIN);  //thetta1 min 545, max 2410
+  //mg90s_3.writeMicroseconds(SERVO_3_MIN);  //thetta2 min 520, max 2450
+   
+  /* //------------test de cinematica só com inverse_kinematics--------------
+  for (int i = 0; i < 9; i++) {
+    bool verification = inverse_kinematics(posX[i], posY[i], posZ[i]);
   if(verification == 1){
     printf("\n Success Inverse Kinematics");
-    printf("\n thetta3 Angulo do servo 1: %f", radsToDeg(servo_1_angle));
-    printf("\n thetta1 Angulo do servo 2: %f", radsToDeg(servo_2_angle));
-    printf("\n thetta2 Angulo do servo 3: %f", radsToDeg(servo_3_angle));
+    printf("\n Angulo do servo 1: %f", servo_1_angle);
+    printf("\n Angulo do servo 2: %f", servo_2_angle);
+    printf("\n Angulo do servo 3: %f", servo_3_angle);
   }
   if(verification == 0){
     printf("\n Erro Inverse Kinematics");
@@ -222,50 +222,10 @@ void loop() {
   mg90s_1.writeMicroseconds(servo_1_pulse_count); 
   mg90s_2.writeMicroseconds(servo_2_pulse_count);
   mg90s_3.writeMicroseconds(servo_3_pulse_count);
-  */
-  //mg90s_1.writeMicroseconds(SERVO_1_MIN);  //thetta3 min 550, max 2450
-  //mg90s_2.writeMicroseconds(SERVO_2_MIN);  //thetta1 min 545, max 2410
-  //mg90s_3.writeMicroseconds(SERVO_3_MIN);  //thetta2 min 520, max 2450
-  //mg90s_1.write(45);
-  //mg90s_2.write(45);
-  //mg90s_3.write(45);
-  //delay(5000);
-  //mg90s_1.writeMicroseconds(SERVO_1_MAX);
-  //mg90s_2.writeMicroseconds(SERVO_2_MAX);
-  //mg90s_3.writeMicroseconds(SERVO_3_MAX);
-  //mg90s_1.write(180); 
-  //mg90s_2.write(180);
-  //mg90s_3.write(180);
-  //delay(5000);
-
-  
-  /*
-  for (int i = 0; i < 9; i++) {
-    bool verification = inverse_kinematics(posX[i], posY[i], posZ[i]);
-  if(verification == 1){
-    printf("\n Success Inverse Kinematics");
-    printf("\n Angulo do servo 1: %f", servo_1_angle);
-    printf("\n Angulo do servo 2: %f", servo_2_angle);
-    printf("\nAngulo chato");
-    printf("\n Angulo do servo 3: %f", servo_3_angle);
-  }
-  if(verification == 0){
-    printf("\n Erro Inverse Kinematics");
-  }
-    mg90s_1.writeMicroseconds(servo_1_pulse_count); 
-  mg90s_2.writeMicroseconds(servo_2_pulse_count);
-  mg90s_3.writeMicroseconds(servo_3_pulse_count);
   delay(5000);
   }
   */
-  //delay(5000);
-      //mg90s_1.write(10); //theta3 
-      //mg90s_2.write(35);  //theta1
-      //mg90s_3.write(55); //theta2
-  //Servo_test();
-  //x = 0;
-  //y = -20;
-  //z = 80;   //minimo 61.2
+
   for(int i = 0; i < 30; i++){
             joint_move(posX[i], posY[i], posZ[i], step_pulses, step_delay_joint);
             //linear_move(posX[i], posY[i], posZ[i], step_increment, step_delay_linear );
@@ -276,7 +236,7 @@ void loop() {
         }
 
 
-/*
+/* //--------------old_kinematics-----------------------
   for (int i = 0; i < 9; i++) {
   float servoAngle_a = deltakinematic(posX[i], posY[i], posZ[i], 'A');
   float servoAngle_b = deltakinematic(posX[i], posY[i], posZ[i], 'B');
@@ -711,6 +671,7 @@ void Servo_test(){
   }
 }
 
+//------------------------obselet------------------------------------
 float deltakinematic(float posX, float posY, float posZ, char servo)
 {
     float length_a = 31.0F;
@@ -757,83 +718,4 @@ float deltakinematic(float posX, float posY, float posZ, char servo)
 
     return gamma;
 }
-
-
-// forward kinematics
-int delta_calcForward(float theta1, float theta2, float theta3, float &x0, float &y0, float &z0) {
-    float t = (f - e) * tan30 / 2.0;
-    float dtr = pi / 180.0;
-
-    theta1 *= dtr;
-    theta2 *= dtr;
-    theta3 *= dtr;
-
-    float y1 = -(t + rf * cos(theta1));
-    float z1 = -rf * sin(theta1);
-
-    float y2 = (t + rf * cos(theta2)) * sin30;
-    float x2 = y2 * tan60;
-    float z2 = -rf * sin(theta2);
-
-    float y3 = (t + rf * cos(theta3)) * sin30;
-    float x3 = -y3 * tan60;
-    float z3 = -rf * sin(theta3);
-
-    float dnm = (y2 - y1) * x3 - (y3 - y1) * x2;
-
-    float w1 = y1 * y1 + z1 * z1;
-    float w2 = x2 * x2 + y2 * y2 + z2 * z2;
-    float w3 = x3 * x3 + y3 * y3 + z3 * z3;
-
-    float a1 = (z2 - z1) * (y3 - y1) - (z3 - z1) * (y2 - y1);
-    float b1 = -((w2 - w1) * (y3 - y1) - (w3 - w1) * (y2 - y1)) / 2.0;
-
-    float a2 = -(z2 - z1) * x3 + (z3 - z1) * x2;
-    float b2 = ((w2 - w1) * x3 - (w3 - w1) * x2) / 2.0;
-
-    float a = a1 * a1 + a2 * a2 + dnm * dnm;
-    float b = 2.0 * (a1 * b1 + a2 * (b2 - y1 * dnm) - z1 * dnm * dnm);
-    float c = (b2 - y1 * dnm) * (b2 - y1 * dnm) + b1 * b1 + dnm * dnm * (z1 * z1 - re * re);
-
-    float d = b * b - 4.0 * a * c;
-    if (d < 0) return -1;
-
-    z0 = -0.5 * (b + sqrt(d)) / a;
-    x0 = (a1 * z0 + b1) / dnm;
-    y0 = (a2 * z0 + b2) / dnm;
-    return 0;
-}
-
-// helper
-int delta_calcAngleYZ(float x0, float y0, float z0, float &theta) {
-    float y1 = -0.5 * 0.57735 * f;
-    y0 -= 0.5 * 0.57735 * e;
-
-    float a = (x0 * x0 + y0 * y0 + z0 * z0 + rf * rf - re * re - y1 * y1) / (2.0 * z0);
-    float b = (y1 - y0) / z0;
-
-    float d = -(a + b * y1) * (a + b * y1) + rf * (b * b * rf + rf);
-    if (d < 0) return -1;
-
-    float yj = (y1 - a * b - sqrt(d)) / (b * b + 1.0);
-    float zj = a + b * yj;
-    theta = 180.0 * atan(-zj / (y1 - yj)) / pi + ((yj > y1) ? 180.0 : 0.0);
-    return 0;
-}
-
-// inverse kinematics
-int delta_calcInverse(float x0, float y0, float z0, float &theta1, float &theta2, float &theta3) {
-    theta1 = theta2 = theta3 = 0.0;
-
-    int status = delta_calcAngleYZ(x0, y0, z0, theta1);
-    if (status == 0)
-        status = delta_calcAngleYZ(x0 * cos120 + y0 * sin120, y0 * cos120 - x0 * sin120, z0, theta2);
-    if (status == 0)
-        status = delta_calcAngleYZ(x0 * cos120 - y0 * sin120, y0 * cos120 + x0 * sin120, z0, theta3);
-
-    return status;
-}
-
-
-
 
