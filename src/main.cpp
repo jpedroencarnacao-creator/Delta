@@ -2,6 +2,34 @@
 #include <Adafruit_NeoPixel.h>
 #include <ESP32Servo.h>
 #include <math.h>
+#include <Ramp.h>
+
+class Interpolation {
+public:
+    rampInt myRamp;
+    int interpolationFlag = 0;
+    int savedValue = 0;
+
+    int go(int input, int durationMs) {
+        if (input != savedValue) {      // se o target mudou
+            interpolationFlag = 0;
+        }
+        savedValue = input;
+
+        if (interpolationFlag == 0) {   // só configura a rampa uma vez por target
+            myRamp.go(input, durationMs, QUADRATIC_INOUT , FORTHANDBACK );
+            interpolationFlag = 1;
+        }
+
+        return myRamp.update();
+    }
+};
+
+Interpolation interpX;
+Interpolation interpY;
+Interpolation interpZ;
+
+
 
 
 //Motion_test -> Arrays of points for testing the motion functions
@@ -16,7 +44,7 @@ float Z_test[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8
 
 int Step_delay_t[] = {0, 0,  0,  0,   0,   0,    0,    0,  0};
 const int N_test = 28;
-float T_period = 4.5f; //Duration of the cycle in seconds (for now, not used for anything)
+float T_period = 3.5f; //Duration of the cycle in seconds (for now, not used for anything)
 
 //Link lengths (mm)
 #define L1 35
@@ -652,6 +680,7 @@ double degToRads(double deg) {
 
 
 //-----------------Função de controlo de movimento em função do tempo------------------
+/*
 void updateMotion(MotionInstance& inst, unsigned long nowMs) {
     if (!inst.active || inst.def == nullptr) return; //Verifica se a instância está ativa e se tem uma definição de movimento associada
 
@@ -693,7 +722,60 @@ void updateMotion(MotionInstance& inst, unsigned long nowMs) {
         move_servos();  //Se a cinemática inversa for bem-sucedida, os servos são movidos para as posições calculadas.
     }
 }
+*/
 
+void updateMotion(MotionInstance& inst, unsigned long nowMs) {
+    if (!inst.active || inst.def == nullptr) return;
+
+    MotionStorage& m = *(inst.def);
+
+    if (m.nPoints <= 0 || m.period <= 0.0f) return;
+
+    float dtMs = (m.period * 1000.0f) / (float)m.nPoints;
+
+    if (inst.segmentStartMs == 0) {
+        inst.segmentStartMs = nowMs;
+    }
+
+    unsigned long elapsed = nowMs - inst.segmentStartMs;
+
+    // avança de ponto quando passa dtMs (mantém o ciclo igual)
+    if (elapsed >= dtMs) {
+        inst.currentIndex++;
+        if (inst.currentIndex >= m.nPoints) {
+            inst.currentIndex = 0;
+        }
+        inst.segmentStartMs = nowMs;
+        elapsed = 0;
+    }
+
+    int i = inst.currentIndex;
+
+    // targets vindos do MotionStorage
+    float xTarget = m.X[i];
+    float yTarget = m.Y[i];
+    float zTarget = m.Z[i];
+
+    // usar inteiros na Ramp -> escalar para ter resolução
+    int xTargetInt = (int)roundf(xTarget * 100.0f);
+    int yTargetInt = (int)roundf(yTarget * 100.0f);
+    int zTargetInt = (int)roundf(zTarget * 100.0f);
+
+    int rampDuration = (int)dtMs;   // rampa ocupa exatamente o intervalo entre pontos
+
+    int xRampInt = interpX.go(xTargetInt, rampDuration);
+    int yRampInt = interpY.go(yTargetInt, rampDuration);
+    int zRampInt = interpZ.go(zTargetInt, rampDuration);
+
+    float x = (float)xRampInt / 100.0f;
+    float y = (float)yRampInt / 100.0f;
+    float z = (float)zRampInt / 100.0f;
+
+    bool ok = inverse_kinematics(x, y, z);
+    if (ok) {
+        move_servos();
+    }
+}
 
 void debugPrintTestMove() {
     Serial.println("=== Test_move contents ===");
