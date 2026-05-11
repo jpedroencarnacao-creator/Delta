@@ -4,12 +4,16 @@
 #include <math.h>
 
 //Motion_test -> Arrays of points for testing the motion functions
-float X_test[] = {0.0,  0.0,  0.0,  0.0,  5.0, 10.0, 15.0, 0.0, 0.0};
-float Y_test[] = {0.0,  0.0,  0.0,  0.0,  0.0, 0.0,  0.0,  5.0, 15.0};
-float Z_test[] = {35.0, 40.0, 50.0, 60.0, 60.0, 60.0, 60.0, 60.0, 60.0};
+//float X_test[] = {0.0,  0.0,  0.0,  0.0,  5.0, 10.0, 15.0, 0.0, 0.0};
+//float Y_test[] = {0.0,  0.0,  0.0,  0.0,  0.0, 0.0,  0.0,  5.0, 15.0};
+//float Z_test[] = {35.0, 40.0, 50.0, 60.0, 60.0, 60.0, 60.0, 60.0, 60.0};
+float X_test[] = {15.607,  14.923,  13.995,  12.845,  11.503, 10.000,  6.665,  1.464,  -2.965,  -5.000, -5.659, -6.056, -6.180, -6.029, -5.607, -4.923, -3.995, -2.845, -1.503,  0.000,   3.335,  8.536,  12.965,  15.000, 15.659, 16.056, 16.180, 16.029};
+float Y_test[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8.536,   3.335,   0.000, -1.503, -2.845, -3.995, -4.923, -5.607, -6.029, -6.180, -6.056, -5.659, -5.000,  -2.965,  1.464,   6.665,  10.000, 11.503, 12.845, 13.995, 14.923};
+float Z_test[] = {  80.0,    80.0,    80.0,    80.0,    80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,   80.0,    80.0};
+
 int Step_delay_t[] = {0, 0,  0,  0,   0,   0,    0,    0,  0};
-const int N_test = 9;
-float T_period = 5.5f; //Duration of the cycle in seconds (for now, not used for anything)
+const int N_test = 28;
+float T_period = 1.5f; //Duration of the cycle in seconds (for now, not used for anything)
 
 //Link lengths (mm)
 #define L1 35
@@ -26,8 +30,7 @@ float T_period = 5.5f; //Duration of the cycle in seconds (for now, not used for
 #define SERVO_ANGLE_MAX 3.9269908169872415480783042290994f //225 degrees
 #define Rotation_OFFSET_Z_delta1 0.78539816339f //45 degrees
 #define Rotation_OFFSET_Z_delta2 0.78539816339f //45 degrees
-// Depois (15° em radianos = π/12):
-#define ROTATION_OFFSET_Z 0.26179938779914943f
+#define ROTATION_OFFSET_Z (-75.0f * PI / 180.0f) //0.26179938779914943f (15° em radianos = π/12):
 
 #define MIN 'm'
 #define MAX 'M'
@@ -86,7 +89,7 @@ void initTestMove() { //Serve para copiar os valores definidos mais acima para o
 
     for (int i = 0; i < N_test; i++) {
         Test_move.X[i] = X_test[i];
-        Test_move.Y[i] = Y_test[i];
+        Test_move.Y[i] = -1 * Y_test[i];
         Test_move.Z[i] = Z_test[i];
         Test_move.easing[i] = 0;
     }
