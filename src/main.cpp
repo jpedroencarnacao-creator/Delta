@@ -3,17 +3,20 @@
 #include <ESP32Servo.h>
 #include <math.h>
 
+
 //Motion_test -> Arrays of points for testing the motion functions
 //float X_test[] = {0.0,  0.0,  0.0,  0.0,  5.0, 10.0, 15.0, 0.0, 0.0};
-//float Y_test[] = {0.0,  0.0,  0.0,  0.0,  0.0, 0.0,  0.0,  5.0, 15.0};
+//float Y_test[] = {0.0,  0.0,  0.0,  0.0,  0.0, 0.0,  0.0,  5.0, 15.0};          // -> teste de movimento linear dos 3 eixos
 //float Z_test[] = {35.0, 40.0, 50.0, 60.0, 60.0, 60.0, 60.0, 60.0, 60.0};
 float X_test[] = {15.607,  14.923,  13.995,  12.845,  11.503, 10.000,  6.665,  1.464,  -2.965,  -5.000, -5.659, -6.056, -6.180, -6.029, -5.607, -4.923, -3.995, -2.845, -1.503,  0.000,   3.335,  8.536,  12.965,  15.000, 15.659, 16.056, 16.180, 16.029};
-float Y_test[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8.536,   3.335,   0.000, -1.503, -2.845, -3.995, -4.923, -5.607, -6.029, -6.180, -6.056, -5.659, -5.000,  -2.965,  1.464,   6.665,  10.000, 11.503, 12.845, 13.995, 14.923};
-float Z_test[] = {  80.0,    80.0,    80.0,    80.0,    80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,   80.0,    80.0};
+float Y_test[] = {  0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,    0.0};
+//float Y_test[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8.536,   3.335,   0.000, -1.503, -2.845, -3.995, -4.923, -5.607, -6.029, -6.180, -6.056, -5.659, -5.000,  -2.965,  1.464,   6.665,  10.000, 11.503, 12.845, 13.995, 14.923};
+float Z_test[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8.536,   3.335,   0.000, -1.503, -2.845, -3.995, -4.923, -5.607, -6.029, -6.180, -6.056, -5.659, -5.000,  -2.965,  1.464,   6.665,  10.000, 11.503, 12.845, 13.995, 14.923};
+//float Z_test[] = {  80.0,    80.0,    80.0,    80.0,    80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,   80.0,    80.0}
 
 int Step_delay_t[] = {0, 0,  0,  0,   0,   0,    0,    0,  0};
 const int N_test = 28;
-float T_period = 1.5f; //Duration of the cycle in seconds (for now, not used for anything)
+float T_period = 4.5f; //Duration of the cycle in seconds (for now, not used for anything)
 
 //Link lengths (mm)
 #define L1 35
@@ -71,7 +74,9 @@ struct MotionInstance {
     int            currentIndex;     // índice atual no movimento
     unsigned int  lastStepMs;       // última vez que avançou de ponto  
                                     //    -> é uma vareavel importante para controlar a velocidade do movimento, ou seja, quando é que deve avançar para o próximo ponto do movimento
-    bool           active;           // se este movimento está a correr 
+    unsigned int   segmentStartMs; // timestamp do início do segmento atual
+                                   //    -> é uma variavel importante para controlar a velocidade do movimento, ou seja, quando é que deve avançar para o próximo ponto do movimento
+    bool     active;           // se este movimento está a correr 
                                     //    -> podes usar isto para pausar/matar movimentos, ou para saber se um movimento terminou (quando active passa a false porque chegou ao fim dos pontos)
 };
 
@@ -90,7 +95,7 @@ void initTestMove() { //Serve para copiar os valores definidos mais acima para o
     for (int i = 0; i < N_test; i++) {
         Test_move.X[i] = X_test[i];
         Test_move.Y[i] = -1 * Y_test[i];
-        Test_move.Z[i] = Z_test[i];
+        Test_move.Z[i] = 65 + Z_test[i];
         Test_move.easing[i] = 0;
     }
 }
@@ -99,10 +104,11 @@ void initTestMove() { //Serve para copiar os valores definidos mais acima para o
 MotionInstance Test_inst;
 
 void initTestInstance() { //Serve para arrancar a structure de temporaria de runtime
-    Test_inst.def          = &Test_move;
-    Test_inst.currentIndex = 0;
-    Test_inst.lastStepMs   = 0;
-    Test_inst.active       = true;
+    Test_inst.def           = &Test_move;
+    Test_inst.currentIndex  = 0;
+    Test_inst.lastStepMs    = 0;
+    Test_inst.segmentStartMs = 0; //millis(); // ou 0, e tratamos no update
+    Test_inst.active        = true;
 }
 
 //-------------------Fim Temporario---------------------------------
@@ -649,28 +655,34 @@ double degToRads(double deg) {
 void updateMotion(MotionInstance& inst, unsigned long nowMs) {
     if (!inst.active || inst.def == nullptr) return; //Verifica se a instância está ativa e se tem uma definição de movimento associada
 
-    MotionStorage& m = *(inst.def);//Cria uma referência para a definição do movimento para facilitar o acesso aos seus dados e a leitura do utilizador
+    MotionStorage& m = *(inst.def); //Cria uma referência para a definição do movimento para facilitar o acesso aos seus dados e a leitura do utilizador
 
     if (m.nPoints <= 0 || m.period <= 0.0f) return; //Verifica se o movimento tem um número válido de pontos e um período positivo. Se não tiver, não faz nada.
 
+    // tempo por ponto (ms) = período total / nº de pontos
     float dtMs = (m.period * 1000.0f) / (float)m.nPoints; //Calcula o tempo que deve passar entre cada ponto do movimento, (em milissegundos). 
                                                           //   -> O período é dividido pelo número de pontos para obter o tempo por ponto.
 
-    if (nowMs - inst.lastStepMs < dtMs) {
-        return; // ainda não é tempo de avançar
+    // inicializar segmentStartMs na primeira chamada, para o valor atual de millis()
+    if (inst.segmentStartMs == 0) {
+        inst.segmentStartMs = nowMs;
     }
 
-    //inst.lastStepMs = nowMs;
-    // Em vez de inst.lastStepMs = nowMs;
-    inst.lastStepMs += (unsigned long)dtMs; //Atualiza a última vez que avançou para o próximo ponto, somando o tempo por ponto ao último tempo registrado. 
-                                    //    -> Isso ajuda a manter um ritmo constante mesmo que haja atrasos ou variações no loop, evitando que o movimento acelere ou desacelere devido a atrasos.
+    // quanto tempo passou desde o início do segmento atual
+    unsigned long elapsed = nowMs - inst.segmentStartMs;  //verfica o a variação de tempo desde o inicio do segmento
 
-    inst.currentIndex++; //Avança para o próximo ponto do movimento, incrementando o índice atual.
-    if (inst.currentIndex >= m.nPoints) { //Caso seja atinjido o final do ciclo, volta ao inicio 
-        inst.currentIndex = 0;
+    // Se a variação de tempo passado for igual ou superior do DtMs, avança para o próximo ponto
+    if (elapsed >= dtMs) {
+        inst.currentIndex++;
+        if (inst.currentIndex >= m.nPoints) { // caso tenha sido atinjido o final do ciclo, volta ao inicio
+            inst.currentIndex = 0;
+        }
+        inst.segmentStartMs = nowMs; // reset do temporizador
+        elapsed = 0;
     }
 
-    int i = inst.currentIndex; 
+    // copia o endereço para os arrays de pontos 
+    int i = inst.currentIndex;
 
     float x = m.X[i];
     float y = m.Y[i];
@@ -678,7 +690,7 @@ void updateMotion(MotionInstance& inst, unsigned long nowMs) {
 
     bool ok = inverse_kinematics(x, y, z); // é acionado a função inverse kinematics para calcular os ângulos dos servos necessários para alcançar a posição (x, y, z) do ponto atual. 
     if (ok) {
-        move_servos(); //Se a cinemática inversa for bem-sucedida, os servos são movidos para as posições calculadas.
+        move_servos();  //Se a cinemática inversa for bem-sucedida, os servos são movidos para as posições calculadas.
     }
 }
 
