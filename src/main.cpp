@@ -45,7 +45,7 @@ float Z_test[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8
 
 int Step_delay_t[] = {0, 0,  0,  0,   0,   0,    0,    0,  0};
 const int N_test = 28;
-float T_period = 1.5f; //Duration of the cycle in seconds (for now, not used for anything)
+float T_period = 0.5f; //Duration of the cycle in seconds (for now, not used for anything)
 
 float X_test2[] = {15.607,  14.923,  13.995,  12.845,  11.503, 10.000,  6.665,  1.464,  -2.965,  -5.000, -5.659, -6.056, -6.180, -6.029, -5.607, -4.923, -3.995, -2.845, -1.503,  0.000,   3.335,  8.536,  12.965,  15.000, 15.659, 16.056, 16.180, 16.029};
 float Y_test2[] = {  0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,    0.0};
@@ -70,7 +70,7 @@ float T_period2 = 4.5f; //Duration of the cycle in seconds (for now, not used fo
 #define ROTATION_OFFSET_Z (-75.0f * PI / 180.0f) //0.26179938779914943f (15° em radianos = π/12):
 
 #define ROTATION_OFFSET_Z_Delta1 (-75.0f * PI / 180.0f)
-#define ROTATION_OFFSET_Z_Delta2 (-75.0f * PI / 180.0f)
+#define ROTATION_OFFSET_Z_Delta2 (-45.0f * PI / 180.0f)
 #define MIN 'm'
 #define MAX 'M'
 
@@ -178,22 +178,15 @@ const float tan30 = 1.0 / sqrt3;
 
 
 //---------Declaração das variaveis------------------
-int delta_calcForward(float theta1, float theta2, float theta3, float &x0, float &y0, float &z0);
-int delta_calcAngleYZ(float x0, float y0, float z0, float &theta);
-int delta_calcInverse(float x0, float y0, float z0, float &theta1, float &theta2, float &theta3);
-float deltakinematic(float posX, float posY, float posZ, char servo);
-void readJoystickButtons();
 void LED_LOOP(); //Declaração de funções
 void Servo_test();
 //-------Novas-------------
 float boundFloat(float, float, float);
 void attach_servos(void);
-bool inverse_kinematics_1(float, float, float, float);
-bool inverse_kinematics_2(float, float, float, float);
-bool inverse_kinematics_3(float, float, float, float);
-bool inverse_kinematics(float, float, float, float);
-void linear_move(float, float, float, float, int);
-void joint_move(float, float, float, int, int);
+bool inverse_kinematics_1(float, float, float, float, float&);
+bool inverse_kinematics_2(float, float, float, float, float&);
+bool inverse_kinematics_3(float, float, float, float, float&);
+bool inverse_kinematics(float, float, float, float, int&, int&, int&);
 void move_servos(void);
 double mapNumber(double x, double in_min, double in_max, double out_min, double out_max);
 int roundMapNumber(double x, double in_min, double in_max, double out_min, double out_max);
@@ -245,16 +238,17 @@ float servo_offset_z = SERVO_OFFSET_Z;
 
 //-----------------Declaração da localização dos pinos para cada objeto ------------------
 //-------------------Servos-----------------
-#define SERVO_PIN_1 21 //19
-#define SERVO_PIN_2 47 //20
-#define SERVO_PIN_3 48  //21
+#define SERVO_PIN_1 21 //19 //Servo_1 -> thetta3
+#define SERVO_PIN_2 47 //20 //Servo_2 -> thetta1
+#define SERVO_PIN_3 35  //21 //Servo_3 -> thetta2
 
-#define SERVO_PIN_4 36  //22
-#define SERVO_PIN_5 37  //23
-#define SERVO_PIN_6 39  //24
+
+#define SERVO_PIN_4 36  //22 // Servo_4 -> thetta3
+#define SERVO_PIN_5 37  //23 // Servo_5 -> thetta1
+#define SERVO_PIN_6 38  //24 // Servo_6 -> thetta2
 
 //----------------Led_Informação------------
-#define LED_PIN 38
+#define LED_PIN 48
 #define LED_COUNT 1
 
 
@@ -316,7 +310,8 @@ void setup() {
   //----------------Inicialização do movimento de teste-----------------
     initTestMove();
     initTestInstance();
-
+    debugPrintTestMove();     //Função para imprimir o conteúdo do Test_move (definição do movimento)
+    debugPrintTestInstance(); //Função para imprimir o estado atual do Test_inst (instância do movimento, ou seja, onde está no ciclo, etc.)
     
 
     Serial.println("Setup completo, pronto para correr updateMotion.");
@@ -341,12 +336,11 @@ void loop() {
     //mg90s_5.writeMicroseconds(2400);
     //mg90s_6.writeMicroseconds(2400);
     //printf("\n Valor de now = %d", now);
-    //debugPrintTestMove();     //Função para imprimir o conteúdo do Test_move (definição do movimento)
-    //debugPrintTestInstance(); //Função para imprimir o estado atual do Test_inst (instância do movimento, ou seja, onde está no ciclo, etc.)
-     LED_LOOP();
+    
+     //LED_LOOP();
 
     // Atualizar movimentos ativos
-    //updateMotion(Test_inst, now); //Variavel que controla o update do movimento conforme o tempo que tenha passado, a posição atual no movimento, etc.
+    updateMotion(Test_inst, now); //Variavel que controla o update do movimento conforme o tempo que tenha passado, a posição atual no movimento, etc.
     // updateMotion(respiracaoEsquerdaInst, now);
     // updateMotion(batimentoCardiacoInst, now);
     // updateMotion(tosseInst, now);
@@ -375,24 +369,30 @@ void loop() {
   */
    
 //------------test de cinematica só com inverse_kinematics--------------
-
+/*
 for (int i = 0; i < 9; i++) {
-    bool verification = inverse_kinematics(X_test_calibration[i], Y_test_calibration[i], Z_test_calibration[i], ROTATION_OFFSET_Z_Delta1);
-  if(verification == 1){
-    printf("\n Success Inverse Kinematics");
-    printf("\n Angulo do servo 1: %f", servo_1_angle);
-    printf("\n Angulo do servo 2: %f", servo_2_angle);
-    printf("\n Angulo do servo 3: %f", servo_3_angle);
-  }
-  if(verification == 0){
-    printf("\n Erro Inverse Kinematics");
-  }
+    //bool verification = inverse_kinematics(X_test_calibration[i], Y_test_calibration[i], Z_test_calibration[i], ROTATION_OFFSET_Z_Delta2);
+  //if(verification == 1){
+   // printf("\n Success Inverse Kinematics");
+   // printf("\n Angulo do servo 1: %f", servo_1_angle);
+   // printf("\n Angulo do servo 2: %f", servo_2_angle);
+   // printf("\n Angulo do servo 3: %f", servo_3_angle);
+ // }
+  //if(verification == 0){
+   // printf("\n Erro Inverse Kinematics");
+  //}
+  inverse_kinematics(X_test_calibration[i], Y_test_calibration[i], Z_test_calibration[i], ROTATION_OFFSET_Z_Delta1, servo_1_pulse_count, servo_2_pulse_count, servo_3_pulse_count);
   mg90s_1.writeMicroseconds(servo_1_pulse_count); 
   mg90s_2.writeMicroseconds(servo_2_pulse_count);
   mg90s_3.writeMicroseconds(servo_3_pulse_count);
+  delay(50);
+  inverse_kinematics(X_test_calibration[i], Y_test_calibration[i], Z_test_calibration[i], ROTATION_OFFSET_Z_Delta2, servo_4_pulse_count, servo_5_pulse_count, servo_6_pulse_count);
+  mg90s_4.writeMicroseconds(servo_4_pulse_count); 
+  mg90s_5.writeMicroseconds(servo_5_pulse_count);
+  mg90s_6.writeMicroseconds(servo_6_pulse_count);
   delay(2000);
   }
-  
+  */
 /* //Teste de movimento linear e joint (em espera)
   for(int i = 0; i < 30; i++){
             joint_move(posX[i], posY[i], posZ[i], step_pulses, step_delay_joint);
@@ -445,8 +445,8 @@ void attach_servos(void){
     mg90s_3.attach(SERVO_PIN_1, SERVO_3_MIN, SERVO_3_MAX);
 }
 
-/*------------------------------------------------------------------------------------------------------------------------------------------------------*/
-
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+/*
 bool inverse_kinematics_1(float xt, float yt, float zt, float rotation_offset_Z){
     //printf("\n x= %f, y=%f, z=%f", xt, yt, zt);
     zt -= servo_offset_z; //Remove the differance in height from ground level to the centre of rotation of the servos
@@ -492,8 +492,8 @@ bool inverse_kinematics_1(float xt, float yt, float zt, float rotation_offset_Z)
     return true;
 }
 
-/*------------------------------------------------------------------------------------------------------------------------------------------------------*/
-
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+/*
 bool inverse_kinematics_2(float xt, float yt, float zt, float rotation_offset_Z){
     zt -= servo_offset_z;
     float x = xt;
@@ -533,8 +533,8 @@ bool inverse_kinematics_2(float xt, float yt, float zt, float rotation_offset_Z)
     return true;
 }
 
-/*------------------------------------------------------------------------------------------------------------------------------------------------------*/
-
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+/*
 bool inverse_kinematics_3(float xt, float yt, float zt, float rotation_offset_Z){
     zt -= servo_offset_z;
 
@@ -575,8 +575,8 @@ bool inverse_kinematics_3(float xt, float yt, float zt, float rotation_offset_Z)
     return true;
 }
 
-/*------------------------------------------------------------------------------------------------------------------------------------------------------*/
-
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+/*
 bool inverse_kinematics(float xt, float yt, float zt, float rotation_offset_Z){    
     if(axis_direction == 1){//if axis are inverted
         xt = -xt;
@@ -602,16 +602,157 @@ bool inverse_kinematics(float xt, float yt, float zt, float rotation_offset_Z){
     }
     return false;
 }
+*/
 
+
+bool inverse_kinematics(float xt, float yt, float zt, float rotation_offset_Z, int& servo_Theta1_pulse, int& servo_Theta2_pulse, int& servo_Theta3_pulse){    
+    float servo_Theta1_angle; 
+    float servo_Theta2_angle;
+    float servo_Theta3_angle;
+    if(axis_direction == 1){//if axis are inverted
+        xt = -xt;
+        zt = -zt;
+    }
+    
+    if(inverse_kinematics_1(xt, yt, zt, rotation_offset_Z, servo_Theta1_angle) && inverse_kinematics_2(xt, yt, zt, rotation_offset_Z, servo_Theta2_angle) && inverse_kinematics_3(xt, yt, zt, rotation_offset_Z, servo_Theta3_angle)){ 
+       
+        
+        servo_Theta1_pulse = round(mapNumber(servo_Theta1_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, SERVO_1_MAX, SERVO_1_MIN));
+        servo_Theta2_pulse = round(mapNumber(servo_Theta2_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, SERVO_2_MAX, SERVO_2_MIN));
+        servo_Theta3_pulse = round(mapNumber(servo_Theta3_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, SERVO_3_MAX, SERVO_3_MIN));
+
+        return true;
+    }
+    return false;
+}
+
+
+bool inverse_kinematics_1(float xt, float yt, float zt, float rotation_offset_Z, float& Servo_angle){
+    zt -= servo_offset_z; 
+    float x = xt;
+    float y = yt;
+    xt = x * cos(rotation_offset_Z) - y * sin(rotation_offset_Z);
+    yt = x * sin(rotation_offset_Z) + y * cos(rotation_offset_Z);
+
+    float arm_end_x = xt + L3; 
+    //printf("\n Arm_end_x= %f", arm_end_x);
+    float l2p = sqrt(pow(L2, 2) - pow(yt, 2)); 
+    //printf("\n l2p= %f", l2p);
+    
+    float l2pAngle = asin(yt / L2); 
+    //printf("\n rad l2pAngle= %f", radsToDeg(l2pAngle));
+    if(!(abs(l2pAngle) < 0.59341194567807205615405486128613f)){ 
+        //printf("ERROR: Ball joint 1 out of range: l2pAngle = %f", radsToDeg(l2pAngle));
+        return false;
+    }
+
+    float ext = sqrt(pow (zt, 2) + pow(SERVO_OFFSET_X - arm_end_x, 2)); 
+    if(ext <= l2p - L1 || ext >= L1 + l2p){ 
+       //printf("\n ERROR: Extension 1 out of range: ext = %f", ext);
+        return false;
+    }
+       
+    float phi = acos((pow(L1, 2) + pow(ext, 2) - pow(l2p, 2)) / (2 * L1 * ext)); 
+    float omega = atan2(zt, SERVO_OFFSET_X - arm_end_x); 
+    float theta = phi + omega; 
+
+    if(!(theta >= SERVO_ANGLE_MIN && theta <= SERVO_ANGLE_MAX)){ 
+        //printf("\n ERROR: Servo angle 1 out of range: Angle = %f", radsToDeg(theta));
+        return false;
+    }
+    printf("\n servo_1_angle = %f", radsToDeg(theta));
+    //servo_1_angle = theta;
+    Servo_angle=theta;
+    return true;
+}
+
+bool inverse_kinematics_2(float xt, float yt, float zt, float rotation_offset_Z, float& Servo_angle){
+    zt -= servo_offset_z;
+    float x = xt;
+    float y = yt;
+    float angle = 2.0943951023931954923084289221863f + rotation_offset_Z; // 120° + offset
+    xt = x * cos(angle) - y * sin(angle);
+    yt = x * sin(angle) + y * cos(angle);
+    
+    float arm_end_x = xt + L3;
+    float l2p = sqrt(pow(L2, 2) - pow(yt, 2));
+    
+    float l2pAngle = asin(yt / L2);
+    if(!(abs(l2pAngle) < 0.59341194567807205615405486128613f)){ 
+        //printf("ERROR: Ball joint 2 out of range: l2pAngle = ", radsToDeg(l2pAngle));        
+        return false;
+    }
+    
+    float ext = sqrt(pow (zt, 2) + pow(SERVO_OFFSET_X - arm_end_x, 2));
+
+    if(ext <= l2p - L1 || ext >= L1 + l2p){ 
+        //printf("ERROR: Extension 2 out of range: ext = ", ext);
+        return false;
+    }
+       
+    float phi = acos((pow(L1, 2) + pow(ext, 2) - pow(l2p, 2)) / (2 * L1 * ext));
+    float omega = atan2(zt, SERVO_OFFSET_X - arm_end_x);
+    float theta = phi + omega;
+
+    if(!(theta >= SERVO_ANGLE_MIN && theta <= SERVO_ANGLE_MAX)){
+        //printf("ERROR: Servo angle 2 out of range: Angle = ", radsToDeg(theta));
+        return false;
+    }
+    printf("\n servo_2_angle = %f", radsToDeg(theta));
+    //servo_2_angle = theta;
+    Servo_angle=theta;
+    return true;
+}
+
+bool inverse_kinematics_3(float xt, float yt, float zt, float rotation_offset_Z, float& Servo_angle){
+    zt -= servo_offset_z;
+
+    float x = xt;
+    float y = yt;
+    float angle = 4.1887902047863909846168578443727f + rotation_offset_Z; // 120° + offset
+    xt = x * cos(angle) - y * sin(angle);
+    yt = x * sin(angle) + y * cos(angle);
+    //xt = x * cos(4.1887902047863909846168578443727f) - y * sin(4.1887902047863909846168578443727f); //Rotate coordinate frame 240 degrees
+    //yt = x * sin(4.1887902047863909846168578443727f) + y * cos(4.1887902047863909846168578443727f);
+
+    float arm_end_x = xt + L3;
+    float l2p = sqrt(pow(L2, 2) - pow(yt, 2));
+    
+    float l2pAngle = asin(yt / L2);
+    if(!(abs(l2pAngle) < 0.59341194567807205615405486128613f)){ //Prevents the angle between the ball joints and link 2 (L2) going out of range.
+        //printf("ERROR: Ball joint 1 out of range: l2pAngle = ", radsToDeg(l2pAngle));
+        return false;
+    }
+    
+    float ext = sqrt(pow (zt, 2) + pow(SERVO_OFFSET_X - arm_end_x, 2));
+
+    if(ext <= l2p - L1 || ext >= L1 + l2p){ //This limit assumes that L2 is greater than L1
+        //printf("ERROR: Extension 3 out of range: ext = ", ext);
+        return false;
+    }
+       
+    float phi = acos((pow(L1, 2) + pow(ext, 2) - pow(l2p, 2)) / (2 * L1 * ext));
+    float omega = atan2(zt, SERVO_OFFSET_X - arm_end_x);
+    float theta = phi + omega;
+
+    if(!(theta >= SERVO_ANGLE_MIN && theta <= SERVO_ANGLE_MAX)){
+        //printf("ERROR: Servo angle 3 out of range: Angle = ", radsToDeg(theta));
+        return false;
+    }
+    printf("\n servo_3_angle = %f", radsToDeg(theta));
+    //servo_3_angle = theta;
+    Servo_angle=theta;
+    return true;
+}
 
 void move_servos(void){
     mg90s_1.writeMicroseconds(servo_1_pulse_count);
     mg90s_2.writeMicroseconds(servo_2_pulse_count);
     mg90s_3.writeMicroseconds(servo_3_pulse_count);
 
-    //mg90s_4.writeMicroseconds(servo_1_pulse_count);
-    //mg90s_5.writeMicroseconds(servo_2_pulse_count);
-    //mg90s_6.writeMicroseconds(servo_3_pulse_count);
+    mg90s_4.writeMicroseconds(servo_4_pulse_count);
+    mg90s_5.writeMicroseconds(servo_5_pulse_count);
+    mg90s_6.writeMicroseconds(servo_6_pulse_count);
 }
 
 
@@ -726,8 +867,9 @@ void updateMotion(MotionInstance& inst, unsigned long nowMs) {
     float y = (float)yRampInt / 100.0f;
     float z = (float)zRampInt / 100.0f;
 
-    bool ok = inverse_kinematics(x, y, z, ROTATION_OFFSET_Z_Delta1);
-    if (ok) {
+    bool ok1 = inverse_kinematics(x, y, z, ROTATION_OFFSET_Z_Delta1, servo_1_pulse_count, servo_2_pulse_count, servo_3_pulse_count);
+    bool ok2 = inverse_kinematics(x, y, z, ROTATION_OFFSET_Z_Delta2, servo_4_pulse_count, servo_5_pulse_count, servo_6_pulse_count);
+    if (ok1 || ok2) {
         move_servos();
     }
 }
