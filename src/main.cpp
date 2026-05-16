@@ -4,19 +4,107 @@
 #include <math.h>
 
 
+struct Manipulador_Config {
+    // geometria
+    float L1;
+    float L2;
+    float L3;
+    float servoOffsetX;
+    float servoOffsetZ;
+    float angleMin;
+    float angleMax;
+    float rotationOffsetZ;   // offset global de rotação da base
+
+    // calibração de PWM
+    int servo1MinPulse;
+    int servo1MaxPulse;
+
+    int servo2MinPulse;
+    int servo2MaxPulse;
+
+    int servo3MinPulse;
+    int servo3MaxPulse;
+
+    // estado atual (pulsos gerados pela IK)
+    int servo1Pulse;
+    int servo2Pulse;
+    int servo3Pulse;
+};
+
+Manipulador_Config delta_1_Cfg = {
+    // geometria
+    .L1 = 35.0f,
+    .L2 = 60.0f,
+    .L3 = 15.0f,
+    .servoOffsetX = 32.0f,
+    .servoOffsetZ = 0.0f,
+    .angleMin = 0.78539816339744830961566084581988f, //45 degrees
+    .angleMax = 3.9269908169872415480783042290994f, //225 degrees
+    .rotationOffsetZ = -75.0f * PI / 180.0f, //-75 degrees in radians
+
+    // calibração de PWM
+    .servo1MinPulse = 620,
+    .servo1MaxPulse = 2520,
+
+    .servo2MinPulse = 615,
+    .servo2MaxPulse = 2480,
+
+    .servo3MinPulse = 620,
+    .servo3MaxPulse = 2550,
+
+    // estado atual (pulsos gerados pela IK)
+    .servo1Pulse = 0,
+    .servo2Pulse = 0,
+    .servo3Pulse = 0
+};
+
+Manipulador_Config delta_2_Cfg = {
+    // geometria
+    .L1 = 35.0f,
+    .L2 = 60.0f,
+    .L3 = 15.0f,
+    .servoOffsetX = 32.0f,
+    .servoOffsetZ = 0.0f,
+    .angleMin = 0.78539816339744830961566084581988f, //45 degrees
+    .angleMax = 3.9269908169872415480783042290994f, //225 degrees
+    .rotationOffsetZ = -45.0f * PI / 180.0f, //-45 degrees in radians
+
+    // calibração de PWM
+    .servo1MinPulse = 550,
+    .servo1MaxPulse = 2400,
+
+    .servo2MinPulse = 550,
+    .servo2MaxPulse = 2400,
+
+    .servo3MinPulse = 550,
+    .servo3MaxPulse = 2400,
+
+    // estado atual (pulsos gerados pela IK)
+    .servo1Pulse = 0,
+    .servo2Pulse = 0,
+    .servo3Pulse = 0
+};
+
 //Motion_test -> Arrays of points for testing the motion functions
-//float X_test[] = {0.0,  0.0,  0.0,  0.0,  5.0, 10.0, 15.0, 0.0, 0.0};
-//float Y_test[] = {0.0,  0.0,  0.0,  0.0,  0.0, 0.0,  0.0,  5.0, 15.0};          // -> teste de movimento linear dos 3 eixos
-//float Z_test[] = {35.0, 40.0, 50.0, 60.0, 60.0, 60.0, 60.0, 60.0, 60.0};
+float X_test_calibration[] = {0.0,  0.0,  0.0,  0.0,  5.0, 10.0, 15.0, 0.0, 0.0};
+float Y_test_calibration[] = {0.0,  0.0,  0.0,  0.0,  0.0, 0.0,  0.0,  5.0, 15.0};          // -> teste de movimento linear dos 3 eixos
+float Z_test_calibration[] = {35.0, 40.0, 50.0, 60.0, 60.0, 60.0, 60.0, 60.0, 60.0};
+const int N_test_calibration = 9;
 float X_test[] = {15.607,  14.923,  13.995,  12.845,  11.503, 10.000,  6.665,  1.464,  -2.965,  -5.000, -5.659, -6.056, -6.180, -6.029, -5.607, -4.923, -3.995, -2.845, -1.503,  0.000,   3.335,  8.536,  12.965,  15.000, 15.659, 16.056, 16.180, 16.029};
 float Y_test[] = {  0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,    0.0};
 //float Y_test[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8.536,   3.335,   0.000, -1.503, -2.845, -3.995, -4.923, -5.607, -6.029, -6.180, -6.056, -5.659, -5.000,  -2.965,  1.464,   6.665,  10.000, 11.503, 12.845, 13.995, 14.923};
 float Z_test[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8.536,   3.335,   0.000, -1.503, -2.845, -3.995, -4.923, -5.607, -6.029, -6.180, -6.056, -5.659, -5.000,  -2.965,  1.464,   6.665,  10.000, 11.503, 12.845, 13.995, 14.923};
-//float Z_test[] = {  80.0,    80.0,    80.0,    80.0,    80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,   80.0,   80.0,   80.0,   80.0,   80.0,   80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,    80.0,   80.0,    80.0}
+//float Z_test[] = {  40.0,    40.0,    40.0,    40.0,    40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,   40.0,    40.0};
 
 int Step_delay_t[] = {0, 0,  0,  0,   0,   0,    0,    0,  0};
 const int N_test = 28;
-float T_period = 4.5f; //Duration of the cycle in seconds (for now, not used for anything)
+float T_period = 0.50f; //Duration of the cycle in seconds (for now, not used for anything)
+
+float X_test2[] = {15.607,  14.923,  13.995,  12.845,  11.503, 10.000,  6.665,  1.464,  -2.965,  -5.000, -5.659, -6.056, -6.180, -6.029, -5.607, -4.923, -3.995, -2.845, -1.503,  0.000,   3.335,  8.536,  12.965,  15.000, 15.659, 16.056, 16.180, 16.029};
+float Y_test2[] = {  0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,    0.0};
+float Z_test2[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8.536,   3.335,   0.000, -1.503, -2.845, -3.995, -4.923, -5.607, -6.029, -6.180, -6.056, -5.659, -5.000,  -2.965,  1.464,   6.665,  10.000, 11.503, 12.845, 13.995, 14.923};
+const int N_test2 = 28;
+float T_period2 = 6.5f; //Duration of the cycle in seconds (for now, not used for anything)
 
 //Link lengths (mm)
 #define L1 35
@@ -31,9 +119,11 @@ float T_period = 4.5f; //Duration of the cycle in seconds (for now, not used for
 
 #define SERVO_ANGLE_MIN 0.78539816339744830961566084581988f //45 degrees
 #define SERVO_ANGLE_MAX 3.9269908169872415480783042290994f //225 degrees
-#define Rotation_OFFSET_Z_delta1 0.78539816339f //45 degrees
-#define Rotation_OFFSET_Z_delta2 0.78539816339f //45 degrees
+
 #define ROTATION_OFFSET_Z (-75.0f * PI / 180.0f) //0.26179938779914943f (15° em radianos = π/12):
+
+#define ROTATION_OFFSET_Z_Delta1 (-75.0f * PI / 180.0f)
+#define ROTATION_OFFSET_Z_Delta2 (-45.0f * PI / 180.0f)
 
 #define MIN 'm'
 #define MAX 'M'
@@ -48,6 +138,28 @@ float T_period = 4.5f; //Duration of the cycle in seconds (for now, not used for
   //Servo_1 -> thetta3 min 550, max 2450
   //Servo_2 -> thetta1 min 545, max 2410
   //Servo_3 -> thetta2 min 520, max 2450
+
+  // variáveis globais para valores suavizados
+int servo_1_pulse_smooth = 0;
+int servo_2_pulse_smooth = 0;
+int servo_3_pulse_smooth = 0;
+
+// fator de suavização [0 - 1]]. tipo 0.2 para começar
+const float SERVO_SMOOTH_ALPHA = 0.2f;
+
+
+
+#define SERVO_4_MIN 550
+#define SERVO_4_MAX 2400
+#define SERVO_5_MIN 550
+#define SERVO_5_MAX 2400
+#define SERVO_6_MIN 550
+#define SERVO_6_MAX 2400
+
+  // variáveis globais para valores suavizados
+int servo_4_pulse_smooth = 0;
+int servo_5_pulse_smooth = 0;
+int servo_6_pulse_smooth = 0;
 //-----------------------------------------------------------------------------------------
 
 #define INVERTED -1
@@ -70,21 +182,22 @@ struct MotionStorage {
 
 // Armazenamento temporário: runtime que executa um MotionStorage
 struct MotionInstance {
-    MotionStorage* def;              // ponteiro para a definição do Armazenamento Bruto 
-    int            currentIndex;     // índice atual no movimento
-    unsigned int  lastStepMs;       // última vez que avançou de ponto  
-                                    //    -> é uma vareavel importante para controlar a velocidade do movimento, ou seja, quando é que deve avançar para o próximo ponto do movimento
+    MotionStorage* def;         // ponteiro para MotionStorage (a definição do Armazenamento Bruto )
+    int            currentIndex;// índice i (início do segmento i -> i+1) -> índice atual no movimento
+    unsigned int   lastStepMs;  // (já não vamos usar muito, podes deixar para debug!!) // última vez que avançou de ponto
+                                                                                        //    -> é uma variavel importante para controlar a velocidade do movimento, ou seja, quando é que deve avançar para o próximo ponto do movimento
     unsigned int   segmentStartMs; // timestamp do início do segmento atual
                                    //    -> é uma variavel importante para controlar a velocidade do movimento, ou seja, quando é que deve avançar para o próximo ponto do movimento
-    bool     active;           // se este movimento está a correr 
-                                    //    -> podes usar isto para pausar/matar movimentos, ou para saber se um movimento terminou (quando active passa a false porque chegou ao fim dos pontos)
+    bool           active;      // se este movimento está ativo
 };
-
 
 
 
 // ------------------Temporario---------------------------------
 MotionStorage Test_move; //Declaração de objetos para utilizar com as structures de movimento
+MotionInstance Test_inst;
+MotionStorage Test2_move; //Declaração de objetos para utilizar com as structures de movimento
+MotionInstance Test2_inst;
 
 void initTestMove() { //Serve para copiar os valores definidos mais acima para o objeto Test_move, que é do tipo MotionStorage. 
                         // ->    Isto é só para facilitar a criação de movimentos de teste, ou seja, para não ter que copiar os valores manualmente para o Test_move cada vez que quiseres testar algo.
@@ -95,14 +208,25 @@ void initTestMove() { //Serve para copiar os valores definidos mais acima para o
     for (int i = 0; i < N_test; i++) {
         Test_move.X[i] = X_test[i];
         Test_move.Y[i] = -1 * Y_test[i];
-        Test_move.Z[i] = 65 + Z_test[i];
+        Test_move.Z[i] = Z_test[i];
         Test_move.easing[i] = 0;
     }
 }
 
+void initTestMove2() { //Serve para copiar os valores definidos mais acima para o objeto Test2_move, que é do tipo MotionStorage. 
+                        // ->    Isto é só para facilitar a criação de movimentos de teste, ou seja, para não ter que copiar os valores manualmente para o Test2_move cada vez que quiseres testar algo.
+                        // ->    No futuro será utilizado para copiar os movimentos pré definidos da EPPROM ou do PI
+    Test2_move.nPoints = N_test2;
+    Test2_move.period  = T_period2;
 
-MotionInstance Test_inst;
-
+    for (int i = 0; i < N_test2; i++) {
+        Test2_move.X[i] = X_test2[i];
+        Test2_move.Y[i] = -1 * Y_test2[i];
+        Test2_move.Z[i] = Z_test2[i];
+        Test2_move.easing[i] = 0;
+    }
+}
+    
 void initTestInstance() { //Serve para arrancar a structure de temporaria de runtime
     Test_inst.def           = &Test_move;
     Test_inst.currentIndex  = 0;
@@ -110,6 +234,16 @@ void initTestInstance() { //Serve para arrancar a structure de temporaria de run
     Test_inst.segmentStartMs = 0; //millis(); // ou 0, e tratamos no update
     Test_inst.active        = true;
 }
+
+void initTestInstance2() { //Serve para arrancar a structure de temporaria de runtime
+    Test2_inst.def           = &Test2_move;
+    Test2_inst.currentIndex  = 0;
+    Test2_inst.lastStepMs    = 0;
+    Test2_inst.segmentStartMs = 0; //millis(); // ou 0, e tratamos no update
+    Test2_inst.active        = true;
+}
+
+
 
 //-------------------Fim Temporario---------------------------------
 
@@ -134,85 +268,166 @@ const float tan30 = 1.0 / sqrt3;
 
 
 //---------Declaração das variaveis------------------
-int delta_calcForward(float theta1, float theta2, float theta3, float &x0, float &y0, float &z0);
-int delta_calcAngleYZ(float x0, float y0, float z0, float &theta);
-int delta_calcInverse(float x0, float y0, float z0, float &theta1, float &theta2, float &theta3);
-float deltakinematic(float posX, float posY, float posZ, char servo);
-void readJoystickButtons();
 void LED_LOOP(); //Declaração de funções
 void Servo_test();
 //-------Novas-------------
 float boundFloat(float, float, float);
 void attach_servos(void);
-bool inverse_kinematics_1(float, float, float);
-bool inverse_kinematics_2(float, float, float);
-bool inverse_kinematics_3(float, float, float);
-bool inverse_kinematics(float, float, float);
-void linear_move(float, float, float, float, int);
-void joint_move(float, float, float, int, int);
+bool inverse_kinematics_1(float, float, float, float, float&);
+bool inverse_kinematics_2(float, float, float, float, float&);
+bool inverse_kinematics_3(float, float, float, float, float&);
+bool inverse_kinematics(Manipulador_Config& cfg, float, float, float);
 void move_servos(void);
 double mapNumber(double x, double in_min, double in_max, double out_min, double out_max);
 int roundMapNumber(double x, double in_min, double in_max, double out_min, double out_max);
 double degToRads(double deg);
 double radsToDeg(double rads);
 void updateMotion(MotionInstance& inst, unsigned long nowMs);
-void debugPrintTestMove();
-void debugPrintTestInstance();
+void debugPrintMove(const MotionStorage& move, const char* name);
+void debugPrintInstance(const MotionInstance& inst, const char* name);
+float lerp(float a, float b, float t);
+float applyEasing(float alpha, char mode);
+float spline3(float p0, float p1, float p2, float t);
 //----------------------------------------------------
 
+//Delta1 --------------------------------
 Servo mg90s_1;  // cria objeto servo
 Servo mg90s_2;  // cria objeto servo
 Servo mg90s_3;  // cria objeto servo
-
-Coordinate_f end_effector;
-Coordinate_f home_position;
 
 float servo_1_angle;
 float servo_2_angle;
 float servo_3_angle;
 
-
 int servo_1_pulse_count = 0;
 int servo_2_pulse_count = 0;
 int servo_3_pulse_count = 0;
-int servo_4_pulse_count = 0;
 
-int step_delay_linear = 2; //0ms 
-float step_increment = 0.5; //0.4mm
-int step_pulses = 4; //1us increments
-int step_delay_joint = 1; //3ms 
+    
+//Delta2 --------------------------------
+Servo mg90s_4;  // cria objeto servo
+Servo mg90s_5;  // cria objeto servo        
+Servo mg90s_6;  // cria objeto servo
+
+float servo_4_angle;
+float servo_5_angle;
+float servo_6_angle;
+
+
+int servo_4_pulse_count = 0;
+int servo_5_pulse_count = 0;
+int servo_6_pulse_count = 0;
+
+Coordinate_f end_effector;
+Coordinate_f home_position;
+
+
+
 byte axis_direction = 0; 
 float servo_offset_z = SERVO_OFFSET_Z;
 
 //-----------------Declaração da localização dos pinos para cada objeto ------------------
 //-------------------Servos-----------------
-#define SERVO_PIN_1 19
-#define SERVO_PIN_2 20 
-#define SERVO_PIN_3 21  
+#define SERVO_PIN_1 21 //19 //Servo_1 -> thetta3
+#define SERVO_PIN_2 47 //20 //Servo_2 -> thetta1
+#define SERVO_PIN_3 35  //21 //Servo_3 -> thetta2
+
+#define SERVO_PIN_4 36  //22 // Servo_4 -> thetta3
+#define SERVO_PIN_5 37  //23 // Servo_5 -> thetta1
+#define SERVO_PIN_6 38  //24 // Servo_6 -> thetta2
 
 //----------------Led_Informação------------
-#define LED_PIN 38
+#define LED_PIN 48
 #define LED_COUNT 1
 
-// joytsick
-#define BTN_UP     4
-#define BTN_DOWN   5
-#define BTN_LEFT   6
-#define BTN_RIGHT  7
-#define BTN_MIDLE  8
-#define BTN_SET    9
-#define BTN_RESET  10
-
-//----------STEPPER SIMPLES------------------
-//#define STEP_PIN 19
-//#define DIR_PIN  21
-//#define ENABLE_PIN 22
 
 //------------------------------------------------------------------------------------------
 bool stepDirection = false;
 Adafruit_NeoPixel pixel(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
+bool Motion_RESP_Position(MotionInstance& inst,
+                          unsigned long nowMs,
+                          float& outX, float& outY, float& outZ)
+{
+    if (!inst.active || inst.def == nullptr) return false;
 
+    MotionStorage& m = *(inst.def);
+    if (m.nPoints <= 1 || m.period <= 0.0f) return false;
+
+    float dtMs = (m.period * 1000.0f) / (float)m.nPoints;
+
+    if (inst.segmentStartMs == 0) {
+        inst.segmentStartMs = nowMs;
+    }
+
+    unsigned long elapsed = nowMs - inst.segmentStartMs;
+
+    if (elapsed >= dtMs) {
+        inst.currentIndex++;
+        if (inst.currentIndex >= m.nPoints) {
+            inst.currentIndex = 0;
+        }
+        inst.segmentStartMs = nowMs;
+        elapsed = 0;
+    }
+
+    // aqui podes escolher:
+    // A) usar só o ponto i (sem interpolação)
+    // B) interpolar linearmente dentro do segmento
+
+    float alpha = (float)elapsed / dtMs;
+    if (alpha < 0.0f) alpha = 0.0f;
+    if (alpha > 1.0f) alpha = 1.0f;
+
+    int i = inst.currentIndex;
+    int j = (i + 1) % m.nPoints;
+
+    outX = lerp(m.X[i], m.X[j], alpha);
+    outY = lerp(m.Y[i], m.Y[j], alpha);
+    outZ = lerp(m.Z[i], m.Z[j], alpha);
+
+    return true;
+}
+
+bool Motion_BAT_Position(MotionInstance& inst,
+                         unsigned long nowMs,
+                         float& outX, float& outY, float& outZ)
+{
+    if (!inst.active || inst.def == nullptr) return false;
+
+    MotionStorage& m = *(inst.def);
+    if (m.nPoints <= 1 || m.period <= 0.0f) return false;
+
+    float dtMs = (m.period * 1000.0f) / (float)m.nPoints;
+
+    if (inst.segmentStartMs == 0) {
+        inst.segmentStartMs = nowMs;
+    }
+
+    unsigned long elapsed = nowMs - inst.segmentStartMs;
+
+    if (elapsed >= dtMs) {
+        inst.currentIndex++;
+        if (inst.currentIndex >= m.nPoints) {
+            inst.currentIndex = 0;
+        }
+        inst.segmentStartMs = nowMs;
+        elapsed = 0;
+    }
+
+    float alpha = (float)elapsed / dtMs;
+    if (alpha < 0.0f) alpha = 0.0f;
+    if (alpha > 1.0f) alpha = 1.0f;
+
+    int i = inst.currentIndex;
+    int j = (i + 1) % m.nPoints;
+
+    outX = lerp(m.X[i], m.X[j], alpha);
+    outY = lerp(m.Y[i], m.Y[j], alpha);
+    outZ = lerp(m.Z[i], m.Z[j], alpha);
+
+    return true;
+}
 
 void setup() {
 
@@ -229,9 +444,7 @@ void setup() {
   ESP32PWM::allocateTimer(2);
   ESP32PWM::allocateTimer(3);
 
-    end_effector.x=0.0;
-    end_effector.y=0.0;
-   end_effector.z=60.1;
+  
 
   Serial.println("Teste MG90S Servo");
   // Configurações específicas para servo MG90S (50Hz, pulsos 500-2400us)
@@ -244,14 +457,30 @@ void setup() {
   mg90s_3.setPeriodHertz(50);      // Frequência PWM 50 Hz
   mg90s_3.attach(SERVO_PIN_3, SERVO_3_MIN, SERVO_3_MAX); 
 
+
+  mg90s_4.setPeriodHertz(50);      // Frequência PWM 50 Hz
+  mg90s_4.attach(SERVO_PIN_4, 500, 2460);  // Servo_4 -> thetta3 //2460
+
+  mg90s_5.setPeriodHertz(50);      // Frequência PWM 50 Hz
+  mg90s_5.attach(SERVO_PIN_5, 500, 2470);  // Servo_5 -> thetta1 ->2490
+
+  mg90s_6.setPeriodHertz(50);      // Frequência PWM 50 Hz
+  mg90s_6.attach(SERVO_PIN_6, 500, 2450);  // Servo_6 -> thetta2 -2450
   delay(1000);
+
   Serial.println("Delta robot kinematics ready");
 
   //----------------Inicialização do movimento de teste-----------------
     initTestMove();
+    initTestMove2();
     initTestInstance();
+    initTestInstance2();
 
     
+    debugPrintMove(Test_move,  "Test_move");
+    debugPrintMove(Test2_move, "Test2_move"); //Função para imprimir o estado atual do Test2_inst (instância do movimento, ou seja, onde está no ciclo, etc.)
+    debugPrintInstance(Test_inst,  "Test_inst");
+    debugPrintInstance(Test2_inst, "Test2_inst");
 
     Serial.println("Setup completo, pronto para correr updateMotion.");
 }
@@ -259,20 +488,16 @@ void setup() {
 
 void loop() {
 
-  float theta1, theta2, theta3;
-    float x, y, z;
-  x = 0.0;    //minimo 0.0
-  y = 0.0;   //minimo 0.0
-  z = 35.0;   //minimo 61.2
+ 
 
-    unsigned long now = millis();
+         //unsigned long now = millis();
     //printf("\n Valor de now = %d", now);
     //debugPrintTestMove();     //Função para imprimir o conteúdo do Test_move (definição do movimento)
     //debugPrintTestInstance(); //Função para imprimir o estado atual do Test_inst (instância do movimento, ou seja, onde está no ciclo, etc.)
     // LED_LOOP();
 
     // Atualizar movimentos ativos
-    updateMotion(Test_inst, now); //Variavel que controla o update do movimento conforme o tempo que tenha passado, a posição atual no movimento, etc.
+         //updateMotion(Test_inst, now); //Variavel que controla o update do movimento conforme o tempo que tenha passado, a posição atual no movimento, etc.
     // updateMotion(respiracaoEsquerdaInst, now);
     // updateMotion(batimentoCardiacoInst, now);
     // updateMotion(tosseInst, now);
@@ -282,75 +507,77 @@ void loop() {
 
 
 
-  //printf("\n dentro do loop"); 
+  
   //LED_LOOP();
   
   //Servo_test();
-  /*
-  bool verification = inverse_kinematics(x, y, z);
-  if(verification == 1){
-    printf("\n Success Inverse Kinematics");
-    printf("\n Angulo do servo 1: %f", servo_1_angle);
-    printf("\n Angulo do servo 2: %f", servo_2_angle);
-    printf("\n Angulo do servo 3: %f", servo_3_angle);
-  }
- if(verification == 0){
-   printf("\n Erro Inverse Kinematics");
-  }
-  move_servos();
-  */
+  
    
 //------------test de cinematica só com inverse_kinematics--------------
  /*
 for (int i = 0; i < 9; i++) {
-    bool verification = inverse_kinematics(X_test[i], Y_test[i], Z_test[i]);
-  if(verification == 1){
-    printf("\n Success Inverse Kinematics");
-    printf("\n Angulo do servo 1: %f", servo_1_angle);
-    printf("\n Angulo do servo 2: %f", servo_2_angle);
-    printf("\n Angulo do servo 3: %f", servo_3_angle);
-  }
-  if(verification == 0){
-    printf("\n Erro Inverse Kinematics");
-  }
+    //bool verification = inverse_kinematics(X_test_calibration[i], Y_test_calibration[i], Z_test_calibration[i], ROTATION_OFFSET_Z_Delta2);
+  //if(verification == 1){
+   // printf("\n Success Inverse Kinematics");
+   // printf("\n Angulo do servo 1: %f", servo_1_angle);
+   // printf("\n Angulo do servo 2: %f", servo_2_angle);
+   // printf("\n Angulo do servo 3: %f", servo_3_angle);
+ // }
+  //if(verification == 0){
+   // printf("\n Erro Inverse Kinematics");
+  //}
+  inverse_kinematics(X_test_calibration[i], Y_test_calibration[i], Z_test_calibration[i], ROTATION_OFFSET_Z_Delta1, servo_1_pulse_count, servo_2_pulse_count, servo_3_pulse_count);
   mg90s_1.writeMicroseconds(servo_1_pulse_count); 
   mg90s_2.writeMicroseconds(servo_2_pulse_count);
   mg90s_3.writeMicroseconds(servo_3_pulse_count);
+  delay(50);
+  inverse_kinematics(X_test_calibration[i], Y_test_calibration[i], Z_test_calibration[i], ROTATION_OFFSET_Z_Delta2, servo_4_pulse_count, servo_5_pulse_count, servo_6_pulse_count);
+  mg90s_4.writeMicroseconds(servo_4_pulse_count); 
+  mg90s_5.writeMicroseconds(servo_5_pulse_count);
+  mg90s_6.writeMicroseconds(servo_6_pulse_count);
   delay(2000);
   }
   */
-/* //Teste de movimento linear e joint (em espera)
-  for(int i = 0; i < 30; i++){
-            joint_move(posX[i], posY[i], posZ[i], step_pulses, step_delay_joint);
-            //linear_move(posX[i], posY[i], posZ[i], step_increment, step_delay_linear );
-            //delay(Step_delay_t[i]);
-            end_effector.x=posX[i];
-            end_effector.y=posY[i];
-            end_effector.z=posZ[i];
-        }
-*/
+    unsigned long now = millis();
 
-/* //--------------old_kinematics-----------------------
-  for (int i = 0; i < 9; i++) {
-  float servoAngle_a = deltakinematic(posX[i], posY[i], posZ[i], 'A');
-  float servoAngle_b = deltakinematic(posX[i], posY[i], posZ[i], 'B');
-  float servoAngle_c = deltakinematic(posX[i], posY[i], posZ[i], 'C');
+    float xr=0, yr=0, zr=0;
+    float xb=0, yb=0, zb=0;
 
-  Serial.print("X = "); Serial.print(posX[i]);
-  Serial.print(" | Y = "); Serial.print(posY[i]);
-  Serial.print(" | Z = "); Serial.println(posZ[i]);
+    // Movimento 1 (respiração)
+    bool okResp = Motion_RESP_Position(Test_inst,  now, xr, yr, zr);
 
-  Serial.print("theta1 = "); Serial.println(servoAngle_a);
-  Serial.print("theta2 = "); Serial.println(servoAngle_b);
-  Serial.print("theta3 = "); Serial.println(servoAngle_c);
+    // Movimento 2 (batimento)
+    bool okBat  = Motion_BAT_Position(Test2_inst, now, xb, yb, zb);
 
-  mg90s_1.write(servoAngle_c);
-  mg90s_2.write(servoAngle_a);
-  mg90s_3.write(servoAngle_b);
+    if (!okResp && !okBat) {
+        return;  // nada válido
+    }
 
-  delay(500);
-  }*/
- //delay(1000);
+    if (!okResp) { xr = yr = zr = 0.0f; }
+    if (!okBat)  { xb = yb = zb = 0.0f; }
+
+    float x_total = xr + xb + 0.0f;
+    float y_total = yr + yb + 0.0f;
+    float z_total = zr + zb + 50.0f;
+
+    printf("\n Total position: (%f, %f, %f)", x_total, y_total, z_total);
+    bool ik1 = inverse_kinematics(delta_1_Cfg, x_total, y_total, z_total);
+    bool ik2 = inverse_kinematics(delta_2_Cfg, -1 * x_total, y_total, z_total);
+
+    if (ik1) {
+        servo_1_pulse_count = delta_1_Cfg.servo1Pulse;
+        servo_2_pulse_count = delta_1_Cfg.servo2Pulse;
+        servo_3_pulse_count = delta_1_Cfg.servo3Pulse;
+    }
+    if (ik2) {
+        servo_4_pulse_count = delta_2_Cfg.servo1Pulse;
+        servo_5_pulse_count = delta_2_Cfg.servo2Pulse;
+        servo_6_pulse_count = delta_2_Cfg.servo3Pulse;
+    }
+
+    if (ik1 || ik2) {
+        move_servos();
+    }
 }
 
 
@@ -365,83 +592,101 @@ float boundFloat(float value, float lower, float upper){
     return value;
 }
 
-void attach_servos(void){
-    mg90s_1.attach(SERVO_PIN_1, SERVO_1_MIN, SERVO_1_MAX); // TODO: set correct min/max values
-    mg90s_2.attach(SERVO_PIN_2, SERVO_2_MIN, SERVO_2_MAX);
-    mg90s_3.attach(SERVO_PIN_1, SERVO_3_MIN, SERVO_3_MAX);
-}
+
+
 
 /*------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
-bool inverse_kinematics_1(float xt, float yt, float zt){
-    //printf("\n x= %f, y=%f, z=%f", xt, yt, zt);
-    zt -= servo_offset_z; //Remove the differance in height from ground level to the centre of rotation of the servos
+void attach_servos(void){ //Serve apenas para definir os valores de PWM maixos e minimos, estes foram calibrados mais em cima no codigo 
+    mg90s_1.attach(SERVO_PIN_1, SERVO_1_MIN, SERVO_1_MAX);
+    mg90s_2.attach(SERVO_PIN_2, SERVO_2_MIN, SERVO_2_MAX);
+    mg90s_3.attach(SERVO_PIN_3, SERVO_3_MIN, SERVO_3_MAX);
+}
+
+bool inverse_kinematics(Manipulador_Config& cfg, float xt, float yt, float zt){    
+    float servo_Theta1_angle; 
+    float servo_Theta2_angle;
+    float servo_Theta3_angle;
+    if(axis_direction == 1){//if axis are inverted
+        xt = -xt;
+        zt = -zt;
+    }
+    
+    bool ok1 = inverse_kinematics_1(xt, yt, zt, cfg.rotationOffsetZ, servo_Theta1_angle);
+    bool ok2 = inverse_kinematics_2(xt, yt, zt, cfg.rotationOffsetZ, servo_Theta2_angle);
+    bool ok3 = inverse_kinematics_3(xt, yt, zt, cfg.rotationOffsetZ, servo_Theta3_angle);
+    
+     if (!(ok1 && ok2 && ok3)) {
+        return false;
+    }
+       
+    cfg.servo1Pulse = round(mapNumber(servo_Theta1_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, cfg.servo1MaxPulse, cfg.servo1MinPulse));
+    cfg.servo2Pulse = round(mapNumber(servo_Theta2_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, cfg.servo2MaxPulse, cfg.servo2MinPulse));
+    cfg.servo3Pulse = round(mapNumber(servo_Theta3_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, cfg.servo3MaxPulse, cfg.servo3MinPulse));
+    
+    return true;
+}
+
+
+bool inverse_kinematics_1(float xt, float yt, float zt, float rotation_offset_Z, float& Servo_angle){
+    zt -= servo_offset_z; 
     float x = xt;
     float y = yt;
-    xt = x * cos(ROTATION_OFFSET_Z) - y * sin(ROTATION_OFFSET_Z);
-    yt = x * sin(ROTATION_OFFSET_Z) + y * cos(ROTATION_OFFSET_Z);
+    xt = x * cos(rotation_offset_Z) - y * sin(rotation_offset_Z);
+    yt = x * sin(rotation_offset_Z) + y * cos(rotation_offset_Z);
 
-    float arm_end_x = xt + L3; //Adding the distance between the end effector centre and ball joints to the target x coordinate
+    float arm_end_x = xt + L3; 
     //printf("\n Arm_end_x= %f", arm_end_x);
-    float l2p = sqrt(pow(L2, 2) - pow(yt, 2)); //The length of link 2 when projected onto the XZ plane
+    float l2p = sqrt(pow(L2, 2) - pow(yt, 2)); 
     //printf("\n l2p= %f", l2p);
     
-    float l2pAngle = asin(yt / L2); //Gives the angle between link2 and the ball joints. (Not actually necessary to calculate the inverse kinematics. Just used to prevent the arms ripping themselves apart.)
-    //printf("\n rad l2pAngle= %f", l2pAngle);
+    float l2pAngle = asin(yt / L2); 
     //printf("\n rad l2pAngle= %f", radsToDeg(l2pAngle));
-    if(!(abs(l2pAngle) < 0.59341194567807205615405486128613f)){ //Prevents the angle between the ball joints and link 2 (L2) going out of range. (Angle was determined by emprical testing.)
+    if(!(abs(l2pAngle) < 0.59341194567807205615405486128613f)){ 
         //printf("ERROR: Ball joint 1 out of range: l2pAngle = %f", radsToDeg(l2pAngle));
         return false;
     }
-//printf("\n zt= %f", zt);
-//printf("\n SERVO_OFFSET_X= %f", SERVO_OFFSET_X);
-//printf("\n arm_end_x= %f", arm_end_x);
-    float ext = sqrt(pow (zt, 2) + pow(SERVO_OFFSET_X - arm_end_x, 2)); //Extension of the arm from the centre of the servo rotation to the end ball joint of link2
-//printf("\n ext= %f", ext);
-//printf("\n l2p - L1= %f", l2p - L1);
-//printf("\n L1 + l2p= %f", L1 + l2p);
-    if(ext <= l2p - L1 || ext >= L1 + l2p){ //Checks the extension in the reachable range (This limit assumes that L2 is greater than L1)
+
+    float ext = sqrt(pow (zt, 2) + pow(SERVO_OFFSET_X - arm_end_x, 2)); 
+    if(ext <= l2p - L1 || ext >= L1 + l2p){ 
        //printf("\n ERROR: Extension 1 out of range: ext = %f", ext);
         return false;
     }
        
-    float phi = acos((pow(L1, 2) + pow(ext, 2) - pow(l2p, 2)) / (2 * L1 * ext)); //Cosine rule that calculates the angle between the ext line and L1
-    float omega = atan2(zt, SERVO_OFFSET_X - arm_end_x); //Calculates the angle between horizontal (X) the ext line with respect to its quadrant
-    float theta = phi + omega; //Theta is the angle between horizontal (X) and L1
+    float phi = acos((pow(L1, 2) + pow(ext, 2) - pow(l2p, 2)) / (2 * L1 * ext)); 
+    float omega = atan2(zt, SERVO_OFFSET_X - arm_end_x); 
+    float theta = phi + omega; 
 
-    if(!(theta >= SERVO_ANGLE_MIN && theta <= SERVO_ANGLE_MAX)){ //Checks the angle is in the reachable range
+    if(!(theta >= SERVO_ANGLE_MIN && theta <= SERVO_ANGLE_MAX)){ 
         //printf("\n ERROR: Servo angle 1 out of range: Angle = %f", radsToDeg(theta));
         return false;
     }
-    //printf("\n servo_1_angle = %f", radsToDeg(theta));
-    servo_1_angle = theta;
+    printf("\n servo_1_angle = %f", radsToDeg(theta));
+    //servo_1_angle = theta;
+    Servo_angle=theta;
     return true;
 }
 
-/*------------------------------------------------------------------------------------------------------------------------------------------------------*/
-
-bool inverse_kinematics_2(float xt, float yt, float zt){
+bool inverse_kinematics_2(float xt, float yt, float zt, float rotation_offset_Z, float& Servo_angle){
     zt -= servo_offset_z;
     float x = xt;
     float y = yt;
-    float angle = 2.0943951023931954923084289221863f + ROTATION_OFFSET_Z; // 120° + offset
+    float angle = 2.0943951023931954923084289221863f + rotation_offset_Z; // 120° + offset
     xt = x * cos(angle) - y * sin(angle);
     yt = x * sin(angle) + y * cos(angle);
-    //xt = x * cos(2.0943951023931954923084289221863f) - y * sin(2.0943951023931954923084289221863f); //Rotate coordinate frame 120 degrees
-    //yt = x * sin(2.0943951023931954923084289221863f) + y * cos(2.0943951023931954923084289221863f);
     
     float arm_end_x = xt + L3;
     float l2p = sqrt(pow(L2, 2) - pow(yt, 2));
     
     float l2pAngle = asin(yt / L2);
-    if(!(abs(l2pAngle) < 0.59341194567807205615405486128613f)){ //Prevents the angle between the ball joints and link 2 (L2) going out of range.
+    if(!(abs(l2pAngle) < 0.59341194567807205615405486128613f)){ 
         //printf("ERROR: Ball joint 2 out of range: l2pAngle = ", radsToDeg(l2pAngle));        
         return false;
     }
     
     float ext = sqrt(pow (zt, 2) + pow(SERVO_OFFSET_X - arm_end_x, 2));
 
-    if(ext <= l2p - L1 || ext >= L1 + l2p){ //This limit assumes that L2 is greater than L1
+    if(ext <= l2p - L1 || ext >= L1 + l2p){ 
         //printf("ERROR: Extension 2 out of range: ext = ", ext);
         return false;
     }
@@ -454,19 +699,18 @@ bool inverse_kinematics_2(float xt, float yt, float zt){
         //printf("ERROR: Servo angle 2 out of range: Angle = ", radsToDeg(theta));
         return false;
     }
-    //printf("\n servo_2_angle = %f", radsToDeg(theta));
-    servo_2_angle = theta;
+    printf("\n servo_2_angle = %f", radsToDeg(theta));
+    //servo_2_angle = theta;
+    Servo_angle=theta;
     return true;
 }
 
-/*------------------------------------------------------------------------------------------------------------------------------------------------------*/
-
-bool inverse_kinematics_3(float xt, float yt, float zt){
+bool inverse_kinematics_3(float xt, float yt, float zt, float rotation_offset_Z, float& Servo_angle){
     zt -= servo_offset_z;
 
     float x = xt;
     float y = yt;
-    float angle = 4.1887902047863909846168578443727f + ROTATION_OFFSET_Z; // 120° + offset
+    float angle = 4.1887902047863909846168578443727f + rotation_offset_Z; // 120° + offset
     xt = x * cos(angle) - y * sin(angle);
     yt = x * sin(angle) + y * cos(angle);
     //xt = x * cos(4.1887902047863909846168578443727f) - y * sin(4.1887902047863909846168578443727f); //Rotate coordinate frame 240 degrees
@@ -496,142 +740,47 @@ bool inverse_kinematics_3(float xt, float yt, float zt){
         //printf("ERROR: Servo angle 3 out of range: Angle = ", radsToDeg(theta));
         return false;
     }
-    //printf("\n servo_3_angle = %f", radsToDeg(theta));
-    servo_3_angle = theta;
+    printf("\n servo_3_angle = %f", radsToDeg(theta));
+    //servo_3_angle = theta;
+    Servo_angle=theta;
     return true;
 }
 
-/*------------------------------------------------------------------------------------------------------------------------------------------------------*/
-
-bool inverse_kinematics(float xt, float yt, float zt){    
-    if(axis_direction == 1){//if axis are inverted
-        xt = -xt;
-        zt = -zt;
-    }
-    
-    if(inverse_kinematics_1(xt, yt, zt) && inverse_kinematics_2(xt, yt, zt) && inverse_kinematics_3(xt, yt, zt)){ //Calculates and checks the positions are valid.
-        if(axis_direction == 1){//if axis are inverted
-            end_effector.x = -xt;
-            end_effector.z = -zt;
-        }
-        else{
-            end_effector.x = xt;
-            end_effector.z = zt;
-        }
-        end_effector.y = yt;
-        
-        servo_1_pulse_count = round(mapNumber(servo_1_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, SERVO_1_MAX, SERVO_1_MIN));
-        servo_2_pulse_count = round(mapNumber(servo_2_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, SERVO_2_MAX, SERVO_2_MIN));
-        servo_3_pulse_count = round(mapNumber(servo_3_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, SERVO_3_MAX, SERVO_3_MIN));
-
-        return true;
-    }
-    return false;
-}
-
-void linear_move(float x1, float y1, float z1, float stepDist, int stepDelay){//interpolates between two points to move in a stright line (beware of physical and kinematic limits)
-    //Sets the initial position variables
-    float x0 = end_effector.x;
-    float y0 = end_effector.y;
-    float z0 = end_effector.z;
-    
-    //Distance change in each axis
-    float xDist = x1 - x0;
-    float yDist = y1 - y0;
-    float zDist = z1 - z0;
-    
-    double totalDist = sqrt(sq(xDist) + sq(yDist) + sq(zDist));//Absolute magnitute of the distance
-    int numberOfSteps = round(totalDist / stepDist);//Number of steps required for the desired step distance
-
-    //Step size of each axis
-    if(numberOfSteps == 0){
-        //printf("ERROR: No change in position: numberOfSteps = ", numberOfSteps);
-        return;
-    }
-    
-    float xStep = xDist / (float)numberOfSteps;
-    float yStep = yDist / (float)numberOfSteps;
-    float zStep = zDist / (float)numberOfSteps;
-
-    //Interpolation variables
-    float xInterpolation;
-    float yInterpolation;
-    float zInterpolation;
-
-    for(int i = 1; i <= numberOfSteps; i++){//Interpolate the points
-        xInterpolation = x0 + i * xStep;
-        yInterpolation = y0 + i * yStep;
-        zInterpolation = z0 + i * zStep;
-
-        inverse_kinematics(xInterpolation, yInterpolation, zInterpolation);//calculates the inverse kinematics for the interpolated values
-        //printf("\n thetta3 Angulo do servo 1: %f", radsToDeg(servo_1_angle));
-    //printf("\n thetta1 Angulo do servo 2: %f", radsToDeg(servo_2_angle));
-    //printf("\n thetta2 Angulo do servo 3: %f", radsToDeg(servo_3_angle));
-        move_servos();
-        delay(stepDelay);
-    }
-}
-
-void joint_move(float xt, float yt, float zt, int stepPulses, int stepDelay){//interpolates between the current and tartget joint pule counts. All joints will reach the target position at the same time.
-    if(stepPulses <= 0) return;//Checks that the step size if valid
-    
-    //Sets variables to store the current pulse counts
-    int servo1PulseCount0 = servo_1_pulse_count;
-    int servo2PulseCount0 = servo_2_pulse_count;
-    int servo3PulseCount0 = servo_3_pulse_count;
-
-    if(inverse_kinematics(xt, yt, zt) == false) return;//Exit the function if the position is out of the workspace
-   
-    //Sets variables to store the differences in pulse counts
-    int servo1PulseDiff = servo_1_pulse_count - servo1PulseCount0;
-    int servo2PulseDiff = servo_2_pulse_count - servo2PulseCount0;
-    int servo3PulseDiff = servo_3_pulse_count - servo3PulseCount0;
-    
-    int maxDiff;
-
-    //Gets the biggest difference in pulse count
-    if(abs(servo1PulseDiff) >= abs(servo2PulseDiff) && abs(servo1PulseDiff) >= abs(servo3PulseDiff)){
-        maxDiff = abs(servo1PulseDiff);
-    }
-    else if(abs(servo2PulseDiff) >= abs(servo1PulseDiff) && abs(servo2PulseDiff) >= abs(servo3PulseDiff)){
-        maxDiff = abs(servo2PulseDiff);
-    }
-    else if(abs(servo3PulseDiff) >= abs(servo1PulseDiff) && abs(servo3PulseDiff) >= abs(servo2PulseDiff)){
-        maxDiff = abs(servo3PulseDiff);
-    }
-    else{
-//        printi("ERROR: No difference in pulse counts. ");
-        return;
-    }
-
-    float servo1Step = (float)servo1PulseDiff / (float)maxDiff;
-    float servo2Step = (float)servo2PulseDiff / (float)maxDiff;
-    float servo3Step = (float)servo3PulseDiff / (float)maxDiff;
-
-    for(int i = 1; i <= maxDiff; i += stepPulses){
-        servo_1_pulse_count = round(servo1PulseCount0 + i * servo1Step);
-        servo_2_pulse_count = round(servo2PulseCount0 + i * servo2Step);
-        servo_3_pulse_count = round(servo3PulseCount0 + i * servo3Step);
-        move_servos();
-        if(stepDelay > 0) delay(stepDelay);//If there is a delay then delay
-    }
-
-    //Sets the correct final position
-    servo_1_pulse_count = servo1PulseCount0 + servo1PulseDiff;
-    servo_2_pulse_count = servo2PulseCount0 + servo2PulseDiff;
-    servo_3_pulse_count = servo3PulseCount0 + servo3PulseDiff;
-    move_servos();
-    delay(stepDelay);
-}
-
+ //Funçaõ simples para atualizar o valor de PWM dos servos.
 void move_servos(void){
     mg90s_1.writeMicroseconds(servo_1_pulse_count);
     mg90s_2.writeMicroseconds(servo_2_pulse_count);
     mg90s_3.writeMicroseconds(servo_3_pulse_count);
 
+    mg90s_4.writeMicroseconds(servo_4_pulse_count);
+    mg90s_5.writeMicroseconds(servo_5_pulse_count);
+    mg90s_6.writeMicroseconds(servo_6_pulse_count);
 }
 
+/*
+void move_servos(void){ //Função V1 de atualização do PWM dos Servos com um filtro de suavização
+    // primeira vez, inicia suavizados nos atuais
+    static bool initialized = false;
+    if (!initialized) {
+        servo_1_pulse_smooth = servo_1_pulse_count;
+        servo_2_pulse_smooth = servo_2_pulse_count;
+        servo_3_pulse_smooth = servo_3_pulse_count;
+        initialized = true;
+    }
 
+    // filtro exponencial simples (low-pass) //basicamente faz uma pequena media das ultimas posições para suavizar o movimento, 
+    servo_1_pulse_smooth = servo_1_pulse_smooth
+                           + SERVO_SMOOTH_ALPHA * (servo_1_pulse_count - servo_1_pulse_smooth);
+    servo_2_pulse_smooth = servo_2_pulse_smooth
+                           + SERVO_SMOOTH_ALPHA * (servo_2_pulse_count - servo_2_pulse_smooth);
+    servo_3_pulse_smooth = servo_3_pulse_smooth
+                           + SERVO_SMOOTH_ALPHA * (servo_3_pulse_count - servo_3_pulse_smooth);
+
+    mg90s_1.writeMicroseconds(servo_1_pulse_smooth);
+    mg90s_2.writeMicroseconds(servo_2_pulse_smooth);
+    mg90s_3.writeMicroseconds(servo_3_pulse_smooth);
+}
+*/
 //-----------------Funções_Uteis_no_Dia_a_Dia------------
 double mapNumber(double x, double in_min, double in_max, double out_min, double out_max) {//Remaps a number to a given range
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -650,86 +799,246 @@ double degToRads(double deg) {
 }
 //------------------------------------------------------
 
+float lerp(float a, float b, float t) { //Interpolação linear entre dois pontos a e b com t em [0,1] -> de momento não está a ser utilizada
+    return a + t * (b - a);
+}
 
+
+float spline3(float p0, float p1, float p2, float t) { //Interpolação entre 3 pontos
+    // t em [0,1]
+
+    // calculo datangente aproximada com Pi, pi+1 e Pi+2 (basicamente vê os valores futuros e prepara uma linha tangente que passe o mais perto e suavemente de Pi+1)
+    float m1 = 0.35f * (p2 - p0);
+
+    float t2 = t * t; //t^2
+    float t3 = t2 * t; //t^3
+
+    // funções base (heurísticas simples)
+    float h0 = 2.0f * t3 - 3.0f * t2 + 1.0f; // peso de p0
+    float h1 = -2.0f * t3 + 3.0f * t2;       // peso de p1
+    float h2 = t3 - t2;                      // peso da tangente m1
+
+    float value = h0 * p0 + h1 * p1 + h2 * m1;
+    return value;
+}
+
+/*
 //-----------------Função de controlo de movimento em função do tempo------------------
-void updateMotion(MotionInstance& inst, unsigned long nowMs) {
+void updateMotion(MotionInstance& inst, unsigned long nowMs) { //V1 -> versão original
     if (!inst.active || inst.def == nullptr) return; //Verifica se a instância está ativa e se tem uma definição de movimento associada
 
-    MotionStorage& m = *(inst.def); //Cria uma referência para a definição do movimento para facilitar o acesso aos seus dados e a leitura do utilizador
+    MotionStorage& m = *(inst.def);//Cria uma referência para a definição do movimento para facilitar o acesso aos seus dados e a leitura do utilizador
 
     if (m.nPoints <= 0 || m.period <= 0.0f) return; //Verifica se o movimento tem um número válido de pontos e um período positivo. Se não tiver, não faz nada.
 
-    // tempo por ponto (ms) = período total / nº de pontos
     float dtMs = (m.period * 1000.0f) / (float)m.nPoints; //Calcula o tempo que deve passar entre cada ponto do movimento, (em milissegundos). 
                                                           //   -> O período é dividido pelo número de pontos para obter o tempo por ponto.
 
-    // inicializar segmentStartMs na primeira chamada, para o valor atual de millis()
-    if (inst.segmentStartMs == 0) {
-        inst.segmentStartMs = nowMs;
+    if (nowMs - inst.lastStepMs < dtMs) {
+        return; // ainda não é tempo de avançar
     }
 
-    // quanto tempo passou desde o início do segmento atual
-    unsigned long elapsed = nowMs - inst.segmentStartMs;  //verfica o a variação de tempo desde o inicio do segmento
+    //inst.lastStepMs = nowMs;
+    // Em vez de inst.lastStepMs = nowMs;
+    inst.lastStepMs += (unsigned long)dtMs; //Atualiza a última vez que avançou para o próximo ponto, somando o tempo por ponto ao último tempo registrado. 
+                                    //    -> Isso ajuda a manter um ritmo constante mesmo que haja atrasos ou variações no loop, evitando que o movimento acelere ou desacelere devido a atrasos.
 
-    // Se a variação de tempo passado for igual ou superior do DtMs, avança para o próximo ponto
-    if (elapsed >= dtMs) {
-        inst.currentIndex++;
-        if (inst.currentIndex >= m.nPoints) { // caso tenha sido atinjido o final do ciclo, volta ao inicio
-            inst.currentIndex = 0;
-        }
-        inst.segmentStartMs = nowMs; // reset do temporizador
-        elapsed = 0;
+    inst.currentIndex++; //Avança para o próximo ponto do movimento, incrementando o índice atual.
+    if (inst.currentIndex >= m.nPoints) { //Caso seja atinjido o final do ciclo, volta ao inicio 
+        inst.currentIndex = 0;
     }
 
-    // copia o endereço para os arrays de pontos 
-    int i = inst.currentIndex;
+    int i = inst.currentIndex; 
 
     float x = m.X[i];
     float y = m.Y[i];
     float z = m.Z[i];
 
-    bool ok = inverse_kinematics(x, y, z); // é acionado a função inverse kinematics para calcular os ângulos dos servos necessários para alcançar a posição (x, y, z) do ponto atual. 
-    if (ok) {
-        move_servos();  //Se a cinemática inversa for bem-sucedida, os servos são movidos para as posições calculadas.
+    // é acionado a função inverse kinematics para calcular os ângulos dos servos necessários para alcançar a posição (x, y, z) do ponto atual. 
+    bool ok1 = inverse_kinematics(x, y, z, ROTATION_OFFSET_Z_Delta1, servo_1_pulse_count, servo_2_pulse_count, servo_3_pulse_count);
+    bool ok2 = inverse_kinematics(-1*x, y, z, ROTATION_OFFSET_Z_Delta2, servo_4_pulse_count, servo_5_pulse_count, servo_6_pulse_count);
+    if (ok1 || ok2 ) { //|| ok2
+        move_servos(); //Se a cinemática inversa for bem-sucedida, os servos são movidos para as posições calculadas.
+    }
+}
+    */
+
+void updateMotion(MotionInstance& inst, unsigned long nowMs) { //V2 -> versão com interpolação linear entre os pontos (função Easing)
+    if (!inst.active || inst.def == nullptr) return;
+
+    MotionStorage& m = *(inst.def);
+    if (m.nPoints <= 1 || m.period <= 0.0f) return;
+
+    // tempo total por segmento (i -> i+1)
+    float dtMs = (m.period * 1000.0f) / (float)m.nPoints;
+
+    // inicializar segmentStartMs na primeira chamada
+    if (inst.segmentStartMs == 0) {
+        inst.segmentStartMs = nowMs;
+    }
+
+    // quanto tempo passou desde o início do segmento atual
+    unsigned long elapsed = nowMs - inst.segmentStartMs;
+
+    // se passou do dt, avançar para o próximo segmento
+    if (elapsed >= dtMs) {
+        // avançar índice
+        inst.currentIndex++;
+        if (inst.currentIndex >= m.nPoints) {
+            inst.currentIndex = 0;
+        }
+        // reiniciar segmento
+        inst.segmentStartMs = nowMs;
+        elapsed = 0;
+    }
+
+    // calcular alpha [0,1] dentro do segmento atual
+    float alpha = (float)elapsed / dtMs;
+    if (alpha < 0.0f) alpha = 0.0f;
+    if (alpha > 1.0f) alpha = 1.0f;
+
+    // escolher modo de easing aqui
+    //   "C" -> sinusoidal
+    //   "L" -> linear
+    //   "Q" -> quadratica
+    //   "A" -> Ease-out (arranca rápido, abranda no fim)
+    //   "S" -> Cubic ease-in-out mais agressivo (S mais vincado)
+    char easingMode = 'A';  // 'L', 'C', 'Q', 'A', 'S'
+    
+    // aplicar easing global
+    float a = applyEasing(alpha, easingMode);
+
+    int i  = inst.currentIndex;
+    int j  = (i + 1) % m.nPoints; // próximo ponto (ciclo)
+
+    // interpolação suave entre ponto i e ponto j
+    float x = lerp(m.X[i], m.X[j], a);
+    float y = lerp(m.Y[i], m.Y[j], a);
+    float z = lerp(m.Z[i], m.Z[j], a);
+
+bool ok1 = inverse_kinematics(delta_1_Cfg, x, y, z);
+bool ok2 = inverse_kinematics(delta_2_Cfg, -1*x, y, z);
+
+// copiar para as variáveis globais que o move_servos usa
+if (ok1) {
+    servo_1_pulse_count = delta_1_Cfg.servo1Pulse;
+    servo_2_pulse_count = delta_1_Cfg.servo2Pulse;
+    servo_3_pulse_count = delta_1_Cfg.servo3Pulse;
+}
+
+if (ok2) {
+    servo_4_pulse_count = delta_2_Cfg.servo1Pulse;
+    servo_5_pulse_count = delta_2_Cfg.servo2Pulse;
+    servo_6_pulse_count = delta_2_Cfg.servo3Pulse;
+}
+
+if (ok1 || ok2) {
+    move_servos();
+}
+}
+
+/*
+void updateMotion(MotionInstance& inst, unsigned long nowMs) { //V3 -> versão com interpolação por spline cúbica entre os pontos (função Spline)
+    if (!inst.active || inst.def == nullptr) return; //Verifica se a instância está ativa e se tem uma definição de movimento associada
+
+    MotionStorage& m = *(inst.def); //Cria uma referência para a definição do movimento para facilitar o acesso aos seus dados e a leitura do utilizador
+    if (m.nPoints <= 2 || m.period <= 0.0f) return;  //Verifica se o ciclo tem um número válido de pontos (pelo menos 3) e um período positivo. Se não tiver, sai da função
+
+    
+    float dtMs = (m.period * 1000.0f) / (float)m.nPoints; //Calcula o tempo que deve passar entre cada ponto do movimento (i -> i+1), (em milissegundos). 
+                                                          //   -> O período é dividido pelo número de pontos para obter o tempo por ponto.
+
+    // inicializar segmentStartMs na primeira chamada, para o valor atual de millis() 
+    if (inst.segmentStartMs == 0) {
+        inst.segmentStartMs = nowMs;
+    }
+
+    // quanto tempo passou desde o início do segmento atual
+    unsigned long elapsed = nowMs - inst.segmentStartMs;
+
+    // se passou do dt, avançar para o próximo segmento
+    if (elapsed >= dtMs) { //Se já tiver passado o tempo dt avança para o proximo segmento 
+        inst.currentIndex++;
+        if (inst.currentIndex >= m.nPoints) { //caso tenha chegado ao final do ciclo, volta ao inicio
+            inst.currentIndex = 0;
+        }
+        inst.segmentStartMs = nowMs; //dá reset ao temporizador interno 
+        elapsed = 0; 
+    }
+
+    // calcular alpha [0,1] dentro do segmento atual
+    float alpha = (float)elapsed / dtMs; //basicamente isto calcula um valor interno entre 0 e 1 (entre Pi e Pi+1) que será utilizando para  calcula a interpolação no spline
+    if (alpha < 0.0f) alpha = 0.0f;
+    if (alpha > 1.0f) alpha = 1.0f;
+
+  
+    float a = alpha; //pode ser utilizado no Easing ou no spline
+    // Caso seja utilizado o easing novamente:
+    // char easingMode = 'C'; // 'L','C','Q','A','S'
+    // float a = applyEasing(alpha, easingMode);
+
+    // índices dos 3 pontos: Pi, Pi+1, Pi+2 (com wrap circular)
+    int i0 = inst.currentIndex;                      // Pi
+    int i1 = (inst.currentIndex + 1) % m.nPoints;    // Pi+1
+    int i2 = (inst.currentIndex + 2) % m.nPoints;    // Pi+2
+
+    // calculo do spline por eixo
+    float x = spline3(m.X[i0], m.X[i1], m.X[i2], a);
+    float y = spline3(m.Y[i0], m.Y[i1], m.Y[i2], a);
+    float z = spline3(m.Z[i0], m.Z[i1], m.Z[i2], a);
+
+    bool ok1 = inverse_kinematics(x, y, z, ROTATION_OFFSET_Z_Delta1, servo_1_pulse_count, servo_2_pulse_count, servo_3_pulse_count);
+    bool ok2 = inverse_kinematics(-1*x, y, z, ROTATION_OFFSET_Z_Delta2, servo_4_pulse_count, servo_5_pulse_count, servo_6_pulse_count);
+    if (ok1 || ok2 ) { //|| ok2
+        move_servos();
     }
 }
 
+*/
+void debugPrintMove(const MotionStorage& move, const char* name) {
+    Serial.print("=== ");
+    Serial.print(name);
+    Serial.println(" contents ===");
 
-void debugPrintTestMove() {
-    Serial.println("=== Test_move contents ===");
     Serial.print("nPoints: ");
-    Serial.println(Test_move.nPoints);
+    Serial.println(move.nPoints);
     Serial.print("period (sec): ");
-    Serial.println(Test_move.period);
+    Serial.println(move.period);
 
-    for (int i = 0; i < Test_move.nPoints; i++) {
+    for (int i = 0; i < move.nPoints; i++) {
         Serial.print("i=");
         Serial.print(i);
         Serial.print("  X=");
-        Serial.print(Test_move.X[i]);
+        Serial.print(move.X[i]);
         Serial.print("  Y=");
-        Serial.print(Test_move.Y[i]);
+        Serial.print(move.Y[i]);
         Serial.print("  Z=");
-        Serial.print(Test_move.Z[i]);
+        Serial.print(move.Z[i]);
         Serial.print("  easing=");
-        Serial.println(Test_move.easing[i]);
+        Serial.println(move.easing[i]);
     }
 }
 
 
-void debugPrintTestInstance() {
-    Serial.println("=== Test_inst state ===");
+void debugPrintInstance(const MotionInstance& inst, const char* name) {
+    Serial.print("=== ");
+    Serial.print(name);
+    Serial.println(" state ===");
+
     Serial.print("active: ");
-    Serial.println(Test_inst.active ? "true" : "false");
+    Serial.println(inst.active ? "true" : "false");
 
     Serial.print("currentIndex: ");
-    Serial.println(Test_inst.currentIndex);
+    Serial.println(inst.currentIndex);
 
     Serial.print("lastStepMs: ");
-    Serial.println(Test_inst.lastStepMs);
+    Serial.println(inst.lastStepMs);
+
+    Serial.print("segmentStartMs: ");
+    Serial.println(inst.segmentStartMs);
 
     Serial.print("def pointer: ");
-    Serial.println((uintptr_t)Test_inst.def, HEX); // endereço em hex
+    Serial.println((uintptr_t)inst.def, HEX);
 }
 
 void LED_LOOP(){
@@ -857,3 +1166,46 @@ void Servo_test(){
   }
 }
 
+
+// easing do arranque do servo motor: //de momento não está a ser utilizada. É algo parecido ao funcionamento de ramp.h ou Easing_servo.h
+float applyEasing(float alpha, char mode) {
+ 
+//   "C" -> sinusoidal
+//   "L" -> linear
+//   "Q" -> quadratica
+//   "A" -> Ease-out (arranca rápido, abranda no fim)
+//   "S" -> Cubic ease-in-out mais agressivo (S mais vincado)
+
+    // clamp
+    if (alpha < 0.0f) alpha = 0.0f;
+    if (alpha > 1.0f) alpha = 1.0f;
+
+    switch (mode) {
+        case 'L':  // Linear
+            return alpha;
+
+        case 'C':  // Sinusoidal ease-in-out
+            // começa devagar, acelera a meio, abranda no fim
+            return 0.5f - 0.5f * cosf(pi * alpha);
+
+        case 'Q':  // Quadrática ease-in (arranca devagar, acelera)
+            return alpha * alpha;
+
+        case 'A':  // Quadrática ease-out (arranca rápido, abranda)
+            return 1.0f - (1.0f - alpha) * (1.0f - alpha);
+
+        case 'S':  // Cubic ease-in-out mais agressivo (S mais vincado)
+            if (alpha < 0.5f) {
+                // primeira metade
+                return 4.0f * alpha * alpha * alpha;
+            } else {
+                // segunda metade
+                float t = 2.0f * alpha - 2.0f;
+                return 0.5f * t * t * t + 1.0f;
+            }
+
+        default:   // fallback: comporta-se como linear
+            return alpha;
+    }
+}
+//------------------------------------------------------
