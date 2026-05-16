@@ -488,56 +488,14 @@ void setup() {
 
 void loop() {
 
- 
-
-         //unsigned long now = millis();
-    //printf("\n Valor de now = %d", now);
-    //debugPrintTestMove();     //Função para imprimir o conteúdo do Test_move (definição do movimento)
-    //debugPrintTestInstance(); //Função para imprimir o estado atual do Test_inst (instância do movimento, ou seja, onde está no ciclo, etc.)
-    // LED_LOOP();
 
     // Atualizar movimentos ativos
          //updateMotion(Test_inst, now); //Variavel que controla o update do movimento conforme o tempo que tenha passado, a posição atual no movimento, etc.
-    // updateMotion(respiracaoEsquerdaInst, now);
-    // updateMotion(batimentoCardiacoInst, now);
-    // updateMotion(tosseInst, now);
 
-    // Aqui no futuro: leitura de comandos do Pi, etc.
-
-
-
-
-  
   //LED_LOOP();
   
   //Servo_test();
   
-   
-//------------test de cinematica só com inverse_kinematics--------------
- /*
-for (int i = 0; i < 9; i++) {
-    //bool verification = inverse_kinematics(X_test_calibration[i], Y_test_calibration[i], Z_test_calibration[i], ROTATION_OFFSET_Z_Delta2);
-  //if(verification == 1){
-   // printf("\n Success Inverse Kinematics");
-   // printf("\n Angulo do servo 1: %f", servo_1_angle);
-   // printf("\n Angulo do servo 2: %f", servo_2_angle);
-   // printf("\n Angulo do servo 3: %f", servo_3_angle);
- // }
-  //if(verification == 0){
-   // printf("\n Erro Inverse Kinematics");
-  //}
-  inverse_kinematics(X_test_calibration[i], Y_test_calibration[i], Z_test_calibration[i], ROTATION_OFFSET_Z_Delta1, servo_1_pulse_count, servo_2_pulse_count, servo_3_pulse_count);
-  mg90s_1.writeMicroseconds(servo_1_pulse_count); 
-  mg90s_2.writeMicroseconds(servo_2_pulse_count);
-  mg90s_3.writeMicroseconds(servo_3_pulse_count);
-  delay(50);
-  inverse_kinematics(X_test_calibration[i], Y_test_calibration[i], Z_test_calibration[i], ROTATION_OFFSET_Z_Delta2, servo_4_pulse_count, servo_5_pulse_count, servo_6_pulse_count);
-  mg90s_4.writeMicroseconds(servo_4_pulse_count); 
-  mg90s_5.writeMicroseconds(servo_5_pulse_count);
-  mg90s_6.writeMicroseconds(servo_6_pulse_count);
-  delay(2000);
-  }
-  */
     unsigned long now = millis();
 
     float xr=0, yr=0, zr=0;
@@ -597,11 +555,6 @@ float boundFloat(float value, float lower, float upper){
 
 /*------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
-void attach_servos(void){ //Serve apenas para definir os valores de PWM maixos e minimos, estes foram calibrados mais em cima no codigo 
-    mg90s_1.attach(SERVO_PIN_1, SERVO_1_MIN, SERVO_1_MAX);
-    mg90s_2.attach(SERVO_PIN_2, SERVO_2_MIN, SERVO_2_MAX);
-    mg90s_3.attach(SERVO_PIN_3, SERVO_3_MIN, SERVO_3_MAX);
-}
 
 bool inverse_kinematics(Manipulador_Config& cfg, float xt, float yt, float zt){    
     float servo_Theta1_angle; 
@@ -822,46 +775,7 @@ float spline3(float p0, float p1, float p2, float t) { //Interpolação entre 3 
     return value;
 }
 
-/*
-//-----------------Função de controlo de movimento em função do tempo------------------
-void updateMotion(MotionInstance& inst, unsigned long nowMs) { //V1 -> versão original
-    if (!inst.active || inst.def == nullptr) return; //Verifica se a instância está ativa e se tem uma definição de movimento associada
 
-    MotionStorage& m = *(inst.def);//Cria uma referência para a definição do movimento para facilitar o acesso aos seus dados e a leitura do utilizador
-
-    if (m.nPoints <= 0 || m.period <= 0.0f) return; //Verifica se o movimento tem um número válido de pontos e um período positivo. Se não tiver, não faz nada.
-
-    float dtMs = (m.period * 1000.0f) / (float)m.nPoints; //Calcula o tempo que deve passar entre cada ponto do movimento, (em milissegundos). 
-                                                          //   -> O período é dividido pelo número de pontos para obter o tempo por ponto.
-
-    if (nowMs - inst.lastStepMs < dtMs) {
-        return; // ainda não é tempo de avançar
-    }
-
-    //inst.lastStepMs = nowMs;
-    // Em vez de inst.lastStepMs = nowMs;
-    inst.lastStepMs += (unsigned long)dtMs; //Atualiza a última vez que avançou para o próximo ponto, somando o tempo por ponto ao último tempo registrado. 
-                                    //    -> Isso ajuda a manter um ritmo constante mesmo que haja atrasos ou variações no loop, evitando que o movimento acelere ou desacelere devido a atrasos.
-
-    inst.currentIndex++; //Avança para o próximo ponto do movimento, incrementando o índice atual.
-    if (inst.currentIndex >= m.nPoints) { //Caso seja atinjido o final do ciclo, volta ao inicio 
-        inst.currentIndex = 0;
-    }
-
-    int i = inst.currentIndex; 
-
-    float x = m.X[i];
-    float y = m.Y[i];
-    float z = m.Z[i];
-
-    // é acionado a função inverse kinematics para calcular os ângulos dos servos necessários para alcançar a posição (x, y, z) do ponto atual. 
-    bool ok1 = inverse_kinematics(x, y, z, ROTATION_OFFSET_Z_Delta1, servo_1_pulse_count, servo_2_pulse_count, servo_3_pulse_count);
-    bool ok2 = inverse_kinematics(-1*x, y, z, ROTATION_OFFSET_Z_Delta2, servo_4_pulse_count, servo_5_pulse_count, servo_6_pulse_count);
-    if (ok1 || ok2 ) { //|| ok2
-        move_servos(); //Se a cinemática inversa for bem-sucedida, os servos são movidos para as posições calculadas.
-    }
-}
-    */
 
 void updateMotion(MotionInstance& inst, unsigned long nowMs) { //V2 -> versão com interpolação linear entre os pontos (função Easing)
     if (!inst.active || inst.def == nullptr) return;
