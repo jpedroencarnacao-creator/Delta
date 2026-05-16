@@ -98,13 +98,13 @@ float Z_test[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8
 
 int Step_delay_t[] = {0, 0,  0,  0,   0,   0,    0,    0,  0};
 const int N_test = 28;
-float T_period = 1.0f; //Duration of the cycle in seconds (for now, not used for anything)
+float T_period = 0.50f; //Duration of the cycle in seconds (for now, not used for anything)
 
 float X_test2[] = {15.607,  14.923,  13.995,  12.845,  11.503, 10.000,  6.665,  1.464,  -2.965,  -5.000, -5.659, -6.056, -6.180, -6.029, -5.607, -4.923, -3.995, -2.845, -1.503,  0.000,   3.335,  8.536,  12.965,  15.000, 15.659, 16.056, 16.180, 16.029};
 float Y_test2[] = {  0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,    0.0};
 float Z_test2[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8.536,   3.335,   0.000, -1.503, -2.845, -3.995, -4.923, -5.607, -6.029, -6.180, -6.056, -5.659, -5.000,  -2.965,  1.464,   6.665,  10.000, 11.503, 12.845, 13.995, 14.923};
 const int N_test2 = 28;
-float T_period2 = 4.5f; //Duration of the cycle in seconds (for now, not used for anything)
+float T_period2 = 6.5f; //Duration of the cycle in seconds (for now, not used for anything)
 
 //Link lengths (mm)
 #define L1 35
@@ -195,6 +195,9 @@ struct MotionInstance {
 
 // ------------------Temporario---------------------------------
 MotionStorage Test_move; //Declaração de objetos para utilizar com as structures de movimento
+MotionInstance Test_inst;
+MotionStorage Test2_move; //Declaração de objetos para utilizar com as structures de movimento
+MotionInstance Test2_inst;
 
 void initTestMove() { //Serve para copiar os valores definidos mais acima para o objeto Test_move, que é do tipo MotionStorage. 
                         // ->    Isto é só para facilitar a criação de movimentos de teste, ou seja, para não ter que copiar os valores manualmente para o Test_move cada vez que quiseres testar algo.
@@ -205,14 +208,25 @@ void initTestMove() { //Serve para copiar os valores definidos mais acima para o
     for (int i = 0; i < N_test; i++) {
         Test_move.X[i] = X_test[i];
         Test_move.Y[i] = -1 * Y_test[i];
-        Test_move.Z[i] = 65 + Z_test[i];
+        Test_move.Z[i] = Z_test[i];
         Test_move.easing[i] = 0;
     }
 }
 
+void initTestMove2() { //Serve para copiar os valores definidos mais acima para o objeto Test2_move, que é do tipo MotionStorage. 
+                        // ->    Isto é só para facilitar a criação de movimentos de teste, ou seja, para não ter que copiar os valores manualmente para o Test2_move cada vez que quiseres testar algo.
+                        // ->    No futuro será utilizado para copiar os movimentos pré definidos da EPPROM ou do PI
+    Test2_move.nPoints = N_test2;
+    Test2_move.period  = T_period2;
 
-MotionInstance Test_inst;
-
+    for (int i = 0; i < N_test2; i++) {
+        Test2_move.X[i] = X_test2[i];
+        Test2_move.Y[i] = -1 * Y_test2[i];
+        Test2_move.Z[i] = Z_test2[i];
+        Test2_move.easing[i] = 0;
+    }
+}
+    
 void initTestInstance() { //Serve para arrancar a structure de temporaria de runtime
     Test_inst.def           = &Test_move;
     Test_inst.currentIndex  = 0;
@@ -220,6 +234,16 @@ void initTestInstance() { //Serve para arrancar a structure de temporaria de run
     Test_inst.segmentStartMs = 0; //millis(); // ou 0, e tratamos no update
     Test_inst.active        = true;
 }
+
+void initTestInstance2() { //Serve para arrancar a structure de temporaria de runtime
+    Test2_inst.def           = &Test2_move;
+    Test2_inst.currentIndex  = 0;
+    Test2_inst.lastStepMs    = 0;
+    Test2_inst.segmentStartMs = 0; //millis(); // ou 0, e tratamos no update
+    Test2_inst.active        = true;
+}
+
+
 
 //-------------------Fim Temporario---------------------------------
 
@@ -259,8 +283,8 @@ int roundMapNumber(double x, double in_min, double in_max, double out_min, doubl
 double degToRads(double deg);
 double radsToDeg(double rads);
 void updateMotion(MotionInstance& inst, unsigned long nowMs);
-void debugPrintTestMove();
-void debugPrintTestInstance();
+void debugPrintMove(const MotionStorage& move, const char* name);
+void debugPrintInstance(const MotionInstance& inst, const char* name);
 float lerp(float a, float b, float t);
 float applyEasing(float alpha, char mode);
 float spline3(float p0, float p1, float p2, float t);
@@ -321,7 +345,89 @@ float servo_offset_z = SERVO_OFFSET_Z;
 bool stepDirection = false;
 Adafruit_NeoPixel pixel(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
+bool Motion_RESP_Position(MotionInstance& inst,
+                          unsigned long nowMs,
+                          float& outX, float& outY, float& outZ)
+{
+    if (!inst.active || inst.def == nullptr) return false;
 
+    MotionStorage& m = *(inst.def);
+    if (m.nPoints <= 1 || m.period <= 0.0f) return false;
+
+    float dtMs = (m.period * 1000.0f) / (float)m.nPoints;
+
+    if (inst.segmentStartMs == 0) {
+        inst.segmentStartMs = nowMs;
+    }
+
+    unsigned long elapsed = nowMs - inst.segmentStartMs;
+
+    if (elapsed >= dtMs) {
+        inst.currentIndex++;
+        if (inst.currentIndex >= m.nPoints) {
+            inst.currentIndex = 0;
+        }
+        inst.segmentStartMs = nowMs;
+        elapsed = 0;
+    }
+
+    // aqui podes escolher:
+    // A) usar só o ponto i (sem interpolação)
+    // B) interpolar linearmente dentro do segmento
+
+    float alpha = (float)elapsed / dtMs;
+    if (alpha < 0.0f) alpha = 0.0f;
+    if (alpha > 1.0f) alpha = 1.0f;
+
+    int i = inst.currentIndex;
+    int j = (i + 1) % m.nPoints;
+
+    outX = lerp(m.X[i], m.X[j], alpha);
+    outY = lerp(m.Y[i], m.Y[j], alpha);
+    outZ = lerp(m.Z[i], m.Z[j], alpha);
+
+    return true;
+}
+
+bool Motion_BAT_Position(MotionInstance& inst,
+                         unsigned long nowMs,
+                         float& outX, float& outY, float& outZ)
+{
+    if (!inst.active || inst.def == nullptr) return false;
+
+    MotionStorage& m = *(inst.def);
+    if (m.nPoints <= 1 || m.period <= 0.0f) return false;
+
+    float dtMs = (m.period * 1000.0f) / (float)m.nPoints;
+
+    if (inst.segmentStartMs == 0) {
+        inst.segmentStartMs = nowMs;
+    }
+
+    unsigned long elapsed = nowMs - inst.segmentStartMs;
+
+    if (elapsed >= dtMs) {
+        inst.currentIndex++;
+        if (inst.currentIndex >= m.nPoints) {
+            inst.currentIndex = 0;
+        }
+        inst.segmentStartMs = nowMs;
+        elapsed = 0;
+    }
+
+    float alpha = (float)elapsed / dtMs;
+    if (alpha < 0.0f) alpha = 0.0f;
+    if (alpha > 1.0f) alpha = 1.0f;
+
+    int i = inst.currentIndex;
+    int j = (i + 1) % m.nPoints;
+
+    outX = lerp(m.X[i], m.X[j], alpha);
+    outY = lerp(m.Y[i], m.Y[j], alpha);
+    outZ = lerp(m.Z[i], m.Z[j], alpha);
+
+    return true;
+}
 
 void setup() {
 
@@ -366,11 +472,15 @@ void setup() {
 
   //----------------Inicialização do movimento de teste-----------------
     initTestMove();
+    initTestMove2();
     initTestInstance();
+    initTestInstance2();
 
-    debugPrintTestMove();     //Função para imprimir o conteúdo do Test_move (definição do movimento)
-    debugPrintTestInstance(); //Função para imprimir o estado atual do Test_inst (instância do movimento, ou seja, onde está no ciclo, etc.)
     
+    debugPrintMove(Test_move,  "Test_move");
+    debugPrintMove(Test2_move, "Test2_move"); //Função para imprimir o estado atual do Test2_inst (instância do movimento, ou seja, onde está no ciclo, etc.)
+    debugPrintInstance(Test_inst,  "Test_inst");
+    debugPrintInstance(Test2_inst, "Test2_inst");
 
     Serial.println("Setup completo, pronto para correr updateMotion.");
 }
@@ -378,20 +488,16 @@ void setup() {
 
 void loop() {
 
-  float theta1, theta2, theta3;
-    float x, y, z;
-  x = 0.0;    //minimo 0.0
-  y = 0.0;   //minimo 0.0
-  z = 35.0;   //minimo 61.2
+ 
 
-    unsigned long now = millis();
+         //unsigned long now = millis();
     //printf("\n Valor de now = %d", now);
     //debugPrintTestMove();     //Função para imprimir o conteúdo do Test_move (definição do movimento)
     //debugPrintTestInstance(); //Função para imprimir o estado atual do Test_inst (instância do movimento, ou seja, onde está no ciclo, etc.)
     // LED_LOOP();
 
     // Atualizar movimentos ativos
-    updateMotion(Test_inst, now); //Variavel que controla o update do movimento conforme o tempo que tenha passado, a posição atual no movimento, etc.
+         //updateMotion(Test_inst, now); //Variavel que controla o update do movimento conforme o tempo que tenha passado, a posição atual no movimento, etc.
     // updateMotion(respiracaoEsquerdaInst, now);
     // updateMotion(batimentoCardiacoInst, now);
     // updateMotion(tosseInst, now);
@@ -432,7 +538,46 @@ for (int i = 0; i < 9; i++) {
   delay(2000);
   }
   */
+    unsigned long now = millis();
 
+    float xr=0, yr=0, zr=0;
+    float xb=0, yb=0, zb=0;
+
+    // Movimento 1 (respiração)
+    bool okResp = Motion_RESP_Position(Test_inst,  now, xr, yr, zr);
+
+    // Movimento 2 (batimento)
+    bool okBat  = Motion_BAT_Position(Test2_inst, now, xb, yb, zb);
+
+    if (!okResp && !okBat) {
+        return;  // nada válido
+    }
+
+    if (!okResp) { xr = yr = zr = 0.0f; }
+    if (!okBat)  { xb = yb = zb = 0.0f; }
+
+    float x_total = xr + xb + 0.0f;
+    float y_total = yr + yb + 0.0f;
+    float z_total = zr + zb + 50.0f;
+
+    printf("\n Total position: (%f, %f, %f)", x_total, y_total, z_total);
+    bool ik1 = inverse_kinematics(delta_1_Cfg, x_total, y_total, z_total);
+    bool ik2 = inverse_kinematics(delta_2_Cfg, -1 * x_total, y_total, z_total);
+
+    if (ik1) {
+        servo_1_pulse_count = delta_1_Cfg.servo1Pulse;
+        servo_2_pulse_count = delta_1_Cfg.servo2Pulse;
+        servo_3_pulse_count = delta_1_Cfg.servo3Pulse;
+    }
+    if (ik2) {
+        servo_4_pulse_count = delta_2_Cfg.servo1Pulse;
+        servo_5_pulse_count = delta_2_Cfg.servo2Pulse;
+        servo_6_pulse_count = delta_2_Cfg.servo3Pulse;
+    }
+
+    if (ik1 || ik2) {
+        move_servos();
+    }
 }
 
 
@@ -603,9 +748,9 @@ bool inverse_kinematics_3(float xt, float yt, float zt, float rotation_offset_Z,
 
  //Funçaõ simples para atualizar o valor de PWM dos servos.
 void move_servos(void){
-    //mg90s_1.writeMicroseconds(servo_1_pulse_count);
-    //mg90s_2.writeMicroseconds(servo_2_pulse_count);
-    //mg90s_3.writeMicroseconds(servo_3_pulse_count);
+    mg90s_1.writeMicroseconds(servo_1_pulse_count);
+    mg90s_2.writeMicroseconds(servo_2_pulse_count);
+    mg90s_3.writeMicroseconds(servo_3_pulse_count);
 
     mg90s_4.writeMicroseconds(servo_4_pulse_count);
     mg90s_5.writeMicroseconds(servo_5_pulse_count);
@@ -850,41 +995,50 @@ void updateMotion(MotionInstance& inst, unsigned long nowMs) { //V3 -> versão c
 }
 
 */
-void debugPrintTestMove() {
-    Serial.println("=== Test_move contents ===");
-    Serial.print("nPoints: ");
-    Serial.println(Test_move.nPoints);
-    Serial.print("period (sec): ");
-    Serial.println(Test_move.period);
+void debugPrintMove(const MotionStorage& move, const char* name) {
+    Serial.print("=== ");
+    Serial.print(name);
+    Serial.println(" contents ===");
 
-    for (int i = 0; i < Test_move.nPoints; i++) {
+    Serial.print("nPoints: ");
+    Serial.println(move.nPoints);
+    Serial.print("period (sec): ");
+    Serial.println(move.period);
+
+    for (int i = 0; i < move.nPoints; i++) {
         Serial.print("i=");
         Serial.print(i);
         Serial.print("  X=");
-        Serial.print(Test_move.X[i]);
+        Serial.print(move.X[i]);
         Serial.print("  Y=");
-        Serial.print(Test_move.Y[i]);
+        Serial.print(move.Y[i]);
         Serial.print("  Z=");
-        Serial.print(Test_move.Z[i]);
+        Serial.print(move.Z[i]);
         Serial.print("  easing=");
-        Serial.println(Test_move.easing[i]);
+        Serial.println(move.easing[i]);
     }
 }
 
 
-void debugPrintTestInstance() {
-    Serial.println("=== Test_inst state ===");
+void debugPrintInstance(const MotionInstance& inst, const char* name) {
+    Serial.print("=== ");
+    Serial.print(name);
+    Serial.println(" state ===");
+
     Serial.print("active: ");
-    Serial.println(Test_inst.active ? "true" : "false");
+    Serial.println(inst.active ? "true" : "false");
 
     Serial.print("currentIndex: ");
-    Serial.println(Test_inst.currentIndex);
+    Serial.println(inst.currentIndex);
 
     Serial.print("lastStepMs: ");
-    Serial.println(Test_inst.lastStepMs);
+    Serial.println(inst.lastStepMs);
+
+    Serial.print("segmentStartMs: ");
+    Serial.println(inst.segmentStartMs);
 
     Serial.print("def pointer: ");
-    Serial.println((uintptr_t)Test_inst.def, HEX); // endereço em hex
+    Serial.println((uintptr_t)inst.def, HEX);
 }
 
 void LED_LOOP(){
