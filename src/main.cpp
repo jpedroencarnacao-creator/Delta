@@ -3,6 +3,88 @@
 #include <ESP32Servo.h>
 #include <math.h>
 
+
+struct Manipulador_Config {
+    // geometria
+    float L1;
+    float L2;
+    float L3;
+    float servoOffsetX;
+    float servoOffsetZ;
+    float angleMin;
+    float angleMax;
+    float rotationOffsetZ;   // offset global de rotação da base
+
+    // calibração de PWM
+    int servo1MinPulse;
+    int servo1MaxPulse;
+
+    int servo2MinPulse;
+    int servo2MaxPulse;
+
+    int servo3MinPulse;
+    int servo3MaxPulse;
+
+    // estado atual (pulsos gerados pela IK)
+    int servo1Pulse;
+    int servo2Pulse;
+    int servo3Pulse;
+};
+
+Manipulador_Config delta_1_Cfg = {
+    // geometria
+    .L1 = 35.0f,
+    .L2 = 60.0f,
+    .L3 = 15.0f,
+    .servoOffsetX = 32.0f,
+    .servoOffsetZ = 0.0f,
+    .angleMin = 0.78539816339744830961566084581988f, //45 degrees
+    .angleMax = 3.9269908169872415480783042290994f, //225 degrees
+    .rotationOffsetZ = -75.0f * PI / 180.0f, //-75 degrees in radians
+
+    // calibração de PWM
+    .servo1MinPulse = 620,
+    .servo1MaxPulse = 2520,
+
+    .servo2MinPulse = 615,
+    .servo2MaxPulse = 2480,
+
+    .servo3MinPulse = 620,
+    .servo3MaxPulse = 2550,
+
+    // estado atual (pulsos gerados pela IK)
+    .servo1Pulse = 0,
+    .servo2Pulse = 0,
+    .servo3Pulse = 0
+};
+
+Manipulador_Config delta_2_Cfg = {
+    // geometria
+    .L1 = 35.0f,
+    .L2 = 60.0f,
+    .L3 = 15.0f,
+    .servoOffsetX = 32.0f,
+    .servoOffsetZ = 0.0f,
+    .angleMin = 0.78539816339744830961566084581988f, //45 degrees
+    .angleMax = 3.9269908169872415480783042290994f, //225 degrees
+    .rotationOffsetZ = -45.0f * PI / 180.0f, //-45 degrees in radians
+
+    // calibração de PWM
+    .servo1MinPulse = 550,
+    .servo1MaxPulse = 2400,
+
+    .servo2MinPulse = 550,
+    .servo2MaxPulse = 2400,
+
+    .servo3MinPulse = 550,
+    .servo3MaxPulse = 2400,
+
+    // estado atual (pulsos gerados pela IK)
+    .servo1Pulse = 0,
+    .servo2Pulse = 0,
+    .servo3Pulse = 0
+};
+
 //Motion_test -> Arrays of points for testing the motion functions
 float X_test_calibration[] = {0.0,  0.0,  0.0,  0.0,  5.0, 10.0, 15.0, 0.0, 0.0};
 float Y_test_calibration[] = {0.0,  0.0,  0.0,  0.0,  0.0, 0.0,  0.0,  5.0, 15.0};          // -> teste de movimento linear dos 3 eixos
@@ -170,7 +252,7 @@ void attach_servos(void);
 bool inverse_kinematics_1(float, float, float, float, float&);
 bool inverse_kinematics_2(float, float, float, float, float&);
 bool inverse_kinematics_3(float, float, float, float, float&);
-bool inverse_kinematics(float, float, float, float, int&, int&, int&);
+bool inverse_kinematics(Manipulador_Config& cfg, float, float, float);
 void move_servos(void);
 double mapNumber(double x, double in_min, double in_max, double out_min, double out_max);
 int roundMapNumber(double x, double in_min, double in_max, double out_min, double out_max);
@@ -376,160 +458,7 @@ void attach_servos(void){ //Serve apenas para definir os valores de PWM maixos e
     mg90s_3.attach(SERVO_PIN_3, SERVO_3_MIN, SERVO_3_MAX);
 }
 
-/*
-bool inverse_kinematics_1(float xt, float yt, float zt){
-    //printf("\n x= %f, y=%f, z=%f", xt, yt, zt);
-    zt -= servo_offset_z; //Remove the differance in height from ground level to the centre of rotation of the servos
-    float x = xt;
-    float y = yt;
-    xt = x * cos(ROTATION_OFFSET_Z) - y * sin(ROTATION_OFFSET_Z);
-    yt = x * sin(ROTATION_OFFSET_Z) + y * cos(ROTATION_OFFSET_Z);
-
-    float arm_end_x = xt + L3; //Adding the distance between the end effector centre and ball joints to the target x coordinate
-    //printf("\n Arm_end_x= %f", arm_end_x);
-    float l2p = sqrt(pow(L2, 2) - pow(yt, 2)); //The length of link 2 when projected onto the XZ plane
-    //printf("\n l2p= %f", l2p);
-    
-    float l2pAngle = asin(yt / L2); //Gives the angle between link2 and the ball joints. (Not actually necessary to calculate the inverse kinematics. Just used to prevent the arms ripping themselves apart.)
-    //printf("\n rad l2pAngle= %f", l2pAngle);
-    //printf("\n rad l2pAngle= %f", radsToDeg(l2pAngle));
-    if(!(abs(l2pAngle) < 0.59341194567807205615405486128613f)){ //Prevents the angle between the ball joints and link 2 (L2) going out of range. (Angle was determined by emprical testing.)
-        //printf("ERROR: Ball joint 1 out of range: l2pAngle = %f", radsToDeg(l2pAngle));
-        return false;
-    }
-
-    float ext = sqrt(pow (zt, 2) + pow(SERVO_OFFSET_X - arm_end_x, 2)); //Extension of the arm from the centre of the servo rotation to the end ball joint of link2
-
-    if(ext <= l2p - L1 || ext >= L1 + l2p){ //Checks the extension in the reachable range (This limit assumes that L2 is greater than L1)
-       //printf("\n ERROR: Extension 1 out of range: ext = %f", ext);
-        return false;
-    }
-       
-    float phi = acos((pow(L1, 2) + pow(ext, 2) - pow(l2p, 2)) / (2 * L1 * ext)); //Cosine rule that calculates the angle between the ext line and L1
-    float omega = atan2(zt, SERVO_OFFSET_X - arm_end_x); //Calculates the angle between horizontal (X) the ext line with respect to its quadrant
-    float theta = phi + omega; //Theta is the angle between horizontal (X) and L1
-
-    if(!(theta >= SERVO_ANGLE_MIN && theta <= SERVO_ANGLE_MAX)){ //Checks the angle is in the reachable range
-        //printf("\n ERROR: Servo angle 1 out of range: Angle = %f", radsToDeg(theta));
-        return false;
-    }
-    //printf("\n servo_1_angle = %f", radsToDeg(theta));
-    servo_1_angle = theta;
-    return true;
-}
-
-//------------------------------------------------------------------------------------------------------------------------------------------------------
-
-bool inverse_kinematics_2(float xt, float yt, float zt){
-    zt -= servo_offset_z;
-    float x = xt;
-    float y = yt;
-    float angle = 2.0943951023931954923084289221863f + ROTATION_OFFSET_Z; // 120° + offset
-    xt = x * cos(angle) - y * sin(angle);
-    yt = x * sin(angle) + y * cos(angle);
-    //xt = x * cos(2.0943951023931954923084289221863f) - y * sin(2.0943951023931954923084289221863f); //Rotate coordinate frame 120 degrees
-    //yt = x * sin(2.0943951023931954923084289221863f) + y * cos(2.0943951023931954923084289221863f);
-    
-    float arm_end_x = xt + L3;
-    float l2p = sqrt(pow(L2, 2) - pow(yt, 2));
-    
-    float l2pAngle = asin(yt / L2);
-    if(!(abs(l2pAngle) < 0.59341194567807205615405486128613f)){ //Prevents the angle between the ball joints and link 2 (L2) going out of range.
-        //printf("ERROR: Ball joint 2 out of range: l2pAngle = ", radsToDeg(l2pAngle));        
-        return false;
-    }
-    
-    float ext = sqrt(pow (zt, 2) + pow(SERVO_OFFSET_X - arm_end_x, 2));
-
-    if(ext <= l2p - L1 || ext >= L1 + l2p){ //This limit assumes that L2 is greater than L1
-        //printf("ERROR: Extension 2 out of range: ext = ", ext);
-        return false;
-    }
-       
-    float phi = acos((pow(L1, 2) + pow(ext, 2) - pow(l2p, 2)) / (2 * L1 * ext));
-    float omega = atan2(zt, SERVO_OFFSET_X - arm_end_x);
-    float theta = phi + omega;
-
-    if(!(theta >= SERVO_ANGLE_MIN && theta <= SERVO_ANGLE_MAX)){
-        //printf("ERROR: Servo angle 2 out of range: Angle = ", radsToDeg(theta));
-        return false;
-    }
-    //printf("\n servo_2_angle = %f", radsToDeg(theta));
-    servo_2_angle = theta;
-    return true;
-}
-
-//------------------------------------------------------------------------------------------------------------------------------------------------------
-
-bool inverse_kinematics_3(float xt, float yt, float zt){
-    zt -= servo_offset_z;
-
-    float x = xt;
-    float y = yt;
-    float angle = 4.1887902047863909846168578443727f + ROTATION_OFFSET_Z; // 120° + offset
-    xt = x * cos(angle) - y * sin(angle);
-    yt = x * sin(angle) + y * cos(angle);
-    //xt = x * cos(4.1887902047863909846168578443727f) - y * sin(4.1887902047863909846168578443727f); //Rotate coordinate frame 240 degrees
-    //yt = x * sin(4.1887902047863909846168578443727f) + y * cos(4.1887902047863909846168578443727f);
-
-    float arm_end_x = xt + L3;
-    float l2p = sqrt(pow(L2, 2) - pow(yt, 2));
-    
-    float l2pAngle = asin(yt / L2);
-    if(!(abs(l2pAngle) < 0.59341194567807205615405486128613f)){ //Prevents the angle between the ball joints and link 2 (L2) going out of range.
-        //printf("ERROR: Ball joint 1 out of range: l2pAngle = ", radsToDeg(l2pAngle));
-        return false;
-    }
-    
-    float ext = sqrt(pow (zt, 2) + pow(SERVO_OFFSET_X - arm_end_x, 2));
-
-    if(ext <= l2p - L1 || ext >= L1 + l2p){ //This limit assumes that L2 is greater than L1
-        //printf("ERROR: Extension 3 out of range: ext = ", ext);
-        return false;
-    }
-       
-    float phi = acos((pow(L1, 2) + pow(ext, 2) - pow(l2p, 2)) / (2 * L1 * ext));
-    float omega = atan2(zt, SERVO_OFFSET_X - arm_end_x);
-    float theta = phi + omega;
-
-    if(!(theta >= SERVO_ANGLE_MIN && theta <= SERVO_ANGLE_MAX)){
-        //printf("ERROR: Servo angle 3 out of range: Angle = ", radsToDeg(theta));
-        return false;
-    }
-    //printf("\n servo_3_angle = %f", radsToDeg(theta));
-    servo_3_angle = theta;
-    return true;
-}
-
-//------------------------------------------------------------------------------------------------------------------------------------------------------
-
-bool inverse_kinematics(float xt, float yt, float zt){    
-    if(axis_direction == 1){//if axis are inverted
-        xt = -xt;
-        zt = -zt;
-    }
-    
-    if(inverse_kinematics_1(xt, yt, zt) && inverse_kinematics_2(xt, yt, zt) && inverse_kinematics_3(xt, yt, zt)){ //Calculates and checks the positions are valid.
-        if(axis_direction == 1){//if axis are inverted
-            end_effector.x = -xt;
-            end_effector.z = -zt;
-        }
-        else{
-            end_effector.x = xt;
-            end_effector.z = zt;
-        }
-        end_effector.y = yt;
-        
-        servo_1_pulse_count = round(mapNumber(servo_1_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, SERVO_1_MAX, SERVO_1_MIN));
-        servo_2_pulse_count = round(mapNumber(servo_2_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, SERVO_2_MAX, SERVO_2_MIN));
-        servo_3_pulse_count = round(mapNumber(servo_3_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, SERVO_3_MAX, SERVO_3_MIN));
-
-        return true;
-    }
-    return false;
-}
-*/
-bool inverse_kinematics(float xt, float yt, float zt, float rotation_offset_Z, int& servo_Theta1_pulse, int& servo_Theta2_pulse, int& servo_Theta3_pulse){    
+bool inverse_kinematics(Manipulador_Config& cfg, float xt, float yt, float zt){    
     float servo_Theta1_angle; 
     float servo_Theta2_angle;
     float servo_Theta3_angle;
@@ -538,16 +467,19 @@ bool inverse_kinematics(float xt, float yt, float zt, float rotation_offset_Z, i
         zt = -zt;
     }
     
-    if(inverse_kinematics_1(xt, yt, zt, rotation_offset_Z, servo_Theta1_angle) && inverse_kinematics_2(xt, yt, zt, rotation_offset_Z, servo_Theta2_angle) && inverse_kinematics_3(xt, yt, zt, rotation_offset_Z, servo_Theta3_angle)){ 
-       
-        
-        servo_Theta1_pulse = round(mapNumber(servo_Theta1_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, SERVO_1_MAX, SERVO_1_MIN));
-        servo_Theta2_pulse = round(mapNumber(servo_Theta2_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, SERVO_2_MAX, SERVO_2_MIN));
-        servo_Theta3_pulse = round(mapNumber(servo_Theta3_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, SERVO_3_MAX, SERVO_3_MIN));
-
-        return true;
+    bool ok1 = inverse_kinematics_1(xt, yt, zt, cfg.rotationOffsetZ, servo_Theta1_angle);
+    bool ok2 = inverse_kinematics_2(xt, yt, zt, cfg.rotationOffsetZ, servo_Theta2_angle);
+    bool ok3 = inverse_kinematics_3(xt, yt, zt, cfg.rotationOffsetZ, servo_Theta3_angle);
+    
+     if (!(ok1 && ok2 && ok3)) {
+        return false;
     }
-    return false;
+       
+    cfg.servo1Pulse = round(mapNumber(servo_Theta1_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, cfg.servo1MaxPulse, cfg.servo1MinPulse));
+    cfg.servo2Pulse = round(mapNumber(servo_Theta2_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, cfg.servo2MaxPulse, cfg.servo2MinPulse));
+    cfg.servo3Pulse = round(mapNumber(servo_Theta3_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, cfg.servo3MaxPulse, cfg.servo3MinPulse));
+    
+    return true;
 }
 
 
@@ -671,9 +603,9 @@ bool inverse_kinematics_3(float xt, float yt, float zt, float rotation_offset_Z,
 
  //Funçaõ simples para atualizar o valor de PWM dos servos.
 void move_servos(void){
-    mg90s_1.writeMicroseconds(servo_1_pulse_count);
-    mg90s_2.writeMicroseconds(servo_2_pulse_count);
-    mg90s_3.writeMicroseconds(servo_3_pulse_count);
+    //mg90s_1.writeMicroseconds(servo_1_pulse_count);
+    //mg90s_2.writeMicroseconds(servo_2_pulse_count);
+    //mg90s_3.writeMicroseconds(servo_3_pulse_count);
 
     mg90s_4.writeMicroseconds(servo_4_pulse_count);
     mg90s_5.writeMicroseconds(servo_5_pulse_count);
@@ -777,11 +709,14 @@ void updateMotion(MotionInstance& inst, unsigned long nowMs) { //V1 -> versão o
     float y = m.Y[i];
     float z = m.Z[i];
 
-    bool ok = inverse_kinematics(x, y, z); // é acionado a função inverse kinematics para calcular os ângulos dos servos necessários para alcançar a posição (x, y, z) do ponto atual. 
-    if (ok) {
+    // é acionado a função inverse kinematics para calcular os ângulos dos servos necessários para alcançar a posição (x, y, z) do ponto atual. 
+    bool ok1 = inverse_kinematics(x, y, z, ROTATION_OFFSET_Z_Delta1, servo_1_pulse_count, servo_2_pulse_count, servo_3_pulse_count);
+    bool ok2 = inverse_kinematics(-1*x, y, z, ROTATION_OFFSET_Z_Delta2, servo_4_pulse_count, servo_5_pulse_count, servo_6_pulse_count);
+    if (ok1 || ok2 ) { //|| ok2
         move_servos(); //Se a cinemática inversa for bem-sucedida, os servos são movidos para as posições calculadas.
     }
 }
+    */
 
 void updateMotion(MotionInstance& inst, unsigned long nowMs) { //V2 -> versão com interpolação linear entre os pontos (função Easing)
     if (!inst.active || inst.def == nullptr) return;
@@ -836,13 +771,28 @@ void updateMotion(MotionInstance& inst, unsigned long nowMs) { //V2 -> versão c
     float y = lerp(m.Y[i], m.Y[j], a);
     float z = lerp(m.Z[i], m.Z[j], a);
 
-    bool ok = inverse_kinematics(x, y, z);
-    if (ok) {
-        move_servos();
-    }
-}
-*/
+bool ok1 = inverse_kinematics(delta_1_Cfg, x, y, z);
+bool ok2 = inverse_kinematics(delta_2_Cfg, -1*x, y, z);
 
+// copiar para as variáveis globais que o move_servos usa
+if (ok1) {
+    servo_1_pulse_count = delta_1_Cfg.servo1Pulse;
+    servo_2_pulse_count = delta_1_Cfg.servo2Pulse;
+    servo_3_pulse_count = delta_1_Cfg.servo3Pulse;
+}
+
+if (ok2) {
+    servo_4_pulse_count = delta_2_Cfg.servo1Pulse;
+    servo_5_pulse_count = delta_2_Cfg.servo2Pulse;
+    servo_6_pulse_count = delta_2_Cfg.servo3Pulse;
+}
+
+if (ok1 || ok2) {
+    move_servos();
+}
+}
+
+/*
 void updateMotion(MotionInstance& inst, unsigned long nowMs) { //V3 -> versão com interpolação por spline cúbica entre os pontos (função Spline)
     if (!inst.active || inst.def == nullptr) return; //Verifica se a instância está ativa e se tem uma definição de movimento associada
 
@@ -893,13 +843,13 @@ void updateMotion(MotionInstance& inst, unsigned long nowMs) { //V3 -> versão c
     float z = spline3(m.Z[i0], m.Z[i1], m.Z[i2], a);
 
     bool ok1 = inverse_kinematics(x, y, z, ROTATION_OFFSET_Z_Delta1, servo_1_pulse_count, servo_2_pulse_count, servo_3_pulse_count);
-    bool ok2 = inverse_kinematics(x, y, z, ROTATION_OFFSET_Z_Delta2, servo_4_pulse_count, servo_5_pulse_count, servo_6_pulse_count);
+    bool ok2 = inverse_kinematics(-1*x, y, z, ROTATION_OFFSET_Z_Delta2, servo_4_pulse_count, servo_5_pulse_count, servo_6_pulse_count);
     if (ok1 || ok2 ) { //|| ok2
         move_servos();
     }
 }
 
-
+*/
 void debugPrintTestMove() {
     Serial.println("=== Test_move contents ===");
     Serial.print("nPoints: ");
