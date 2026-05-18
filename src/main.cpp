@@ -91,20 +91,21 @@ float Y_test_calibration[] = {0.0,  0.0,  0.0,  0.0,  0.0, 0.0,  0.0,  5.0, 15.0
 float Z_test_calibration[] = {35.0, 40.0, 50.0, 60.0, 60.0, 60.0, 60.0, 60.0, 60.0};
 const int N_test_calibration = 9;
 float X_test[] = {15.607,  14.923,  13.995,  12.845,  11.503, 10.000,  6.665,  1.464,  -2.965,  -5.000, -5.659, -6.056, -6.180, -6.029, -5.607, -4.923, -3.995, -2.845, -1.503,  0.000,   3.335,  8.536,  12.965,  15.000, 15.659, 16.056, 16.180, 16.029};
-float Y_test[] = {  0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,    0.0};
-//float Y_test[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8.536,   3.335,   0.000, -1.503, -2.845, -3.995, -4.923, -5.607, -6.029, -6.180, -6.056, -5.659, -5.000,  -2.965,  1.464,   6.665,  10.000, 11.503, 12.845, 13.995, 14.923};
-float Z_test[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8.536,   3.335,   0.000, -1.503, -2.845, -3.995, -4.923, -5.607, -6.029, -6.180, -6.056, -5.659, -5.000,  -2.965,  1.464,   6.665,  10.000, 11.503, 12.845, 13.995, 14.923};
+//float Y_test[] = {  0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,    0.0};
+float Y_test[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8.536,   3.335,   0.000, -1.503, -2.845, -3.995, -4.923, -5.607, -6.029, -6.180, -6.056, -5.659, -5.000,  -2.965,  1.464,   6.665,  10.000, 11.503, 12.845, 13.995, 14.923};
+//float Z_test[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8.536,   3.335,   0.000, -1.503, -2.845, -3.995, -4.923, -5.607, -6.029, -6.180, -6.056, -5.659, -5.000,  -2.965,  1.464,   6.665,  10.000, 11.503, 12.845, 13.995, 14.923};
 //float Z_test[] = {  40.0,    40.0,    40.0,    40.0,    40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,   40.0,    40.0};
+float Z_test[] = {  0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,    0.0};
 
 int Step_delay_t[] = {0, 0,  0,  0,   0,   0,    0,    0,  0};
 const int N_test = 28;
-float T_period = 0.50f; //Duration of the cycle in seconds (for now, not used for anything)
+float T_period = 1.0f; //Duration of the cycle in seconds (for now, not used for anything)
 
 float X_test2[] = {15.607,  14.923,  13.995,  12.845,  11.503, 10.000,  6.665,  1.464,  -2.965,  -5.000, -5.659, -6.056, -6.180, -6.029, -5.607, -4.923, -3.995, -2.845, -1.503,  0.000,   3.335,  8.536,  12.965,  15.000, 15.659, 16.056, 16.180, 16.029};
 float Y_test2[] = {  0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,    0.0};
 float Z_test2[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8.536,   3.335,   0.000, -1.503, -2.845, -3.995, -4.923, -5.607, -6.029, -6.180, -6.056, -5.659, -5.000,  -2.965,  1.464,   6.665,  10.000, 11.503, 12.845, 13.995, 14.923};
 const int N_test2 = 28;
-float T_period2 = 6.5f; //Duration of the cycle in seconds (for now, not used for anything)
+float T_period2 = 8.5f; //Duration of the cycle in seconds (for now, not used for anything)
 
 //Link lengths (mm)
 #define L1 35
@@ -173,11 +174,20 @@ struct MotionStorage {
     float X[MAX_POINTS];            // coordenadas X dos pontos do movimento
     float Y[MAX_POINTS];            // coordenadas Y dos pontos do movimento
     float Z[MAX_POINTS];            // coordenadas Z dos pontos do movimento
-    byte  easing[MAX_POINTS];      // 0=linear (para já) uint8_t é o mesmo que byte, ou seja, um número entre 0 e 255  -> 
-                                 //      -> será utilizado para indicar o tipo de interpolação a usar entre os pontos (linear, ease-in, ease-out, etc.)
-                                 //      -> Basicamente o tipo de suavimento que queremos entre os pontos.
-    float period;                    // duração do ciclo em segundos
-    // no futuro podes pôr mais meta-informação aqui (tipo ID, nome, etc.)
+    float period;    
+    float dtMs;                // duração do ciclo em segundos
+
+
+    float getDtMs() const {
+    if (nPoints > 1 && period > 0.0f) {
+        return (period * 1000.0f) / (float)nPoints;  // só lê nPoints e period
+        }
+       return 0.0f;
+    }
+
+    void updateDtMs() {
+    dtMs = getDtMs();    // aqui sim, mudas dtMs
+  }
 };
 
 // Armazenamento temporário: runtime que executa um MotionStorage
@@ -189,6 +199,8 @@ struct MotionInstance {
     unsigned int   segmentStartMs; // timestamp do início do segmento atual
                                    //    -> é uma variavel importante para controlar a velocidade do movimento, ou seja, quando é que deve avançar para o próximo ponto do movimento
     bool           active;      // se este movimento está ativo
+    short int      state;
+    unsigned long elapsed;
 };
 
 
@@ -209,8 +221,9 @@ void initTestMove() { //Serve para copiar os valores definidos mais acima para o
         Test_move.X[i] = X_test[i];
         Test_move.Y[i] = -1 * Y_test[i];
         Test_move.Z[i] = Z_test[i];
-        Test_move.easing[i] = 0;
+
     }
+    Test_move.updateDtMs();
 }
 
 void initTestMove2() { //Serve para copiar os valores definidos mais acima para o objeto Test2_move, que é do tipo MotionStorage. 
@@ -223,8 +236,8 @@ void initTestMove2() { //Serve para copiar os valores definidos mais acima para 
         Test2_move.X[i] = X_test2[i];
         Test2_move.Y[i] = -1 * Y_test2[i];
         Test2_move.Z[i] = Z_test2[i];
-        Test2_move.easing[i] = 0;
     }
+    Test2_move.updateDtMs();
 }
     
 void initTestInstance() { //Serve para arrancar a structure de temporaria de runtime
@@ -233,6 +246,8 @@ void initTestInstance() { //Serve para arrancar a structure de temporaria de run
     Test_inst.lastStepMs    = 0;
     Test_inst.segmentStartMs = 0; //millis(); // ou 0, e tratamos no update
     Test_inst.active        = true;
+    Test_inst.state         = 0;
+    Test_inst.elapsed       = 0;
 }
 
 void initTestInstance2() { //Serve para arrancar a structure de temporaria de runtime
@@ -241,30 +256,26 @@ void initTestInstance2() { //Serve para arrancar a structure de temporaria de ru
     Test2_inst.lastStepMs    = 0;
     Test2_inst.segmentStartMs = 0; //millis(); // ou 0, e tratamos no update
     Test2_inst.active        = true;
+    Test2_inst.state         = 0;
+    Test2_inst.elapsed       = 0;
 }
 
 
 
 //-------------------Fim Temporario---------------------------------
 
-struct Coordinate_f {
-    float x;
-    float y;
-    float z;
+struct Coordinate {
+    float X;
+    float Y;
+    float Z;
 };
 
 
-const float stepXYZ = 1.0F;
 
 
-// trigonometric constants
-const float sqrt3 = sqrt(3.0);
+int Clock_loop = 0;
 const float pi = 3.141592653;
-const float sin120 = sqrt3 / 2.0;
-const float cos120 = -0.5;
-const float tan60 = sqrt3;
-const float sin30 = 0.5;
-const float tan30 = 1.0 / sqrt3;
+
 
 
 //---------Declaração das variaveis------------------
@@ -288,6 +299,10 @@ void debugPrintInstance(const MotionInstance& inst, const char* name);
 float lerp(float a, float b, float t);
 float applyEasing(float alpha, char mode);
 float spline3(float p0, float p1, float p2, float t);
+void Intermed_position(MotionInstance& inst, unsigned long nowMs, Coordinate& xyz, boolean trig_serial);
+
+//------------------FSM-------------------------------
+void FSM_Motion_Update(boolean start, MotionInstance& inst, unsigned long nowMs);
 //----------------------------------------------------
 
 //Delta1 --------------------------------
@@ -303,7 +318,8 @@ int servo_1_pulse_count = 0;
 int servo_2_pulse_count = 0;
 int servo_3_pulse_count = 0;
 
-    
+volatile boolean start_comand = 1;    
+
 //Delta2 --------------------------------
 Servo mg90s_4;  // cria objeto servo
 Servo mg90s_5;  // cria objeto servo        
@@ -318,8 +334,10 @@ int servo_4_pulse_count = 0;
 int servo_5_pulse_count = 0;
 int servo_6_pulse_count = 0;
 
-Coordinate_f end_effector;
-Coordinate_f home_position;
+Coordinate Lerp_Respi_OUT;
+Coordinate Lerp_Batim_OUT;
+Coordinate IK2_IN;
+Coordinate home_position;
 
 
 
@@ -345,16 +363,12 @@ float servo_offset_z = SERVO_OFFSET_Z;
 bool stepDirection = false;
 Adafruit_NeoPixel pixel(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
-bool Motion_RESP_Position(MotionInstance& inst,
-                          unsigned long nowMs,
-                          float& outX, float& outY, float& outZ)
+bool Motion_RESP_Position(MotionInstance& inst, unsigned long nowMs,float& outX, float& outY, float& outZ)
 {
     if (!inst.active || inst.def == nullptr) return false;
 
     MotionStorage& m = *(inst.def);
     if (m.nPoints <= 1 || m.period <= 0.0f) return false;
-
-    float dtMs = (m.period * 1000.0f) / (float)m.nPoints;
 
     if (inst.segmentStartMs == 0) {
         inst.segmentStartMs = nowMs;
@@ -362,7 +376,7 @@ bool Motion_RESP_Position(MotionInstance& inst,
 
     unsigned long elapsed = nowMs - inst.segmentStartMs;
 
-    if (elapsed >= dtMs) {
+    if (elapsed >= m.dtMs) {
         inst.currentIndex++;
         if (inst.currentIndex >= m.nPoints) {
             inst.currentIndex = 0;
@@ -375,7 +389,7 @@ bool Motion_RESP_Position(MotionInstance& inst,
     // A) usar só o ponto i (sem interpolação)
     // B) interpolar linearmente dentro do segmento
 
-    float alpha = (float)elapsed / dtMs;
+    float alpha = (float)elapsed / m.dtMs;
     if (alpha < 0.0f) alpha = 0.0f;
     if (alpha > 1.0f) alpha = 1.0f;
 
@@ -389,16 +403,12 @@ bool Motion_RESP_Position(MotionInstance& inst,
     return true;
 }
 
-bool Motion_BAT_Position(MotionInstance& inst,
-                         unsigned long nowMs,
-                         float& outX, float& outY, float& outZ)
+bool Motion_BAT_Position(MotionInstance& inst, unsigned long nowMs, float& outX, float& outY, float& outZ)
 {
     if (!inst.active || inst.def == nullptr) return false;
 
     MotionStorage& m = *(inst.def);
     if (m.nPoints <= 1 || m.period <= 0.0f) return false;
-
-    float dtMs = (m.period * 1000.0f) / (float)m.nPoints;
 
     if (inst.segmentStartMs == 0) {
         inst.segmentStartMs = nowMs;
@@ -406,7 +416,7 @@ bool Motion_BAT_Position(MotionInstance& inst,
 
     unsigned long elapsed = nowMs - inst.segmentStartMs;
 
-    if (elapsed >= dtMs) {
+    if (elapsed >= m.dtMs) {
         inst.currentIndex++;
         if (inst.currentIndex >= m.nPoints) {
             inst.currentIndex = 0;
@@ -415,7 +425,7 @@ bool Motion_BAT_Position(MotionInstance& inst,
         elapsed = 0;
     }
 
-    float alpha = (float)elapsed / dtMs;
+    float alpha = (float)elapsed / m.dtMs;
     if (alpha < 0.0f) alpha = 0.0f;
     if (alpha > 1.0f) alpha = 1.0f;
 
@@ -427,6 +437,27 @@ bool Motion_BAT_Position(MotionInstance& inst,
     outZ = lerp(m.Z[i], m.Z[j], alpha);
 
     return true;
+}
+
+boolean trig_display_fsm(float at, short int Td){
+static short int state; //state internal to the state machine
+static float pt; //var. internal to the state machine
+boolean trig; // output
+//Serial.println(state);
+//Serial.print("AT = ");Serial.println(at);
+//Serial.print("pt = ");Serial.println(pt);
+//Serial.print("at-pt = ");Serial.println(at-pt);
+switch (state) {
+case 0:
+if (at-pt >= Td) {state = 1;}
+trig = 0; // output
+return trig;
+case 1:
+if (1) {state = 0;}
+trig = 1; pt = at; // output
+return trig;
+}
+return trig;
 }
 
 void setup() {
@@ -486,8 +517,11 @@ void setup() {
 }
 
 
-void loop() {
 
+void loop() {
+static boolean trig_serial_IN; static boolean trig_serial_OUT;
+float actual_time = millis();
+float tempo_inicial = millis();
 
     // Atualizar movimentos ativos
          //updateMotion(Test_inst, now); //Variavel que controla o update do movimento conforme o tempo que tenha passado, a posição atual no movimento, etc.
@@ -496,31 +530,38 @@ void loop() {
   
   //Servo_test();
   
-    unsigned long now = millis();
-
+    unsigned long now1 = millis();
+    FSM_Motion_Update(start_comand , Test_inst, now1);
+    FSM_Motion_Update(start_comand , Test2_inst, now1);
     float xr=0, yr=0, zr=0;
     float xb=0, yb=0, zb=0;
-
-    // Movimento 1 (respiração)
-    bool okResp = Motion_RESP_Position(Test_inst,  now, xr, yr, zr);
-
+    trig_serial_OUT = trig_display_fsm(actual_time,200);
+    // Movimento 1 (respiração)Test2_inst
+    //bool okResp = Motion_RESP_Position(Test2_inst,  now, xr, yr, zr);
+float REsp_time = millis();
     // Movimento 2 (batimento)
-    bool okBat  = Motion_BAT_Position(Test2_inst, now, xb, yb, zb);
+    //bool okBat  = Motion_BAT_Position(Test_inst, now, xb, yb, zb);
+float BAT_time = millis();
+float demora_RESP = REsp_time - now1;
+float demora_BAT = BAT_time - REsp_time;
 
+/*
     if (!okResp && !okBat) {
         return;  // nada válido
     }
 
     if (!okResp) { xr = yr = zr = 0.0f; }
-    if (!okBat)  { xb = yb = zb = 0.0f; }
+    if (okBat)  { xb = yb = zb = 0.0f; }
 
     float x_total = xr + xb + 0.0f;
     float y_total = yr + yb + 0.0f;
     float z_total = zr + zb + 50.0f;
 
-    printf("\n Total position: (%f, %f, %f)", x_total, y_total, z_total);
+    //printf("\n Total position: (%f, %f, %f)", x_total, y_total, z_total);
     bool ik1 = inverse_kinematics(delta_1_Cfg, x_total, y_total, z_total);
+    float Delta1 = millis();
     bool ik2 = inverse_kinematics(delta_2_Cfg, -1 * x_total, y_total, z_total);
+    float Delta2 = millis();
 
     if (ik1) {
         servo_1_pulse_count = delta_1_Cfg.servo1Pulse;
@@ -532,10 +573,71 @@ void loop() {
         servo_5_pulse_count = delta_2_Cfg.servo2Pulse;
         servo_6_pulse_count = delta_2_Cfg.servo3Pulse;
     }
-
+    
     if (ik1 || ik2) {
         move_servos();
     }
+*/
+unsigned long now2 = millis();
+Intermed_position(Test_inst, now2, Lerp_Batim_OUT, trig_serial_IN);
+Intermed_position(Test2_inst, now2, Lerp_Respi_OUT, trig_serial_IN);
+float X_total = -1 * Lerp_Respi_OUT.X + -1 * Lerp_Batim_OUT.X + 10.0f;
+float Y_total = Lerp_Respi_OUT.Y + Lerp_Batim_OUT.Y + 0.0f;
+float Z_total = Lerp_Respi_OUT.Z + Lerp_Batim_OUT.Z + 50.0f;
+//float X_total =  10.0f;
+//float Y_total =  0.0f;
+//float Z_total =  45.0f;
+bool ik2 = inverse_kinematics(delta_2_Cfg, X_total, Y_total, Z_total);
+servo_4_pulse_count = delta_2_Cfg.servo1Pulse;
+servo_5_pulse_count = delta_2_Cfg.servo2Pulse;
+servo_6_pulse_count = delta_2_Cfg.servo3Pulse;
+move_servos();
+/*
+int i = Test_inst.currentIndex;
+int j = Test2_inst.currentIndex;
+float x_i=X_test[i];
+float y_i=Y_test[i];    
+float z_i= Z_test[i];
+float x_j=X_test2[j];
+float y_j=Y_test2[j];    
+float z_j= Z_test2[j];
+float x_total = x_i + x_j + 0.0f;
+float y_total = y_i + y_j + 0.0f;
+float z_total = z_i + z_j + 50.0f;
+bool ik2 = inverse_kinematics(delta_2_Cfg, -1 * x_total, -1* y_total, z_total);
+
+servo_4_pulse_count = delta_2_Cfg.servo1Pulse;
+servo_5_pulse_count = delta_2_Cfg.servo2Pulse;
+servo_6_pulse_count = delta_2_Cfg.servo3Pulse;
+move_servos();
+*/
+float tempo_final = millis();
+float demora = tempo_final - tempo_inicial;
+Clock_loop++;
+if(trig_serial_IN == 1){
+
+    Serial.print("0º -> Millis():");
+    Serial.println(now1);
+    Serial.print("------------------------------------------------------------> Index Atual: ");
+    Serial.println(Test_inst.currentIndex);
+    //Serial.print("1º -> Tempo de execução do Motion_RESP_Position:");
+    //Serial.println(REsp_time);
+    //Serial.print("2º ------->  Tempo de execução do Motion_BAT_Position:");
+    //Serial.println(BAT_time);
+    //Serial.print("3º ------------> Tempo de execução do IKdelta1:");
+   // Serial.println(Delta1);
+   // Serial.print("4º ------------------->  Tempo de execução IKdelta2:");
+    //Serial.println(Delta2);
+    Serial.print("Tempo de execução Total: ");
+    Serial.println(demora);
+    Serial.print("Clock loop: ");
+    Serial.println(Clock_loop);
+    Serial.print("--------------> dados de posição Y ao entrar no IK: ");
+        Serial.print(Lerp_Batim_OUT.Y); 
+        Serial.println("");
+  }
+
+trig_serial_IN = trig_serial_OUT;
 }
 
 
@@ -555,6 +657,11 @@ float boundFloat(float value, float lower, float upper){
 
 /*------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
+void attach_servos(void){ //Serve apenas para definir os valores de PWM maixos e minimos, estes foram calibrados mais em cima no codigo 
+    mg90s_1.attach(SERVO_PIN_1, SERVO_1_MIN, SERVO_1_MAX);
+    mg90s_2.attach(SERVO_PIN_2, SERVO_2_MIN, SERVO_2_MAX);
+    mg90s_3.attach(SERVO_PIN_3, SERVO_3_MIN, SERVO_3_MAX);
+}
 
 bool inverse_kinematics(Manipulador_Config& cfg, float xt, float yt, float zt){    
     float servo_Theta1_angle; 
@@ -614,7 +721,7 @@ bool inverse_kinematics_1(float xt, float yt, float zt, float rotation_offset_Z,
         //printf("\n ERROR: Servo angle 1 out of range: Angle = %f", radsToDeg(theta));
         return false;
     }
-    printf("\n servo_1_angle = %f", radsToDeg(theta));
+    //printf("\n servo_1_angle = %f", radsToDeg(theta));
     //servo_1_angle = theta;
     Servo_angle=theta;
     return true;
@@ -652,7 +759,7 @@ bool inverse_kinematics_2(float xt, float yt, float zt, float rotation_offset_Z,
         //printf("ERROR: Servo angle 2 out of range: Angle = ", radsToDeg(theta));
         return false;
     }
-    printf("\n servo_2_angle = %f", radsToDeg(theta));
+    //printf("\n servo_2_angle = %f", radsToDeg(theta));
     //servo_2_angle = theta;
     Servo_angle=theta;
     return true;
@@ -693,7 +800,7 @@ bool inverse_kinematics_3(float xt, float yt, float zt, float rotation_offset_Z,
         //printf("ERROR: Servo angle 3 out of range: Angle = ", radsToDeg(theta));
         return false;
     }
-    printf("\n servo_3_angle = %f", radsToDeg(theta));
+    //printf("\n servo_3_angle = %f", radsToDeg(theta));
     //servo_3_angle = theta;
     Servo_angle=theta;
     return true;
@@ -701,9 +808,9 @@ bool inverse_kinematics_3(float xt, float yt, float zt, float rotation_offset_Z,
 
  //Funçaõ simples para atualizar o valor de PWM dos servos.
 void move_servos(void){
-    mg90s_1.writeMicroseconds(servo_1_pulse_count);
-    mg90s_2.writeMicroseconds(servo_2_pulse_count);
-    mg90s_3.writeMicroseconds(servo_3_pulse_count);
+    //mg90s_1.writeMicroseconds(servo_1_pulse_count);
+    //mg90s_2.writeMicroseconds(servo_2_pulse_count);
+    //mg90s_3.writeMicroseconds(servo_3_pulse_count);
 
     mg90s_4.writeMicroseconds(servo_4_pulse_count);
     mg90s_5.writeMicroseconds(servo_5_pulse_count);
@@ -756,6 +863,31 @@ float lerp(float a, float b, float t) { //Interpolação linear entre dois ponto
     return a + t * (b - a);
 }
 
+void Intermed_position(MotionInstance& inst, unsigned long nowMs, Coordinate& xyz, boolean trig_serial) { //Interpolação linear entre dois pontos a e b com t em [0,1] -> de momento não está a ser utilizada
+MotionStorage& m = *(inst.def);
+
+if (!inst.active || m.nPoints <= 1 || m.period <= 0.0f) {
+       xyz.X = 0.0f;
+       xyz.Y = 0.0f;
+       xyz.Z = 0.0f;
+        return;
+    }
+
+    // calcula alpha com base em elapsed e dtMs
+    inst.elapsed = nowMs - inst.segmentStartMs;
+    float alpha = (float)inst.elapsed / m.dtMs;
+    if (alpha < 0.0f) alpha = 0.0f;
+    if (alpha > 1.0f) alpha = 1.0f;
+
+    int i = inst.currentIndex;
+    int j = (i + 1) % m.nPoints;
+    
+    xyz.X = lerp(m.X[i], m.X[j], alpha);
+    xyz.Y = lerp(m.Y[i], m.Y[j], alpha);
+    xyz.Z = lerp(m.Z[i], m.Z[j], alpha);
+    
+    return;
+}
 
 float spline3(float p0, float p1, float p2, float t) { //Interpolação entre 3 pontos
     // t em [0,1]
@@ -928,8 +1060,8 @@ void debugPrintMove(const MotionStorage& move, const char* name) {
         Serial.print(move.Y[i]);
         Serial.print("  Z=");
         Serial.print(move.Z[i]);
-        Serial.print("  easing=");
-        Serial.println(move.easing[i]);
+        Serial.println("");
+
     }
 }
 
@@ -1123,3 +1255,79 @@ float applyEasing(float alpha, char mode) {
     }
 }
 //------------------------------------------------------
+
+
+
+
+void FSM_Motion_Update(boolean start, MotionInstance& inst, unsigned long nowMs){
+unsigned long elapsed;
+MotionStorage& m = *(inst.def);
+/*
+Têm em atenção constituição de cada caso:
+case x: 
+  - Ações a executar
+  - Condições de transição por hierarquia
+*/
+//Serial.print("Estado atual: ");
+//Serial.println(inst.state);
+switch (inst.state) {
+
+    case 0:
+      if (start==0) {inst.state = 0;}
+      if (!inst.active || inst.def == nullptr) {inst.state = 0;}
+      if(start==1 && inst.active && inst.def != nullptr){inst.state = 1;}
+    break;
+
+    case 1:
+      if (m.nPoints <= 1 || m.period <= 0.0f) {inst.state = 1;}
+      else {inst.state = 2;}
+    break;
+
+    case 2:
+      inst.segmentStartMs = nowMs;
+
+      if (1) {inst.state = 3;}
+    break;
+
+    case 3: 
+      elapsed = nowMs - inst.segmentStartMs;
+
+      if(elapsed >= m.dtMs) {inst.state = 4;}
+    break;
+
+    case 4: 
+      inst.currentIndex++;
+      elapsed = 0;
+
+      if(1) {inst.state = 5;}
+    break;
+
+    case 5: 
+      inst.segmentStartMs = nowMs;
+      
+      if(inst.currentIndex < m.nPoints) {inst.state = 3;}
+      if(inst.currentIndex >= m.nPoints) {inst.state = 6;}
+    break;
+
+    case 6: 
+      if(1){inst.state = 7;}
+      //mais tarde este estado vai definir o tipo de reciclagem do movimento, ou seja, se volta ao inicio, se inverte o ciclo, etc.
+    break;
+
+    case 7: 
+      inst.currentIndex = 0;
+  
+      if(!inst.active || start == 0) {inst.state = 0;}
+      else {inst.state = 2;}
+    break;
+
+/*
+    case 8: //função trás
+
+    break;
+*/
+    
+
+    }
+    return;
+}
