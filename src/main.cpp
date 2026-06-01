@@ -3,6 +3,10 @@
 #include <ESP32Servo.h>
 #include <math.h>
 
+// declarar no topo do ficheiro (globais)
+int last_delta2_s1 = 0;
+int last_delta2_s2 = 0;
+int last_delta2_s3 = 0;
 
 struct Manipulador_Config {
     // geometria
@@ -25,11 +29,21 @@ struct Manipulador_Config {
     int servo3MinPulse;
     int servo3MaxPulse;
 
+    int theta1MinPulse;
+    int theta1MaxPulse;
+
+    int theta2MinPulse;
+    int theta2MaxPulse;
+
+    int theta3MinPulse;
+    int theta3MaxPulse;
+
     // estado atual (pulsos gerados pela IK)
     int servo1Pulse;
     int servo2Pulse;
     int servo3Pulse;
 };
+
 
 Manipulador_Config delta_1_Cfg = {
     // geometria
@@ -40,17 +54,17 @@ Manipulador_Config delta_1_Cfg = {
     .servoOffsetZ = 0.0f,
     .angleMin = 0.78539816339744830961566084581988f, //45 degrees
     .angleMax = 3.9269908169872415480783042290994f, //225 degrees
-    .rotationOffsetZ = -75.0f * PI / 180.0f, //-75 degrees in radians
+    .rotationOffsetZ = -15.6f * PI / 180.0f, //-75 degrees in radians
 
     // calibração de PWM
-    .servo1MinPulse = 620,
+    .servo1MinPulse = 520,
     .servo1MaxPulse = 2520,
 
-    .servo2MinPulse = 615,
-    .servo2MaxPulse = 2480,
+    .servo2MinPulse = 550,
+    .servo2MaxPulse = 2550,
 
-    .servo3MinPulse = 620,
-    .servo3MaxPulse = 2550,
+    .servo3MinPulse = 560,
+    .servo3MaxPulse = 2560,
 
     // estado atual (pulsos gerados pela IK)
     .servo1Pulse = 0,
@@ -67,17 +81,17 @@ Manipulador_Config delta_2_Cfg = {
     .servoOffsetZ = 0.0f,
     .angleMin = 0.78539816339744830961566084581988f, //45 degrees
     .angleMax = 3.9269908169872415480783042290994f, //225 degrees
-    .rotationOffsetZ = -45.0f * PI / 180.0f, //-45 degrees in radians
+    .rotationOffsetZ = -44.4f * PI / 180.0f, //-45 degrees in radians
 
     // calibração de PWM
-    .servo1MinPulse = 550,
-    .servo1MaxPulse = 2400,
+    .servo1MinPulse = 460,
+    .servo1MaxPulse = 2460,
 
-    .servo2MinPulse = 550,
-    .servo2MaxPulse = 2400,
+    .servo2MinPulse = 470,
+    .servo2MaxPulse = 2470,
 
-    .servo3MinPulse = 550,
-    .servo3MaxPulse = 2400,
+    .servo3MinPulse = 450,
+    .servo3MaxPulse = 2450,
 
     // estado atual (pulsos gerados pela IK)
     .servo1Pulse = 0,
@@ -88,7 +102,7 @@ Manipulador_Config delta_2_Cfg = {
 //Motion_test -> Arrays of points for testing the motion functions
 float X_test_calibration[] = {0.0,  0.0,  0.0,  0.0,  5.0, 10.0, 15.0, 0.0, 0.0};
 float Y_test_calibration[] = {0.0,  0.0,  0.0,  0.0,  0.0, 0.0,  0.0,  5.0, 15.0};          // -> teste de movimento linear dos 3 eixos
-float Z_test_calibration[] = {35.0, 40.0, 50.0, 60.0, 60.0, 60.0, 60.0, 60.0, 60.0};
+float Z_test_calibration[] = {40.0, 40.0, 50.0, 60.0, 60.0, 60.0, 60.0, 60.0, 60.0};
 const int N_test_calibration = 9;
 float X_test[] = {15.607,  14.923,  13.995,  12.845,  11.503, 10.000,  6.665,  1.464,  -2.965,  -5.000, -5.659, -6.056, -6.180, -6.029, -5.607, -4.923, -3.995, -2.845, -1.503,  0.000,   3.335,  8.536,  12.965,  15.000, 15.659, 16.056, 16.180, 16.029};
 //float Y_test[] = {  0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,    0.0};
@@ -101,11 +115,11 @@ int Step_delay_t[] = {0, 0,  0,  0,   0,   0,    0,    0,  0};
 const int N_test = 28;
 float T_period = 1.0f; //Duration of the cycle in seconds (for now, not used for anything)
 
-float X_test2[] = {15.607,  14.923,  13.995,  12.845,  11.503, 10.000,  6.665,  1.464,  -2.965,  -5.000, -5.659, -6.056, -6.180, -6.029, -5.607, -4.923, -3.995, -2.845, -1.503,  0.000,   3.335,  8.536,  12.965,  15.000, 15.659, 16.056, 16.180, 16.029};
-float Y_test2[] = {  0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,    0.0};
-float Z_test2[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8.536,   3.335,   0.000, -1.503, -2.845, -3.995, -4.923, -5.607, -6.029, -6.180, -6.056, -5.659, -5.000,  -2.965,  1.464,   6.665,  10.000, 11.503, 12.845, 13.995, 14.923};
-const int N_test2 = 28;
-float T_period2 = 8.5f; //Duration of the cycle in seconds (for now, not used for anything)
+float X_test2[] = {0.000, 1.333, 2.667, 4.000, 5.333, 6.667, 8.000, 9.333, 10.667, 12.000, 10.667, 9.333, 8.000, 6.667, 5.333, 4.000, 2.667,   1.333 };
+float Y_test2[] = {  0.0,   0.0,   0.0,    0.0,  0.0,   0.0,   0.0,   0.0,   0.0,     0.0,    0.0,    0.0,   0.0,   0.0,  0.0,    0.0,   0.0,  0.0 };
+float Z_test2[] = {0.000, 0.247, 0.988, 2.222, 3.951, 6.173, 8.889, 12.099, 15.802, 20.000, 15.802, 12.099, 8.889, 6.173, 3.951, 2.222, 0.988, 0.247};
+const int N_test2 = 18;
+float T_period2 = 4.0f; //Duration of the cycle in seconds (for now, not used for anything)
 
 //Link lengths (mm)
 #define L1 35
@@ -293,7 +307,6 @@ double mapNumber(double x, double in_min, double in_max, double out_min, double 
 int roundMapNumber(double x, double in_min, double in_max, double out_min, double out_max);
 double degToRads(double deg);
 double radsToDeg(double rads);
-void updateMotion(MotionInstance& inst, unsigned long nowMs);
 void debugPrintMove(const MotionStorage& move, const char* name);
 void debugPrintInstance(const MotionInstance& inst, const char* name);
 float lerp(float a, float b, float t);
@@ -475,28 +488,44 @@ void setup() {
   ESP32PWM::allocateTimer(2);
   ESP32PWM::allocateTimer(3);
 
-  
+delta_1_Cfg.theta1MinPulse = delta_1_Cfg.servo1MinPulse;
+delta_1_Cfg.theta1MaxPulse = delta_1_Cfg.servo1MaxPulse;
+
+delta_1_Cfg.theta2MinPulse = delta_1_Cfg.servo2MinPulse;
+delta_1_Cfg.theta2MaxPulse = delta_1_Cfg.servo2MaxPulse;
+
+delta_1_Cfg.theta3MinPulse = delta_1_Cfg.servo3MinPulse;
+delta_1_Cfg.theta3MaxPulse = delta_1_Cfg.servo3MaxPulse;
+
+delta_2_Cfg.theta1MinPulse = delta_2_Cfg.servo1MaxPulse;
+delta_2_Cfg.theta1MaxPulse = delta_2_Cfg.servo1MinPulse; 
+
+delta_2_Cfg.theta2MinPulse = delta_2_Cfg.servo2MaxPulse;
+delta_2_Cfg.theta2MaxPulse = delta_2_Cfg.servo2MinPulse;
+
+delta_2_Cfg.theta3MinPulse = delta_2_Cfg.servo3MaxPulse;
+delta_2_Cfg.theta3MaxPulse = delta_2_Cfg.servo3MinPulse;
 
   Serial.println("Teste MG90S Servo");
   // Configurações específicas para servo MG90S (50Hz, pulsos 500-2400us)
   mg90s_1.setPeriodHertz(50);      // Frequência PWM 50 Hz
-  mg90s_1.attach(SERVO_PIN_1, SERVO_1_MIN, SERVO_1_MAX);  
+  mg90s_1.attach(SERVO_PIN_1, delta_1_Cfg.servo1MinPulse, delta_1_Cfg.servo1MaxPulse);  
 
   mg90s_2.setPeriodHertz(50);      // Frequência PWM 50 Hz
-  mg90s_2.attach(SERVO_PIN_2, SERVO_2_MIN, SERVO_2_MAX);  
+  mg90s_2.attach(SERVO_PIN_2, delta_1_Cfg.servo2MinPulse, delta_1_Cfg.servo2MaxPulse);  
 
   mg90s_3.setPeriodHertz(50);      // Frequência PWM 50 Hz
-  mg90s_3.attach(SERVO_PIN_3, SERVO_3_MIN, SERVO_3_MAX); 
+  mg90s_3.attach(SERVO_PIN_3, delta_1_Cfg.servo3MinPulse, delta_1_Cfg.servo3MaxPulse); 
 
 
   mg90s_4.setPeriodHertz(50);      // Frequência PWM 50 Hz
-  mg90s_4.attach(SERVO_PIN_4, 500, 2460);  // Servo_4 -> thetta3 //2460
+  mg90s_4.attach(SERVO_PIN_4, delta_2_Cfg.servo1MinPulse, delta_2_Cfg.servo1MaxPulse);  // Servo_4 -> thetta3 //2460
 
   mg90s_5.setPeriodHertz(50);      // Frequência PWM 50 Hz
-  mg90s_5.attach(SERVO_PIN_5, 500, 2470);  // Servo_5 -> thetta1 ->2490
+  mg90s_5.attach(SERVO_PIN_5, delta_2_Cfg.servo2MinPulse, delta_2_Cfg.servo2MaxPulse);  // Servo_5 -> thetta1 ->2490
 
   mg90s_6.setPeriodHertz(50);      // Frequência PWM 50 Hz
-  mg90s_6.attach(SERVO_PIN_6, 500, 2450);  // Servo_6 -> thetta2 -2450
+  mg90s_6.attach(SERVO_PIN_6, delta_2_Cfg.servo3MinPulse, delta_2_Cfg.servo3MaxPulse);  // Servo_6 -> thetta2 -2450
   delay(1000);
 
   Serial.println("Delta robot kinematics ready");
@@ -516,13 +545,155 @@ void setup() {
     Serial.println("Setup completo, pronto para correr updateMotion.");
 }
 
-
-
+/*
 void loop() {
 static boolean trig_serial_IN; static boolean trig_serial_OUT;
 float actual_time = millis();
 float tempo_inicial = millis();
 
+  
+    unsigned long now1 = millis();
+    float xr=0, yr=0, zr=0;
+    float xb=0, yb=0, zb=0;
+   // trig_serial_OUT = trig_display_fsm(actual_time,200);
+    
+    bool okResp = Motion_RESP_Position(Test2_inst,  now1, xr, yr, zr);
+
+    bool okBat  = Motion_BAT_Position(Test_inst, now1, xb, yb, zb);
+
+
+ //----------para aqui o outro circuito
+    if (!okResp && !okBat) {
+        return;  // nada válido
+    }
+
+    if (okResp) { xr = yr = zr = 0.0f; }
+    if (!okBat)  { xb = yb = zb = 0.0f; }
+
+    float x_total = xr + xb + -10.0f;
+    float y_total = yr + yb + 0.0f;
+    float z_total = zr + zb + 50.0f;
+
+    //printf("\n Total position: (%f, %f, %f)", x_total, y_total, z_total);
+    bool ik1 = inverse_kinematics(delta_1_Cfg, x_total, y_total, z_total);
+    float Delta1 = millis();
+    bool ik2 = inverse_kinematics(delta_2_Cfg, -1 * x_total, y_total, z_total);
+    float Delta2 = millis();
+
+    if (ik1) {
+        servo_1_pulse_count = delta_1_Cfg.servo1Pulse;
+        servo_2_pulse_count = delta_1_Cfg.servo2Pulse;
+        servo_3_pulse_count = delta_1_Cfg.servo3Pulse;
+    }
+    if (ik2) {
+        servo_4_pulse_count = delta_2_Cfg.servo1Pulse;
+        servo_5_pulse_count = delta_2_Cfg.servo2Pulse;
+        servo_6_pulse_count = delta_2_Cfg.servo3Pulse;
+    }
+    
+    if (ik1 || ik2) {
+        move_servos();
+    }
+
+//----------para aqui o outro circuito
+
+
+
+
+
+float tempo_final = millis();
+float demora = tempo_final - tempo_inicial;
+Clock_loop++;
+if(trig_serial_IN == 1){
+
+    Serial.print("0º -> Millis():");
+    //Serial.println(now1);
+    Serial.print("------------------------------------------------------------> Index Atual: ");
+    Serial.println(Test_inst.currentIndex);
+    //Serial.print("1º -> Tempo de execução do Motion_RESP_Position:");
+    //Serial.println(REsp_time);
+    //Serial.print("2º ------->  Tempo de execução do Motion_BAT_Position:");
+    //Serial.println(BAT_time);
+    //Serial.print("3º ------------> Tempo de execução do IKdelta1:");
+   // Serial.println(Delta1);
+   // Serial.print("4º ------------------->  Tempo de execução IKdelta2:");
+    //Serial.println(Delta2);
+    Serial.print("Tempo de execução Total: ");
+    Serial.println(demora);
+    Serial.print("Clock loop: ");
+    Serial.println(Clock_loop);
+    Serial.print("--------------> dados de posição Y ao entrar no IK: ");
+        Serial.print(Lerp_Batim_OUT.Y); 
+        Serial.println("");
+  }
+
+trig_serial_IN = trig_serial_OUT;
+
+}
+*/
+/*
+void loop() {
+static boolean trig_serial_IN; static boolean trig_serial_OUT;
+float actual_time = millis();
+float tempo_inicial = millis();
+/*
+    mg90s_1.writeMicroseconds(500);
+    mg90s_2.writeMicroseconds(500);
+    mg90s_3.writeMicroseconds(500);
+
+   delay(500);
+   mg90s_1.writeMicroseconds(2500);
+    mg90s_2.writeMicroseconds(2500);
+    mg90s_3.writeMicroseconds(2500);
+    delay(500);
+*/
+/*
+    for (int i = 0; i < 18; i++) {
+    //bool verification = inverse_kinematics(X_test_calibration[i], Y_test_calibration[i], Z_test_calibration[i], ROTATION_OFFSET_Z_Delta2);
+  //if(verification == 1){
+   // printf("\n Success Inverse Kinematics");
+   // printf("\n Angulo do servo 1: %f", servo_1_angle);
+   // printf("\n Angulo do servo 2: %f", servo_2_angle);
+   // printf("\n Angulo do servo 3: %f", servo_3_angle);
+ // }
+  //if(verification == 0){
+   // printf("\n Erro Inverse Kinematics");
+  //}
+  //bool ik1 = inverse_kinematics(delta_1_Cfg, X_test_calibration[i], Y_test_calibration[i], Z_test_calibration[i]);
+  //mg90s_1.writeMicroseconds(servo_1_pulse_count); 
+  //mg90s_2.writeMicroseconds(servo_2_pulse_count);
+  //mg90s_3.writeMicroseconds(servo_3_pulse_count);
+Serial.print("Teste do ponto: ");   
+Serial.print(i);
+Serial.print(" -> X: ");
+Serial.print(-1 * X_test2[i]);
+Serial.print(" Y: ");
+Serial.print(Y_test2[i]);
+Serial.print(" Z: ");
+Serial.println( 40 + Z_test2[i]);
+  bool ik2 = inverse_kinematics(delta_2_Cfg, -1 * X_test2[i], Y_test2[i], 40 + Z_test2[i]);
+  
+  //mg90s_4.writeMicroseconds(servo_4_pulse_count); 
+  //mg90s_5.writeMicroseconds(servo_5_pulse_count);
+  //mg90s_6.writeMicroseconds(servo_6_pulse_count);
+  //if (ik1) {
+      //  servo_1_pulse_count = delta_1_Cfg.servo1Pulse;
+      //  servo_2_pulse_count = delta_1_Cfg.servo2Pulse;
+      //  servo_3_pulse_count = delta_1_Cfg.servo3Pulse;
+   // }
+    if (ik2) {
+        servo_4_pulse_count = delta_2_Cfg.servo1Pulse;
+        servo_5_pulse_count = delta_2_Cfg.servo2Pulse;
+        servo_6_pulse_count = delta_2_Cfg.servo3Pulse;
+    }
+    move_servos();
+    //if (ik1 || ik2) {
+      //  move_servos();
+    //}
+  delay(500);
+  
+  }
+  
     // Atualizar movimentos ativos
          //updateMotion(Test_inst, now); //Variavel que controla o update do movimento conforme o tempo que tenha passado, a posição atual no movimento, etc.
 
@@ -535,25 +706,25 @@ float tempo_inicial = millis();
     FSM_Motion_Update(start_comand , Test2_inst, now1);
     float xr=0, yr=0, zr=0;
     float xb=0, yb=0, zb=0;
-    trig_serial_OUT = trig_display_fsm(actual_time,200);
+   // trig_serial_OUT = trig_display_fsm(actual_time,200);
     // Movimento 1 (respiração)Test2_inst
-    //bool okResp = Motion_RESP_Position(Test2_inst,  now, xr, yr, zr);
+    //bool okResp = Motion_RESP_Position(Test2_inst,  now1, xr, yr, zr);
 float REsp_time = millis();
     // Movimento 2 (batimento)
-    //bool okBat  = Motion_BAT_Position(Test_inst, now, xb, yb, zb);
+    //bool okBat  = Motion_BAT_Position(Test_inst, now1, xb, yb, zb);
 float BAT_time = millis();
 float demora_RESP = REsp_time - now1;
 float demora_BAT = BAT_time - REsp_time;
-
 /*
+ //----------para aqui o outro circuito
     if (!okResp && !okBat) {
         return;  // nada válido
     }
 
     if (!okResp) { xr = yr = zr = 0.0f; }
-    if (okBat)  { xb = yb = zb = 0.0f; }
+    if (!okBat)  { xb = yb = zb = 0.0f; }
 
-    float x_total = xr + xb + 0.0f;
+    float x_total = xr + xb + -10.0f;
     float y_total = yr + yb + 0.0f;
     float z_total = zr + zb + 50.0f;
 
@@ -578,21 +749,36 @@ float demora_BAT = BAT_time - REsp_time;
         move_servos();
     }
 */
+//----------para aqui o outro circuito
+
+
+/*
+
+
 unsigned long now2 = millis();
 Intermed_position(Test_inst, now2, Lerp_Batim_OUT, trig_serial_IN);
 Intermed_position(Test2_inst, now2, Lerp_Respi_OUT, trig_serial_IN);
-float X_total = -1 * Lerp_Respi_OUT.X + -1 * Lerp_Batim_OUT.X + 10.0f;
-float Y_total = Lerp_Respi_OUT.Y + Lerp_Batim_OUT.Y + 0.0f;
-float Z_total = Lerp_Respi_OUT.Z + Lerp_Batim_OUT.Z + 50.0f;
+float X_total = 0 * Lerp_Respi_OUT.X +  Lerp_Batim_OUT.X + 0.0f;
+float Y_total = 0 * Lerp_Respi_OUT.Y +  Lerp_Batim_OUT.Y + 0.0f;
+float Z_total = 0 * Lerp_Respi_OUT.Z +   Lerp_Batim_OUT.Z + 40.0f;
 //float X_total =  10.0f;
 //float Y_total =  0.0f;
 //float Z_total =  45.0f;
-bool ik2 = inverse_kinematics(delta_2_Cfg, X_total, Y_total, Z_total);
+Serial.print(" -> X: ");
+Serial.print(Lerp_Respi_OUT.X);
+Serial.print(" Y: ");
+Serial.print(Lerp_Respi_OUT.Y);
+Serial.print(" Z: ");
+Serial.println(Lerp_Respi_OUT.Z);
+bool ik2 = inverse_kinematics(delta_2_Cfg, -1 * X_total, Y_total, Z_total);
 servo_4_pulse_count = delta_2_Cfg.servo1Pulse;
 servo_5_pulse_count = delta_2_Cfg.servo2Pulse;
 servo_6_pulse_count = delta_2_Cfg.servo3Pulse;
 move_servos();
-/*
+
+*/
+
+/* //----------para aqui o outro circuito
 int i = Test_inst.currentIndex;
 int j = Test2_inst.currentIndex;
 float x_i=X_test[i];
@@ -610,14 +796,18 @@ servo_4_pulse_count = delta_2_Cfg.servo1Pulse;
 servo_5_pulse_count = delta_2_Cfg.servo2Pulse;
 servo_6_pulse_count = delta_2_Cfg.servo3Pulse;
 move_servos();
-*/
+ 
+//----------para aqui o outro circuito
+
+
+
 float tempo_final = millis();
 float demora = tempo_final - tempo_inicial;
 Clock_loop++;
 if(trig_serial_IN == 1){
 
     Serial.print("0º -> Millis():");
-    Serial.println(now1);
+    //Serial.println(now1);
     Serial.print("------------------------------------------------------------> Index Atual: ");
     Serial.println(Test_inst.currentIndex);
     //Serial.print("1º -> Tempo de execução do Motion_RESP_Position:");
@@ -638,8 +828,105 @@ if(trig_serial_IN == 1){
   }
 
 trig_serial_IN = trig_serial_OUT;
-}
 
+}
+*/
+int pulses_1, pulses_2, pulses_3;
+void loop() {
+static boolean trig_serial_IN; static boolean trig_serial_OUT;
+float actual_time = millis();
+float tempo_inicial = millis();
+
+   
+
+  
+    unsigned long now1 = millis();
+
+    trig_serial_OUT = trig_display_fsm(actual_time,100);
+    FSM_Motion_Update(start_comand , Test_inst, now1);
+    unsigned long now2 = millis();
+    Intermed_position(Test_inst, now2, Lerp_Batim_OUT, trig_serial_IN);
+    FSM_Motion_Update(start_comand , Test2_inst, now1);
+    Intermed_position(Test2_inst, now2, Lerp_Respi_OUT, trig_serial_IN);
+
+float X_total = 1 * Lerp_Respi_OUT.X + 0 * Lerp_Batim_OUT.X + -15.0f;
+float Y_total = 1 * Lerp_Respi_OUT.Y + 0 * Lerp_Batim_OUT.Y + -10.0f;
+float Z_total = 1 * Lerp_Respi_OUT.Z + 0 *  Lerp_Batim_OUT.Z + 50.0f;
+
+int i = Test_inst.currentIndex;
+int j = Test2_inst.currentIndex;
+float x_i=X_test[i];
+float y_i=Y_test[i];    
+float z_i= Z_test[i];
+float x_j=X_test2[j];
+float y_j=Y_test2[j];    
+float z_j= Z_test2[j];
+//float x_total =  x_i +0* x_j + 0.0f;
+float y_t =  y_i +0* y_j + 0.0f;
+//float y_total = -1 * y_t; 
+//float z_total =  z_i +0* z_j + 50.0f;
+
+
+bool ik1 = inverse_kinematics(delta_1_Cfg, X_total, Y_total, Z_total);
+bool ik2 = inverse_kinematics(delta_2_Cfg, -1 * X_total, Y_total, Z_total);
+servo_1_pulse_count = delta_1_Cfg.servo1Pulse;
+servo_2_pulse_count = delta_1_Cfg.servo2Pulse;
+servo_3_pulse_count = delta_1_Cfg.servo3Pulse;
+
+servo_4_pulse_count = delta_2_Cfg.servo1Pulse;
+servo_5_pulse_count = delta_2_Cfg.servo2Pulse;
+servo_6_pulse_count = delta_2_Cfg.servo3Pulse;
+move_servos();
+
+
+float tempo_final = millis();
+float demora = tempo_final - tempo_inicial;
+Clock_loop++;
+//Serial.print("Clock loop: ");
+   // Serial.println(Clock_loop);
+int Safe_comand = 0;
+if(trig_serial_IN == 1 && Safe_comand == 1){
+   // Serial.print("------------------------------------------------------------> Index Atual:"); Serial.print(Test_inst.currentIndex);
+    //Serial.print("  X_total="); Serial.print(X_total);
+    //Serial.print("  Y_total="); Serial.print(Y_total);
+    //Serial.print("  Z_total="); Serial.println(Z_total);
+    int pulse = pulses_1 - pulses_2;
+    Serial.print(" ---- Pulse 1: "); Serial.println(pulses_1);
+    Serial.print(" -------------- Pulse 2: "); Serial.println(pulses_2);
+    Serial.print(" ------------------------- Pulse servo 4: "); Serial.println(pulse);
+    //Serial.print("0º -> Millis():");
+    //Serial.println(now1);
+    Serial.print("-------------------------------------------------------posição pulso:");
+    Serial.println(servo_4_pulse_count);
+    //Serial.print("1º -> Tempo de execução do Motion_RESP_Position:");
+    //Serial.println(REsp_time);
+    //Serial.print("2º ------->  Tempo de execução do Motion_BAT_Position:");
+    //Serial.println(BAT_time);
+    //Serial.print("3º ------------> Tempo de execução do IKdelta1:");
+   // Serial.println(Delta1);
+   // Serial.print("4º ------------------->  Tempo de execução IKdelta2:");
+    //Serial.println(Delta2);
+    //Serial.print("Tempo de execução Total: ");
+    //Serial.println(demora);
+    //Serial.print("Clock loop: ");
+    //Serial.println(Clock_loop);
+    
+  }
+
+
+
+trig_serial_IN = trig_serial_OUT;
+
+
+/*
+for (int i = 500; i < 2500; i++) {
+    mg90s_1.writeMicroseconds(i);
+    Serial.print("pwm: ");
+    Serial.println(i);
+    delay(5);
+}
+*/
+}
 
 //---------------------------Funções---------------------------------------------
 float boundFloat(float value, float lower, float upper){
@@ -667,11 +954,12 @@ bool inverse_kinematics(Manipulador_Config& cfg, float xt, float yt, float zt){
     float servo_Theta1_angle; 
     float servo_Theta2_angle;
     float servo_Theta3_angle;
+    
     if(axis_direction == 1){//if axis are inverted
         xt = -xt;
         zt = -zt;
     }
-    
+  
     bool ok1 = inverse_kinematics_1(xt, yt, zt, cfg.rotationOffsetZ, servo_Theta1_angle);
     bool ok2 = inverse_kinematics_2(xt, yt, zt, cfg.rotationOffsetZ, servo_Theta2_angle);
     bool ok3 = inverse_kinematics_3(xt, yt, zt, cfg.rotationOffsetZ, servo_Theta3_angle);
@@ -680,15 +968,41 @@ bool inverse_kinematics(Manipulador_Config& cfg, float xt, float yt, float zt){
         return false;
     }
        
-    cfg.servo1Pulse = round(mapNumber(servo_Theta1_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, cfg.servo1MaxPulse, cfg.servo1MinPulse));
-    cfg.servo2Pulse = round(mapNumber(servo_Theta2_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, cfg.servo2MaxPulse, cfg.servo2MinPulse));
-    cfg.servo3Pulse = round(mapNumber(servo_Theta3_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, cfg.servo3MaxPulse, cfg.servo3MinPulse));
+    cfg.servo1Pulse = round(mapNumber(servo_Theta1_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, cfg.theta1MinPulse, cfg.theta1MaxPulse));
+    cfg.servo2Pulse = round(mapNumber(servo_Theta2_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, cfg.theta2MinPulse, cfg.theta2MaxPulse));
+    cfg.servo3Pulse = round(mapNumber(servo_Theta3_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, cfg.theta3MinPulse, cfg.theta3MaxPulse));
+    int new4 = cfg.servo1Pulse;
+    int new5 = cfg.servo2Pulse;
+    int new6 = cfg.servo3Pulse;
+
+
+    if (new4 != last_delta2_s1) {
+    //Serial.print("-----------------------------------------------------------D2: ");
+    //Serial.print(last_delta2_s1); Serial.print("->"); Serial.print(new4);
+    //Serial.println("");
     
+
+    // atualizar “anteriores”
+    last_delta2_s1 = new4;
+    
+}
+
+    // só se houve mesmo alteração é que consideramos “novo”
+
+
     return true;
 }
 
 
 bool inverse_kinematics_1(float xt, float yt, float zt, float rotation_offset_Z, float& Servo_angle){
+      //Serial.print("x:");
+       // Serial.print(xt);
+       // Serial.print(" y:");
+       // Serial.print(yt);
+       // Serial.print(" z:");
+       // Serial.print(zt);
+       //  Serial.println("");
+       //  delay (100);
     zt -= servo_offset_z; 
     float x = xt;
     float y = yt;
@@ -703,13 +1017,20 @@ bool inverse_kinematics_1(float xt, float yt, float zt, float rotation_offset_Z,
     float l2pAngle = asin(yt / L2); 
     //printf("\n rad l2pAngle= %f", radsToDeg(l2pAngle));
     if(!(abs(l2pAngle) < 0.59341194567807205615405486128613f)){ 
-        //printf("ERROR: Ball joint 1 out of range: l2pAngle = %f", radsToDeg(l2pAngle));
+        printf("ERROR: Ball joint 1 out of range: l2pAngle = %f", radsToDeg(l2pAngle));
+        Serial.println("");
+        Serial.print("x:");
+    Serial.print(x);
+        Serial.print(" y:");
+        Serial.print(y);
+        Serial.print(" z:");
+        Serial.print(zt);
         return false;
     }
 
     float ext = sqrt(pow (zt, 2) + pow(SERVO_OFFSET_X - arm_end_x, 2)); 
     if(ext <= l2p - L1 || ext >= L1 + l2p){ 
-       //printf("\n ERROR: Extension 1 out of range: ext = %f", ext);
+        printf("\n ERROR: Extension 1 out of range: ext = %f", ext);
         return false;
     }
        
@@ -718,7 +1039,7 @@ bool inverse_kinematics_1(float xt, float yt, float zt, float rotation_offset_Z,
     float theta = phi + omega; 
 
     if(!(theta >= SERVO_ANGLE_MIN && theta <= SERVO_ANGLE_MAX)){ 
-        //printf("\n ERROR: Servo angle 1 out of range: Angle = %f", radsToDeg(theta));
+        printf("\n ERROR: Servo angle 1 out of range: Angle = %f", radsToDeg(theta));
         return false;
     }
     //printf("\n servo_1_angle = %f", radsToDeg(theta));
@@ -728,6 +1049,10 @@ bool inverse_kinematics_1(float xt, float yt, float zt, float rotation_offset_Z,
 }
 
 bool inverse_kinematics_2(float xt, float yt, float zt, float rotation_offset_Z, float& Servo_angle){
+    
+      float xn = xt;
+    float yn = yt;
+    float zn = zt;
     zt -= servo_offset_z;
     float x = xt;
     float y = yt;
@@ -740,14 +1065,26 @@ bool inverse_kinematics_2(float xt, float yt, float zt, float rotation_offset_Z,
     
     float l2pAngle = asin(yt / L2);
     if(!(abs(l2pAngle) < 0.59341194567807205615405486128613f)){ 
-        //printf("ERROR: Ball joint 2 out of range: l2pAngle = ", radsToDeg(l2pAngle));        
+        //printf("ERROR: Ball joint 2 out of range: l2pAngle = %f", radsToDeg(l2pAngle));
+         Serial.print("ERROR: Ball joint 2 out of range: l2pAngle =");
+        Serial.print(radsToDeg(l2pAngle));
+        Serial.println("");
+        Serial.print(radsToDeg(0.59341194567807205615405486128613f));
+        Serial.println("");
+        Serial.print("x:");
+        Serial.print(xn);
+        Serial.print(" y:");
+        Serial.print(yn);
+        Serial.print(" z:");
+        Serial.print(zn);
+        Serial.println("");
         return false;
     }
     
     float ext = sqrt(pow (zt, 2) + pow(SERVO_OFFSET_X - arm_end_x, 2));
 
     if(ext <= l2p - L1 || ext >= L1 + l2p){ 
-        //printf("ERROR: Extension 2 out of range: ext = ", ext);
+       // printf("ERROR: Extension 2 out of range: ext = ", ext);
         return false;
     }
        
@@ -756,7 +1093,7 @@ bool inverse_kinematics_2(float xt, float yt, float zt, float rotation_offset_Z,
     float theta = phi + omega;
 
     if(!(theta >= SERVO_ANGLE_MIN && theta <= SERVO_ANGLE_MAX)){
-        //printf("ERROR: Servo angle 2 out of range: Angle = ", radsToDeg(theta));
+       // printf("ERROR: Servo angle 2 out of range: Angle = ", radsToDeg(theta));
         return false;
     }
     //printf("\n servo_2_angle = %f", radsToDeg(theta));
@@ -781,7 +1118,15 @@ bool inverse_kinematics_3(float xt, float yt, float zt, float rotation_offset_Z,
     
     float l2pAngle = asin(yt / L2);
     if(!(abs(l2pAngle) < 0.59341194567807205615405486128613f)){ //Prevents the angle between the ball joints and link 2 (L2) going out of range.
-        //printf("ERROR: Ball joint 1 out of range: l2pAngle = ", radsToDeg(l2pAngle));
+        printf("ERROR: Ball joint 3 out of range: l2pAngle = ", radsToDeg(l2pAngle));
+        //Serial.println("");
+        //Serial.print("x:");
+        //Serial.print(x);
+        //Serial.print(" y:");
+        //Serial.print(y);
+        //Serial.print(" z:");
+        //Serial.print(zt);
+       // Serial.println("");
         return false;
     }
     
@@ -789,6 +1134,7 @@ bool inverse_kinematics_3(float xt, float yt, float zt, float rotation_offset_Z,
 
     if(ext <= l2p - L1 || ext >= L1 + l2p){ //This limit assumes that L2 is greater than L1
         //printf("ERROR: Extension 3 out of range: ext = ", ext);
+        //Serial.println("");
         return false;
     }
        
@@ -798,6 +1144,7 @@ bool inverse_kinematics_3(float xt, float yt, float zt, float rotation_offset_Z,
 
     if(!(theta >= SERVO_ANGLE_MIN && theta <= SERVO_ANGLE_MAX)){
         //printf("ERROR: Servo angle 3 out of range: Angle = ", radsToDeg(theta));
+        //Serial.println("");
         return false;
     }
     //printf("\n servo_3_angle = %f", radsToDeg(theta));
@@ -808,9 +1155,9 @@ bool inverse_kinematics_3(float xt, float yt, float zt, float rotation_offset_Z,
 
  //Funçaõ simples para atualizar o valor de PWM dos servos.
 void move_servos(void){
-    //mg90s_1.writeMicroseconds(servo_1_pulse_count);
-    //mg90s_2.writeMicroseconds(servo_2_pulse_count);
-    //mg90s_3.writeMicroseconds(servo_3_pulse_count);
+    mg90s_1.writeMicroseconds(servo_1_pulse_count);
+    mg90s_2.writeMicroseconds(servo_2_pulse_count);
+    mg90s_3.writeMicroseconds(servo_3_pulse_count);
 
     mg90s_4.writeMicroseconds(servo_4_pulse_count);
     mg90s_5.writeMicroseconds(servo_5_pulse_count);
@@ -874,7 +1221,7 @@ if (!inst.active || m.nPoints <= 1 || m.period <= 0.0f) {
     }
 
     // calcula alpha com base em elapsed e dtMs
-    inst.elapsed = nowMs - inst.segmentStartMs;
+    //inst.elapsed = nowMs - inst.segmentStartMs;
     float alpha = (float)inst.elapsed / m.dtMs;
     if (alpha < 0.0f) alpha = 0.0f;
     if (alpha > 1.0f) alpha = 1.0f;
@@ -909,138 +1256,6 @@ float spline3(float p0, float p1, float p2, float t) { //Interpolação entre 3 
 
 
 
-void updateMotion(MotionInstance& inst, unsigned long nowMs) { //V2 -> versão com interpolação linear entre os pontos (função Easing)
-    if (!inst.active || inst.def == nullptr) return;
-
-    MotionStorage& m = *(inst.def);
-    if (m.nPoints <= 1 || m.period <= 0.0f) return;
-
-    // tempo total por segmento (i -> i+1)
-    float dtMs = (m.period * 1000.0f) / (float)m.nPoints;
-
-    // inicializar segmentStartMs na primeira chamada
-    if (inst.segmentStartMs == 0) {
-        inst.segmentStartMs = nowMs;
-    }
-
-    // quanto tempo passou desde o início do segmento atual
-    unsigned long elapsed = nowMs - inst.segmentStartMs;
-
-    // se passou do dt, avançar para o próximo segmento
-    if (elapsed >= dtMs) {
-        // avançar índice
-        inst.currentIndex++;
-        if (inst.currentIndex >= m.nPoints) {
-            inst.currentIndex = 0;
-        }
-        // reiniciar segmento
-        inst.segmentStartMs = nowMs;
-        elapsed = 0;
-    }
-
-    // calcular alpha [0,1] dentro do segmento atual
-    float alpha = (float)elapsed / dtMs;
-    if (alpha < 0.0f) alpha = 0.0f;
-    if (alpha > 1.0f) alpha = 1.0f;
-
-    // escolher modo de easing aqui
-    //   "C" -> sinusoidal
-    //   "L" -> linear
-    //   "Q" -> quadratica
-    //   "A" -> Ease-out (arranca rápido, abranda no fim)
-    //   "S" -> Cubic ease-in-out mais agressivo (S mais vincado)
-    char easingMode = 'A';  // 'L', 'C', 'Q', 'A', 'S'
-    
-    // aplicar easing global
-    float a = applyEasing(alpha, easingMode);
-
-    int i  = inst.currentIndex;
-    int j  = (i + 1) % m.nPoints; // próximo ponto (ciclo)
-
-    // interpolação suave entre ponto i e ponto j
-    float x = lerp(m.X[i], m.X[j], a);
-    float y = lerp(m.Y[i], m.Y[j], a);
-    float z = lerp(m.Z[i], m.Z[j], a);
-
-bool ok1 = inverse_kinematics(delta_1_Cfg, x, y, z);
-bool ok2 = inverse_kinematics(delta_2_Cfg, -1*x, y, z);
-
-// copiar para as variáveis globais que o move_servos usa
-if (ok1) {
-    servo_1_pulse_count = delta_1_Cfg.servo1Pulse;
-    servo_2_pulse_count = delta_1_Cfg.servo2Pulse;
-    servo_3_pulse_count = delta_1_Cfg.servo3Pulse;
-}
-
-if (ok2) {
-    servo_4_pulse_count = delta_2_Cfg.servo1Pulse;
-    servo_5_pulse_count = delta_2_Cfg.servo2Pulse;
-    servo_6_pulse_count = delta_2_Cfg.servo3Pulse;
-}
-
-if (ok1 || ok2) {
-    move_servos();
-}
-}
-
-/*
-void updateMotion(MotionInstance& inst, unsigned long nowMs) { //V3 -> versão com interpolação por spline cúbica entre os pontos (função Spline)
-    if (!inst.active || inst.def == nullptr) return; //Verifica se a instância está ativa e se tem uma definição de movimento associada
-
-    MotionStorage& m = *(inst.def); //Cria uma referência para a definição do movimento para facilitar o acesso aos seus dados e a leitura do utilizador
-    if (m.nPoints <= 2 || m.period <= 0.0f) return;  //Verifica se o ciclo tem um número válido de pontos (pelo menos 3) e um período positivo. Se não tiver, sai da função
-
-    
-    float dtMs = (m.period * 1000.0f) / (float)m.nPoints; //Calcula o tempo que deve passar entre cada ponto do movimento (i -> i+1), (em milissegundos). 
-                                                          //   -> O período é dividido pelo número de pontos para obter o tempo por ponto.
-
-    // inicializar segmentStartMs na primeira chamada, para o valor atual de millis() 
-    if (inst.segmentStartMs == 0) {
-        inst.segmentStartMs = nowMs;
-    }
-
-    // quanto tempo passou desde o início do segmento atual
-    unsigned long elapsed = nowMs - inst.segmentStartMs;
-
-    // se passou do dt, avançar para o próximo segmento
-    if (elapsed >= dtMs) { //Se já tiver passado o tempo dt avança para o proximo segmento 
-        inst.currentIndex++;
-        if (inst.currentIndex >= m.nPoints) { //caso tenha chegado ao final do ciclo, volta ao inicio
-            inst.currentIndex = 0;
-        }
-        inst.segmentStartMs = nowMs; //dá reset ao temporizador interno 
-        elapsed = 0; 
-    }
-
-    // calcular alpha [0,1] dentro do segmento atual
-    float alpha = (float)elapsed / dtMs; //basicamente isto calcula um valor interno entre 0 e 1 (entre Pi e Pi+1) que será utilizando para  calcula a interpolação no spline
-    if (alpha < 0.0f) alpha = 0.0f;
-    if (alpha > 1.0f) alpha = 1.0f;
-
-  
-    float a = alpha; //pode ser utilizado no Easing ou no spline
-    // Caso seja utilizado o easing novamente:
-    // char easingMode = 'C'; // 'L','C','Q','A','S'
-    // float a = applyEasing(alpha, easingMode);
-
-    // índices dos 3 pontos: Pi, Pi+1, Pi+2 (com wrap circular)
-    int i0 = inst.currentIndex;                      // Pi
-    int i1 = (inst.currentIndex + 1) % m.nPoints;    // Pi+1
-    int i2 = (inst.currentIndex + 2) % m.nPoints;    // Pi+2
-
-    // calculo do spline por eixo
-    float x = spline3(m.X[i0], m.X[i1], m.X[i2], a);
-    float y = spline3(m.Y[i0], m.Y[i1], m.Y[i2], a);
-    float z = spline3(m.Z[i0], m.Z[i1], m.Z[i2], a);
-
-    bool ok1 = inverse_kinematics(x, y, z, ROTATION_OFFSET_Z_Delta1, servo_1_pulse_count, servo_2_pulse_count, servo_3_pulse_count);
-    bool ok2 = inverse_kinematics(-1*x, y, z, ROTATION_OFFSET_Z_Delta2, servo_4_pulse_count, servo_5_pulse_count, servo_6_pulse_count);
-    if (ok1 || ok2 ) { //|| ok2
-        move_servos();
-    }
-}
-
-*/
 void debugPrintMove(const MotionStorage& move, const char* name) {
     Serial.print("=== ");
     Serial.print(name);
@@ -1260,7 +1475,7 @@ float applyEasing(float alpha, char mode) {
 
 
 void FSM_Motion_Update(boolean start, MotionInstance& inst, unsigned long nowMs){
-unsigned long elapsed;
+//unsigned long elapsed;
 MotionStorage& m = *(inst.def);
 /*
 Têm em atenção constituição de cada caso:
@@ -1290,31 +1505,29 @@ switch (inst.state) {
     break;
 
     case 3: 
-      elapsed = nowMs - inst.segmentStartMs;
-
-      if(elapsed >= m.dtMs) {inst.state = 4;}
+      inst.elapsed = nowMs - inst.segmentStartMs;
+      //Serial.print("index: ");
+       // Serial.print(inst.currentIndex);
+       // Serial.print("Elapsed: ");
+       // Serial.println(inst.elapsed);
+      if(inst.elapsed >= m.dtMs) {inst.state = 4;}
     break;
 
     case 4: 
       inst.currentIndex++;
-      elapsed = 0;
-
-      if(1) {inst.state = 5;}
+      inst.elapsed = 0;
+      inst.segmentStartMs = nowMs;
+      if(inst.currentIndex < m.nPoints -1) {inst.state = 3;}
+      if(inst.currentIndex >= m.nPoints -1) {inst.state = 5;}
     break;
+
 
     case 5: 
-      inst.segmentStartMs = nowMs;
-      
-      if(inst.currentIndex < m.nPoints) {inst.state = 3;}
-      if(inst.currentIndex >= m.nPoints) {inst.state = 6;}
-    break;
-
-    case 6: 
-      if(1){inst.state = 7;}
+      if(1){inst.state = 6;}
       //mais tarde este estado vai definir o tipo de reciclagem do movimento, ou seja, se volta ao inicio, se inverte o ciclo, etc.
     break;
 
-    case 7: 
+    case 6: 
       inst.currentIndex = 0;
   
       if(!inst.active || start == 0) {inst.state = 0;}
