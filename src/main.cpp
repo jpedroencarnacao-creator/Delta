@@ -113,14 +113,21 @@ float Z_test[] = {  0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   
 
 int Step_delay_t[] = {0, 0,  0,  0,   0,   0,    0,    0,  0};
 const int N_test = 28;
-float T_period = 1.0f; //Duration of the cycle in seconds (for now, not used for anything)
+float T_period = 0.3f; 
+float T_pausedt = 0.6f; 
 
-float X_test2[] = {0.000, 1.333, 2.667, 4.000, 5.333, 6.667, 8.000, 9.333, 10.667, 12.000, 10.667, 9.333, 8.000, 6.667, 5.333, 4.000, 2.667,   1.333 };
-float Y_test2[] = {  0.0,   0.0,   0.0,    0.0,  0.0,   0.0,   0.0,   0.0,   0.0,     0.0,    0.0,    0.0,   0.0,   0.0,  0.0,    0.0,   0.0,  0.0 };
-float Z_test2[] = {0.000, 0.247, 0.988, 2.222, 3.951, 6.173, 8.889, 12.099, 15.802, 20.000, 15.802, 12.099, 8.889, 6.173, 3.951, 2.222, 0.988, 0.247};
-const int N_test2 = 18;
-float T_period2 = 4.0f; //Duration of the cycle in seconds (for now, not used for anything)
 
+//float X_test2[] = {0.000, 1.333, 2.667, 4.000, 5.333, 6.667, 8.000, 9.333, 10.667, 12.000, 10.667, 9.333, 8.000, 6.667, 5.333, 4.000, 2.667,   1.333 };
+//float Y_test2[] = {  0.0,   0.0,   0.0,    0.0,  0.0,   0.0,   0.0,   0.0,   0.0,     0.0,    0.0,    0.0,   0.0,   0.0,  0.0,    0.0,   0.0,  0.0 };
+//float Z_test2[] = {0.000, 0.247, 0.988, 2.222, 3.951, 6.173, 8.889, 12.099, 15.802, 20.000, 15.802, 12.099, 8.889, 6.173, 3.951, 2.222, 0.988, 0.247};
+float X_test2[] = {0.000, 1.333, 2.667, 4.000, 5.333, 6.667, 8.000, 9.333, 10.667, 12.000};
+float Y_test2[] = {  0.0,   0.0,   0.0,    0.0,  0.0,   0.0,   0.0,   0.0,   0.0,     0.0};
+float Z_test2[] = {0.000, 0.247, 0.988, 2.222, 3.951, 6.173, 8.889, 12.099, 15.802, 20.000};
+
+//const int N_test2 = 18;
+const int N_test2 = 10;
+float T_period2 = 4.0f; 
+float T_pausedt2 = 0.8f; 
 //Link lengths (mm)
 #define L1 35
 #define L2 60
@@ -188,20 +195,43 @@ struct MotionStorage {
     float X[MAX_POINTS];            // coordenadas X dos pontos do movimento
     float Y[MAX_POINTS];            // coordenadas Y dos pontos do movimento
     float Z[MAX_POINTS];            // coordenadas Z dos pontos do movimento
-    float period;    
+    float period; 
+    float T_pause;   
     float dtMs;                // duração do ciclo em segundos
+    float dt_pauseMs;           // duração da pausa entre ciclos em segundos
 
+    bool  bidirectional;   // true = vai-e-vem, false = ciclo fechado
 
     float getDtMs() const {
-    if (nPoints > 1 && period > 0.0f) {
-        return (period * 1000.0f) / (float)nPoints;  // só lê nPoints e period
+        if (nPoints > 1 && period > 0.0f) {
+            int Ndt_pontos ;  // nº de segmentos por ciclo
+            if (bidirectional==true) {
+                // 0..N-1..0  -> 2*(N-1) segmentos
+                Ndt_pontos  = (nPoints * 2) - 2;
+            } else {
+                // ciclo normal 0..N-1..0, como já tinhas
+                Ndt_pontos = nPoints;
+            }
+            return (period * 1000.0f) / (float)Ndt_pontos;
         }
-       return 0.0f;
+        return 0.0f;
     }
 
     void updateDtMs() {
     dtMs = getDtMs();    // aqui sim, mudas dtMs
+    }
+
+  float getD_PauseMs() const {
+    if (nPoints > 1 && T_pause > 0.0f) {
+        return (T_pause * 1000.0f);  // só lê nPoints e T_pause
+        }
+       return 0.0f;
+    }
+
+    void updateDt_PauseMs() {
+    dt_pauseMs = getD_PauseMs();    // aqui sim, mudas dt_pauseMs
   }
+
 };
 
 // Armazenamento temporário: runtime que executa um MotionStorage
@@ -215,6 +245,12 @@ struct MotionInstance {
     bool           active;      // se este movimento está ativo
     short int      state;
     unsigned long elapsed;
+    unsigned long elapsed_2;
+    unsigned long elapsed_3;
+
+    int iIndex;  // novo: índice i para a interpolação
+    int jIndex;  // novo: índice j para a interpolação
+    int Direction; // novo: direção do movimento (1 ou -1)
 };
 
 
@@ -230,14 +266,16 @@ void initTestMove() { //Serve para copiar os valores definidos mais acima para o
                         // ->    No futuro será utilizado para copiar os movimentos pré definidos da EPPROM ou do PI
     Test_move.nPoints = N_test;
     Test_move.period  = T_period;
-
+    Test_move.T_pause = T_pausedt;
     for (int i = 0; i < N_test; i++) {
         Test_move.X[i] = X_test[i];
         Test_move.Y[i] = -1 * Y_test[i];
         Test_move.Z[i] = Z_test[i];
 
     }
+    Test_move.bidirectional = false; // Define o movimento como vai-e-vem 
     Test_move.updateDtMs();
+    Test_move.updateDt_PauseMs();
 }
 
 void initTestMove2() { //Serve para copiar os valores definidos mais acima para o objeto Test2_move, que é do tipo MotionStorage. 
@@ -245,13 +283,15 @@ void initTestMove2() { //Serve para copiar os valores definidos mais acima para 
                         // ->    No futuro será utilizado para copiar os movimentos pré definidos da EPPROM ou do PI
     Test2_move.nPoints = N_test2;
     Test2_move.period  = T_period2;
-
+    Test2_move.T_pause = T_pausedt2;
     for (int i = 0; i < N_test2; i++) {
         Test2_move.X[i] = X_test2[i];
         Test2_move.Y[i] = -1 * Y_test2[i];
         Test2_move.Z[i] = Z_test2[i];
     }
+    Test2_move.bidirectional = true; // Define o movimento como vai-e-vem
     Test2_move.updateDtMs();
+    Test2_move.updateDt_PauseMs();
 }
     
 void initTestInstance() { //Serve para arrancar a structure de temporaria de runtime
@@ -262,6 +302,11 @@ void initTestInstance() { //Serve para arrancar a structure de temporaria de run
     Test_inst.active        = true;
     Test_inst.state         = 0;
     Test_inst.elapsed       = 0;
+    Test_inst.elapsed_2     = 0;
+    Test_inst.elapsed_3     = 0;
+    Test_inst.iIndex        = 0;
+    Test_inst.jIndex        = 0;
+    Test_inst.Direction     = 1; // novo: inicializa a direção como positiva
 }
 
 void initTestInstance2() { //Serve para arrancar a structure de temporaria de runtime
@@ -272,6 +317,11 @@ void initTestInstance2() { //Serve para arrancar a structure de temporaria de ru
     Test2_inst.active        = true;
     Test2_inst.state         = 0;
     Test2_inst.elapsed       = 0;
+    Test2_inst.elapsed_2     = 0;
+    Test2_inst.elapsed_3     = 0;
+    Test2_inst.iIndex        = 0;
+    Test2_inst.jIndex        = 0;
+    Test2_inst.Direction     = 1; // novo: inicializa a direção como positiva
 }
 
 
@@ -849,9 +899,13 @@ float tempo_inicial = millis();
     FSM_Motion_Update(start_comand , Test2_inst, now1);
     Intermed_position(Test2_inst, now2, Lerp_Respi_OUT, trig_serial_IN);
 
-float X_total = 1 * Lerp_Respi_OUT.X + 0 * Lerp_Batim_OUT.X + -15.0f;
-float Y_total = 1 * Lerp_Respi_OUT.Y + 0 * Lerp_Batim_OUT.Y + -10.0f;
-float Z_total = 1 * Lerp_Respi_OUT.Z + 0 *  Lerp_Batim_OUT.Z + 50.0f;
+float X_total_d1 = 1 * Lerp_Respi_OUT.X + 0.3 * Lerp_Batim_OUT.X + -15.0f;
+float Y_total_d1 = 1 * Lerp_Respi_OUT.Y + 0.3 * Lerp_Batim_OUT.Y + -10.0f;
+float Z_total_d1 = 1 * Lerp_Respi_OUT.Z + 0.3 *  Lerp_Batim_OUT.Z + 50.0f;
+
+float X_total_d2 = 1 * Lerp_Respi_OUT.X + 0.0 * Lerp_Batim_OUT.X + -15.0f;
+float Y_total_d2 = 1 * Lerp_Respi_OUT.Y + 0.0 * Lerp_Batim_OUT.Y + -10.0f;
+float Z_total_d2 = 1 * Lerp_Respi_OUT.Z + 0.0 *  Lerp_Batim_OUT.Z + 50.0f;
 
 int i = Test_inst.currentIndex;
 int j = Test2_inst.currentIndex;
@@ -867,8 +921,8 @@ float y_t =  y_i +0* y_j + 0.0f;
 //float z_total =  z_i +0* z_j + 50.0f;
 
 
-bool ik1 = inverse_kinematics(delta_1_Cfg, X_total, Y_total, Z_total);
-bool ik2 = inverse_kinematics(delta_2_Cfg, -1 * X_total, Y_total, Z_total);
+bool ik1 = inverse_kinematics(delta_1_Cfg, X_total_d1, Y_total_d1, Z_total_d1);
+bool ik2 = inverse_kinematics(delta_2_Cfg, -1 * X_total_d2, Y_total_d2, Z_total_d2);
 servo_1_pulse_count = delta_1_Cfg.servo1Pulse;
 servo_2_pulse_count = delta_1_Cfg.servo2Pulse;
 servo_3_pulse_count = delta_1_Cfg.servo3Pulse;
@@ -1222,13 +1276,24 @@ if (!inst.active || m.nPoints <= 1 || m.period <= 0.0f) {
 
     // calcula alpha com base em elapsed e dtMs
     //inst.elapsed = nowMs - inst.segmentStartMs;
-    float alpha = (float)inst.elapsed / m.dtMs;
+
+    int i = inst.iIndex;
+    int j = inst.jIndex;
+    float elapsed;
+
+    // Se estiveres a ir para trás, inverte os extremos do segmento
+    if(inst.Direction == 1){
+        elapsed = (float)inst.elapsed;
+    }
+    if (inst.Direction == -1) {
+        elapsed = (float)inst.elapsed_3;
+
+    }
+
+    float alpha = elapsed / m.dtMs;
     if (alpha < 0.0f) alpha = 0.0f;
     if (alpha > 1.0f) alpha = 1.0f;
 
-    int i = inst.currentIndex;
-    int j = (i + 1) % m.nPoints;
-    
     xyz.X = lerp(m.X[i], m.X[j], alpha);
     xyz.Y = lerp(m.Y[i], m.Y[j], alpha);
     xyz.Z = lerp(m.Z[i], m.Z[j], alpha);
@@ -1265,6 +1330,12 @@ void debugPrintMove(const MotionStorage& move, const char* name) {
     Serial.println(move.nPoints);
     Serial.print("period (sec): ");
     Serial.println(move.period);
+    Serial.print("dtMs: ");
+    Serial.println(move.dtMs);
+    Serial.print("T_pause (sec): ");
+    Serial.println(move.T_pause);
+    Serial.print("dt_PauseMs: ");
+    Serial.println(move.dt_pauseMs);
 
     for (int i = 0; i < move.nPoints; i++) {
         Serial.print("i=");
@@ -1485,6 +1556,7 @@ case x:
 */
 //Serial.print("Estado atual: ");
 //Serial.println(inst.state);
+
 switch (inst.state) {
 
     case 0:
@@ -1500,47 +1572,90 @@ switch (inst.state) {
 
     case 2:
       inst.segmentStartMs = nowMs;
-
-      if (1) {inst.state = 3;}
+        inst.jIndex = (inst.iIndex + 1) % m.nPoints;
+      if (inst.Direction == 1) {inst.state = 3;}
     break;
 
     case 3: 
       inst.elapsed = nowMs - inst.segmentStartMs;
       //Serial.print("index: ");
-       // Serial.print(inst.currentIndex);
+       // Serial.print(inst.iIndex);
        // Serial.print("Elapsed: ");
        // Serial.println(inst.elapsed);
       if(inst.elapsed >= m.dtMs) {inst.state = 4;}
     break;
 
     case 4: 
-      inst.currentIndex++;
+      inst.iIndex++;
+      inst.jIndex = (inst.iIndex + 1) % m.nPoints;
       inst.elapsed = 0;
       inst.segmentStartMs = nowMs;
-      if(inst.currentIndex < m.nPoints -1) {inst.state = 3;}
-      if(inst.currentIndex >= m.nPoints -1) {inst.state = 5;}
+      if(inst.iIndex < m.nPoints -1) {inst.state = 3;}
+      if(inst.iIndex >= m.nPoints -1 ) {inst.state = 5;}
+    break;
+
+    case 5: //função trás
+      inst.segmentStartMs = nowMs;
+      inst.jIndex = inst.iIndex;
+
+      if (m.bidirectional == true && inst.Direction == 1) {
+        inst.state = 8;          // RESP: ignora pausa no topo, vai logo para trás
+      }
+      else {
+        if (m.dt_pauseMs != 0) { inst.state = 6; }
+        if (m.dt_pauseMs == 0) { inst.state = 7; }
+      }
     break;
 
 
-    case 5: 
-      if(1){inst.state = 6;}
+    case 6: 
+      inst.elapsed_2 = nowMs - inst.segmentStartMs;
+      inst.iIndex = 0;
+      inst.jIndex = 0;
+
+      if(inst.elapsed_2 >= m.dt_pauseMs) {inst.state = 7;}
       //mais tarde este estado vai definir o tipo de reciclagem do movimento, ou seja, se volta ao inicio, se inverte o ciclo, etc.
     break;
 
-    case 6: 
-      inst.currentIndex = 0;
+    case 7: 
+      inst.iIndex = 0;
+      inst.Direction = 1;
+      inst.elapsed_2 = 0;
   
       if(!inst.active || start == 0) {inst.state = 0;}
       else {inst.state = 2;}
     break;
 
-/*
+
     case 8: //função trás
+      inst.Direction = -1;
+      inst.jIndex = (inst.iIndex - 1);
+      inst.segmentStartMs = nowMs; 
+      if(1){inst.state = 9;}
+    break;
+
+    case 9: //função trás
+      inst.elapsed_3 = nowMs - inst.segmentStartMs;
+   
+      if(inst.elapsed_3 >= m.dtMs) {inst.state = 10;}
 
     break;
-*/
+
+    case 10: //função trás
+      inst.iIndex--;
+      inst.jIndex = (inst.iIndex - 1);
+      inst.segmentStartMs = nowMs;
+      inst.elapsed_3 = 0;
+
+      if(inst.iIndex > 0) {inst.state = 9;}
+      if(inst.iIndex <= 0) {inst.state = 5;}
+
+    break;
+
     
 
     }
     return;
 }
+
+
