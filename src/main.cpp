@@ -112,8 +112,6 @@ float Y_test[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8
 //float Z_test[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8.536,   3.335,   0.000, -1.503, -2.845, -3.995, -4.923, -5.607, -6.029, -6.180, -6.056, -5.659, -5.000,  -2.965,  1.464,   6.665,  10.000, 11.503, 12.845, 13.995, 14.923};
 //float Z_test[] = {  40.0,    40.0,    40.0,    40.0,    40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,   40.0,    40.0};
 float Z_test[] = {  0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,    0.0};
-
-int Step_delay_t[] = {0, 0,  0,  0,   0,   0,    0,    0,  0};
 const int N_test = 28;
 float T_period = 0.3f; 
 float T_pausedt = 0.6f; 
@@ -197,7 +195,7 @@ const int MAX_POINTS = 100;
 
 // Armazenamento Bruto: dados completos de um movimento - Será utilizada para armazenar os movimentos que o Pi enviar, ou movimentos pré-definidos, etc.
 struct MotionStorage {
-    int   nPoints;                   // nº de pontos válidos em X/Y/Z/easing
+    int   n_Points;                   // nº de pontos válidos em X/Y/Z/easing
     float X[MAX_POINTS];            // coordenadas X dos pontos do movimento
     float Y[MAX_POINTS];            // coordenadas Y dos pontos do movimento
     float Z[MAX_POINTS];            // coordenadas Z dos pontos do movimento
@@ -205,20 +203,20 @@ struct MotionStorage {
     float T_pause;   
     float dtMs;                // duração do ciclo em segundos
     float dt_pauseMs;           // duração da pausa entre ciclos em segundos
-
+    int  startIndex;  // índice de ponto que será o "0,0,0" lógico
     bool  bidirectional;   // true = vai-e-vem, false = ciclo fechado
+    int N_pontos ;  // nº de segmentos por ciclo
 
-    float getDtMs() const {
-        if (nPoints > 1 && period > 0.0f) {
-            int Ndt_pontos ;  // nº de segmentos por ciclo
+    float getDtMs(){
+        if (n_Points > 1 && period > 0.0f) {
             if (bidirectional==true) {
                 // 0..N-1..0  -> 2*(N-1) segmentos
-                Ndt_pontos  = (nPoints * 2) - 2;
+                N_pontos  = (n_Points * 2) - 2;
             } else {
                 // ciclo normal 0..N-1..0, como já tinhas
-                Ndt_pontos = nPoints;
+                N_pontos = n_Points;
             }
-            return (period * 1000.0f) / (float)Ndt_pontos;
+            return (period * 1000.0f) / (float)N_pontos;
         }
         return 0.0f;
     }
@@ -228,7 +226,7 @@ struct MotionStorage {
     }
 
   float getD_PauseMs() const {
-    if (nPoints > 1 && T_pause > 0.0f) {
+    if (n_Points > 1 && T_pause > 0.0f) {
         return (T_pause * 1000.0f);  // só lê nPoints e T_pause
         }
        return 0.0f;
@@ -272,7 +270,7 @@ MotionInstance Resp_inst;
 void Iniciate_Bat_Move() { //Serve para copiar os valores definidos mais acima para o objeto Bat_move, que é do tipo MotionStorage. 
                         // ->    Isto é só para facilitar a criação de movimentos de teste, ou seja, para não ter que copiar os valores manualmente para o Bat_move cada vez que quiseres testar algo.
                         // ->    No futuro será utilizado para copiar os movimentos pré definidos da EPPROM ou do PI
-    Bat_move.nPoints = N_test;
+    Bat_move.n_Points = N_test;
     Bat_move.period  = T_period;
     Bat_move.T_pause = T_pausedt;
     for (int i = 0; i < N_test; i++) {
@@ -281,6 +279,7 @@ void Iniciate_Bat_Move() { //Serve para copiar os valores definidos mais acima p
         Bat_move.Z[i] = Z_test[i];
 
     }
+    Bat_move.startIndex = 0;
     Bat_move.bidirectional = false; // Define o movimento como vai-e-vem 
     Bat_move.updateDtMs();
     Bat_move.updateDt_PauseMs();
@@ -294,7 +293,7 @@ void Iniciate_Bat_Move() { //Serve para copiar os valores definidos mais acima p
 void Iniciate_Resp_Move() { //Serve para copiar os valores definidos mais acima para o objeto Resp2_move, que é do tipo MotionStorage. 
                         // ->    Isto é só para facilitar a criação de movimentos de teste, ou seja, para não ter que copiar os valores manualmente para o Resp2_move cada vez que quiseres testar algo.
                         // ->    No futuro será utilizado para copiar os movimentos pré definidos da EPPROM ou do PI
-    Resp_move.nPoints = N_test2;
+    Resp_move.n_Points = N_test2;
     Resp_move.period  = T_period2;
     Resp_move.T_pause = T_pausedt2;
     for (int i = 0; i < N_test2; i++) {
@@ -302,6 +301,7 @@ void Iniciate_Resp_Move() { //Serve para copiar os valores definidos mais acima 
         Resp_move.Y[i] = -1 * Y_test2[i];
         Resp_move.Z[i] = Z_test2[i];
     }
+    Resp_move.startIndex = 5;
     Resp_move.bidirectional = true; // Define o movimento como vai-e-vem
     Resp_move.updateDtMs();
     Resp_move.updateDt_PauseMs();
@@ -379,6 +379,9 @@ bool Fusao_plus_IK_D1(const Coordinate& respi, const Coordinate& batim);
 bool Fusao_plus_IK_D2(const Coordinate& respi, const Coordinate& batim);
 //------------------FSM-------------------------------
 void FSM_Motion_Update(boolean start, MotionInstance& inst, unsigned long nowMs);
+void FSM_Serial_reader(unsigned long nowMs);
+void FSM_Serial_Command(unsigned long nowMs);
+void FSM_Main(boolean start, MotionInstance& inst, unsigned long nowMs);
 //----------------------------------------------------
 
 //--Declaração dos comandos de leitura
@@ -1312,7 +1315,7 @@ float lerp(float a, float b, float t) { //Interpolação linear entre dois ponto
 void Intermed_position(boolean start, MotionInstance& inst, unsigned long nowMs, Coordinate& xyz, boolean trig_serial) { //Interpolação linear entre dois pontos a e b com t em [0,1] -> de momento não está a ser utilizada
 MotionStorage& m = *(inst.def);
 
-if (!inst.active || m.nPoints <= 1 || m.period <= 0.0f || (start == 0 && inst.Executing == 0)) {
+if (!inst.active || m.n_Points <= 1 || m.period <= 0.0f || (start == 0 && inst.Executing == 0)) {
        xyz.X = 0.0f;
        xyz.Y = 0.0f;
        xyz.Z = 0.0f;
@@ -1373,13 +1376,13 @@ switch (inst.state) {
     break;
 
     case 1:
-      if (m.nPoints <= 1 || m.period <= 0.0f) {inst.state = 1;}
+      if (m.n_Points <= 1 || m.period <= 0.0f) {inst.state = 1;}
       else {inst.state = 2;}
     break;
 
     case 2:
       inst.segmentStartMs = nowMs;
-      inst.jIndex = (inst.iIndex + 1) % m.nPoints;
+      inst.jIndex = (inst.iIndex + 1) % m.n_Points;
       inst.Executing = 1;
 
       if (inst.Direction == 1) {inst.state = 3;}
@@ -1393,12 +1396,12 @@ switch (inst.state) {
 
     case 4: 
       inst.iIndex++;
-      inst.jIndex = (inst.iIndex + 1) % m.nPoints;
+      inst.jIndex = (inst.iIndex + 1) % m.n_Points;
       inst.elapsed_1 = 0;
       inst.segmentStartMs = nowMs;
 
-      if(inst.iIndex < m.nPoints -1) {inst.state = 3;}
-      if(inst.iIndex >= m.nPoints -1 ) {inst.state = 5;}
+      if(inst.iIndex < m.n_Points -1) {inst.state = 3;}
+      if(inst.iIndex >= m.n_Points -1 ) {inst.state = 5;}
     break;
 
     case 5: //função trás
@@ -1493,7 +1496,7 @@ void debugPrintMove(const MotionStorage& move, const char* name) {
     Serial.println(" contents ===");
 
     Serial.print("nPoints: ");
-    Serial.println(move.nPoints);
+    Serial.println(move.n_Points);
     Serial.print("period (sec): ");
     Serial.println(move.period);
     Serial.print("dtMs: ");
@@ -1503,7 +1506,7 @@ void debugPrintMove(const MotionStorage& move, const char* name) {
     Serial.print("dt_PauseMs: ");
     Serial.println(move.dt_pauseMs);
 
-    for (int i = 0; i < move.nPoints; i++) {
+    for (int i = 0; i < move.n_Points; i++) {
         Serial.print("i=");
         Serial.print(i);
         Serial.print("  X=");

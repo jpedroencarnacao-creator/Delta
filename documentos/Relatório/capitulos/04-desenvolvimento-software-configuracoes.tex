@@ -1,0 +1,23 @@
+\chapter{Desenvolvimentos do Software e Configurações}
+
+\section{Arquitetura do software}
+Descrever a organização geral do firmware, os módulos principais e o fluxo de execução. O software deve separar leitura de entradas, geração de perfis de movimento, controlo dos atuadores, calibração e comunicação com o utilizador.
+
+\section{Ambiente de desenvolvimento}
+O projeto utiliza PlatformIO como ambiente de compilação e configuração do firmware. Nesta secção devem ser documentadas a placa alvo, bibliotecas, parâmetros de compilação, portas de comunicação e instruções de carregamento do programa.
+
+\section{Perfis de movimento}
+Os perfis de movimento devem representar diferentes fenómenos observados durante a broncoscopia:
+\begin{itemize}
+  \item respiração normal, com movimento periódico de baixa frequência;
+  \item oscilação associada ao batimento cardíaco, com baixa amplitude;
+  \item tosse, com deslocamento abrupto e não linear;
+  \item interação com o broncoscópio, com perturbações curtas e irregulares;
+  \item deformação localizada ou alteração de calibre, caso o hardware o permita.
+\end{itemize}
+
+\section{Configuração e calibração}
+Apresentar os parâmetros configuráveis, como amplitude, frequência, velocidade, limites de curso, tempos de pausa e perfis predefinidos. Incluir também o procedimento de calibração inicial e os critérios usados para validar se o movimento está dentro dos limites pretendidos.
+
+\section{Comunicação e registo de dados}
+Caso exista comunicação série, interface de utilizador ou registo de eventos, documentar os comandos disponíveis, formato das mensagens, variáveis monitorizadas e exemplos de utilização. Estes dados podem apoiar a análise de resultados e a depuração do sistema.

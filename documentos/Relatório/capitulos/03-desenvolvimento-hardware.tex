@@ -1,0 +1,33 @@
+\chapter{Desenvolvimento do Hardware}
+
+\section{Requisitos do sistema}
+O hardware deve permitir a fixação segura da árvore brônquica, a introdução de movimentos controlados, a repetição de ciclos de treino e a manutenção simples do protótipo. Os requisitos principais incluem baixo custo, robustez mecânica, segurança elétrica, facilidade de montagem e compatibilidade com ajustes futuros.
+
+\section{Modelo físico da árvore brônquica}
+Descrever o processo de obtenção ou seleção do modelo anatómico, a preparação para impressão 3D, o material utilizado, os parâmetros de fabrico e o método de montagem. Sempre que aplicável, incluir figuras do modelo CAD, da peça impressa e da integração no suporte.
+
+\section{Sistema de atuação}
+Apresentar os atuadores utilizados, a sua localização, o tipo de transmissão mecânica e o modo como cada atuador contribui para simular movimentos respiratórios, cardíacos, tosse ou interação com o broncoscópio. Deve ser incluída uma justificação da amplitude e frequência escolhidas, relacionando-as com a literatura e com os requisitos do protótipo \parencite{Chen2015,Gunatilaka2020,Fu2023,Santos2026}.
+
+\section{Eletrónica de controlo}
+Descrever o microcontrolador, drivers, alimentação, proteções, ligações, conectores e sensores. Incluir um diagrama de blocos do sistema e uma tabela com os componentes principais.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Lista preliminar de componentes do protótipo.}
+  \label{tab:componentes-hardware}
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    Componente & Função & Observações \\
+    \midrule
+    Microcontrolador & Controlo do sistema & A preencher \\
+    Atuador & Geração de movimento & A preencher \\
+    Driver & Acionamento do atuador & A preencher \\
+    Fonte de alimentação & Alimentação elétrica & A preencher \\
+    Estrutura mecânica & Suporte do modelo & A preencher \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Integração mecânica e segurança}
+Explicar como o protótipo foi montado, como são evitadas folgas excessivas, como é feita a proteção de cabos e elementos móveis, e que limitações foram impostas para evitar esforços mecânicos indesejados na árvore brônquica ou no broncoscópio.

@@ -1,0 +1,93 @@
+\documentclass[12pt,a4paper,oneside]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[portuguese]{babel}
+\usepackage{csquotes}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{siunitx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage[nameinlink,noabbrev]{cleveref}
+\usepackage[backend=biber,style=numeric-comp,sorting=none]{biblatex}
+
+\geometry{margin=2.5cm}
+\onehalfspacing
+\graphicspath{{figuras/}}
+\addbibresource{bibliografia.bib}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=black,
+  urlcolor=blue,
+  pdftitle={Modelo Articulado de uma Árvore Brônquica},
+  pdfauthor={},
+}
+
+\sisetup{
+  output-decimal-marker={,},
+  per-mode=symbol
+}
+
+\title{Modelo Articulado de uma Árvore Brônquica}
+\author{Nome do Autor}
+\date{\today}
+
+\begin{document}
+
+\hypersetup{pageanchor=false}
+
+\begin{titlepage}
+  \centering
+  \vspace*{2cm}
+  {\Large Projeto Final de Licenciatura\par}
+  \vspace{2cm}
+  {\Huge\bfseries Modelo Articulado de uma Árvore Brônquica\par}
+  \vspace{2cm}
+  {\Large Nome do Autor\par}
+  \vfill
+  {\large Instituição\par}
+  {\large Curso\par}
+  {\large \today\par}
+\end{titlepage}
+
+\cleardoublepage
+\hypersetup{pageanchor=true}
+\pagenumbering{roman}
+
+\chapter*{Resumo}
+\addcontentsline{toc}{chapter}{Resumo}
+Este relatório descreve o desenvolvimento de um modelo articulado de uma árvore brônquica para simulação de videobroncofibroscopia. O trabalho enquadra-se na necessidade de criar plataformas de treino acessíveis, realistas e repetíveis para procedimentos broncoscópicos, integrando impressão 3D, atuação mecânica, controlo eletrónico e software embarcado.
+
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+This report describes the development of an articulated bronchial tree model for flexible bronchoscopy simulation. The project addresses the need for accessible, realistic and repeatable training platforms by combining 3D printing, mechanical actuation, electronic control and embedded software.
+
+\tableofcontents
+\listoffigures
+\listoftables
+\clearpage
+
+\cleardoublepage
+\pagenumbering{arabic}
+
+\input{capitulos/01-introducao}
+\input{capitulos/02-estado-da-arte}
+\input{capitulos/03-desenvolvimento-hardware}
+\input{capitulos/04-desenvolvimento-software-configuracoes}
+\input{capitulos/05-testes-analise-resultados}
+\input{capitulos/06-conclusao}
+
+\nocite{*}
+\printbibliography[heading=bibintoc,title={Bibliografia}]
+
+\appendix
+\input{anexos/anexos}
+
+\end{document}

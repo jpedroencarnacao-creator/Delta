@@ -1,0 +1,1267 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{none/global//global/global/global}
+    \entry{Colt2001}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=1668d984cfb9d3c142b0b22d520278b0}{%
+           family={Colt},
+           familyi={C\bibinitperiod},
+           given={Henri\bibnamedelima G.},
+           giveni={H\bibinitperiod\bibinitdelim G\bibinitperiod}}}%
+        {{hash=2e283c3166c499d9dbd538ec6b2cd387}{%
+           family={Crawford},
+           familyi={C\bibinitperiod},
+           given={Stephen\bibnamedelima W.},
+           giveni={S\bibinitperiod\bibinitdelim W\bibinitperiod}}}%
+        {{hash=f6b6861801930aa47acff58c19e161d2}{%
+           family={Galbraith},
+           familyi={G\bibinitperiod},
+           given={Oliver},
+           giveni={O\bibinitperiod}}}%
+      }
+      \strng{namehash}{0cea3ef466c16c424f4d5d88ea0fa8f5}
+      \strng{fullhash}{0cea3ef466c16c424f4d5d88ea0fa8f5}
+      \strng{fullhashraw}{0cea3ef466c16c424f4d5d88ea0fa8f5}
+      \strng{bibnamehash}{0cea3ef466c16c424f4d5d88ea0fa8f5}
+      \strng{authorbibnamehash}{0cea3ef466c16c424f4d5d88ea0fa8f5}
+      \strng{authornamehash}{0cea3ef466c16c424f4d5d88ea0fa8f5}
+      \strng{authorfullhash}{0cea3ef466c16c424f4d5d88ea0fa8f5}
+      \strng{authorfullhashraw}{0cea3ef466c16c424f4d5d88ea0fa8f5}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Chest}
+      \field{number}{4}
+      \field{title}{Virtual Reality Bronchoscopy Simulation}
+      \field{volume}{120}
+      \field{year}{2001}
+      \field{pages}{1333\bibrangedash 1339}
+      \range{pages}{7}
+      \verb{doi}
+      \verb 10.1378/chest.120.4.1333
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1378/chest.120.4.1333
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1378/chest.120.4.1333
+      \endverb
+      \keyw{realidade-virtual,broncoscopia,simulacao}
+    \endentry
+    \entry{Ost2001}{article}{}{}
+      \name{author}{6}{}{%
+        {{hash=f4604ea178bb91ed4955bc0ae7590fba}{%
+           family={Ost},
+           familyi={O\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod}}}%
+        {{hash=802f74ef774dbb7f274f029125f2d4b9}{%
+           family={DeRosiers},
+           familyi={D\bibinitperiod},
+           given={Andrew},
+           giveni={A\bibinitperiod}}}%
+        {{hash=8f85cdc2dc5bd963d827debc2b9e29d5}{%
+           family={Britt},
+           familyi={B\bibinitperiod},
+           given={E.\bibnamedelimi James},
+           giveni={E\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=7d4ac5e39d95720edff60122dfdbdf99}{%
+           family={Fein},
+           familyi={F\bibinitperiod},
+           given={Alan\bibnamedelima M.},
+           giveni={A\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=8913c029b08143202c4f2406a7cb95e8}{%
+           family={Lesser},
+           familyi={L\bibinitperiod},
+           given={Martin\bibnamedelima L.},
+           giveni={M\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=4bf946b8b320a8f2e664163383635120}{%
+           family={Mehta},
+           familyi={M\bibinitperiod},
+           given={Atul\bibnamedelima C.},
+           giveni={A\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+      }
+      \strng{namehash}{76cf72c042f3cca28a077061fbd21128}
+      \strng{fullhash}{bd7f09e9e349706a7e3a2fd9d77cd907}
+      \strng{fullhashraw}{bd7f09e9e349706a7e3a2fd9d77cd907}
+      \strng{bibnamehash}{76cf72c042f3cca28a077061fbd21128}
+      \strng{authorbibnamehash}{76cf72c042f3cca28a077061fbd21128}
+      \strng{authornamehash}{76cf72c042f3cca28a077061fbd21128}
+      \strng{authorfullhash}{bd7f09e9e349706a7e3a2fd9d77cd907}
+      \strng{authorfullhashraw}{bd7f09e9e349706a7e3a2fd9d77cd907}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{American Journal of Respiratory and Critical Care Medicine}
+      \field{number}{12}
+      \field{title}{Assessment of a Bronchoscopy Simulator}
+      \field{volume}{164}
+      \field{year}{2001}
+      \field{pages}{2248\bibrangedash 2255}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1164/ajrccm.164.12.2102087
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1164/ajrccm.164.12.2102087
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1164/ajrccm.164.12.2102087
+      \endverb
+      \keyw{broncoscopia,avaliacao,simulador}
+    \endentry
+    \entry{Davoudi2008}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=ff0c3cc3bcdcc1953fc11d32815c783b}{%
+           family={Davoudi},
+           familyi={D\bibinitperiod},
+           given={Mohsen},
+           giveni={M\bibinitperiod}}}%
+        {{hash=1668d984cfb9d3c142b0b22d520278b0}{%
+           family={Colt},
+           familyi={C\bibinitperiod},
+           given={Henri\bibnamedelima G.},
+           giveni={H\bibinitperiod\bibinitdelim G\bibinitperiod}}}%
+      }
+      \strng{namehash}{019aad304eab61faa285a70675b2fcd4}
+      \strng{fullhash}{019aad304eab61faa285a70675b2fcd4}
+      \strng{fullhashraw}{019aad304eab61faa285a70675b2fcd4}
+      \strng{bibnamehash}{019aad304eab61faa285a70675b2fcd4}
+      \strng{authorbibnamehash}{019aad304eab61faa285a70675b2fcd4}
+      \strng{authornamehash}{019aad304eab61faa285a70675b2fcd4}
+      \strng{authorfullhash}{019aad304eab61faa285a70675b2fcd4}
+      \strng{authorfullhashraw}{019aad304eab61faa285a70675b2fcd4}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Advances in Health Sciences Education}
+      \field{number}{2}
+      \field{title}{Bronchoscopy simulation: a brief review}
+      \field{volume}{14}
+      \field{year}{2008}
+      \field{pages}{287\bibrangedash 296}
+      \range{pages}{10}
+      \verb{doi}
+      \verb 10.1007/s10459-007-9095-x
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1007/s10459-007-9095-x
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1007/s10459-007-9095-x
+      \endverb
+      \keyw{broncoscopia,simulacao,revisao}
+    \endentry
+    \entry{Fielding2014}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=35bf4ab37af02a8b1cbc350aff1c90b0}{%
+           family={Fielding},
+           familyi={F\bibinitperiod},
+           given={David\bibnamedelima I.},
+           giveni={D\bibinitperiod\bibinitdelim I\bibinitperiod}}}%
+        {{hash=7991edee7803235b03f199b7d4647290}{%
+           family={Maldonado},
+           familyi={M\bibinitperiod},
+           given={Fabien},
+           giveni={F\bibinitperiod}}}%
+        {{hash=060f77406dacb820605f637b31657a21}{%
+           family={Murgu},
+           familyi={M\bibinitperiod},
+           given={Septimiu},
+           giveni={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{07b3786871e261974f853440fb516752}
+      \strng{fullhash}{07b3786871e261974f853440fb516752}
+      \strng{fullhashraw}{07b3786871e261974f853440fb516752}
+      \strng{bibnamehash}{07b3786871e261974f853440fb516752}
+      \strng{authorbibnamehash}{07b3786871e261974f853440fb516752}
+      \strng{authornamehash}{07b3786871e261974f853440fb516752}
+      \strng{authorfullhash}{07b3786871e261974f853440fb516752}
+      \strng{authorfullhashraw}{07b3786871e261974f853440fb516752}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Respirology}
+      \field{number}{4}
+      \field{title}{Achieving competency in bronchoscopy: Challenges and opportunities}
+      \field{volume}{19}
+      \field{year}{2014}
+      \field{pages}{472\bibrangedash 482}
+      \range{pages}{11}
+      \verb{doi}
+      \verb 10.1111/resp.12279
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1111/resp.12279
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1111/resp.12279
+      \endverb
+      \keyw{broncoscopia,competencia,treino}
+    \endentry
+    \entry{Nilsson2017}{article}{}{}
+      \name{author}{4}{}{%
+        {{hash=85fe5d99c212dd532e48dce811cffefe}{%
+           family={Nilsson},
+           familyi={N\bibinitperiod},
+           given={Philip\bibnamedelima Mørkeberg},
+           giveni={P\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=654f3a900a4cc1f0aad986d3d1e6867c}{%
+           family={Naur},
+           familyi={N\bibinitperiod},
+           given={Therese\bibnamedelimb Maria\bibnamedelima Henriette},
+           giveni={T\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
+        {{hash=3614552969116a00f2c48c0b04003bcf}{%
+           family={Clementsen},
+           familyi={C\bibinitperiod},
+           given={Paul\bibnamedelima Frost},
+           giveni={P\bibinitperiod\bibinitdelim F\bibinitperiod}}}%
+        {{hash=107863dd4fd464c5f4e8b0c54d887736}{%
+           family={Konge},
+           familyi={K\bibinitperiod},
+           given={Lars},
+           giveni={L\bibinitperiod}}}%
+      }
+      \strng{namehash}{c002e23c79c92efbd6237308151ceae9}
+      \strng{fullhash}{f6d12204c71f0e7b48d7db270e072c39}
+      \strng{fullhashraw}{f6d12204c71f0e7b48d7db270e072c39}
+      \strng{bibnamehash}{c002e23c79c92efbd6237308151ceae9}
+      \strng{authorbibnamehash}{c002e23c79c92efbd6237308151ceae9}
+      \strng{authornamehash}{c002e23c79c92efbd6237308151ceae9}
+      \strng{authorfullhash}{f6d12204c71f0e7b48d7db270e072c39}
+      \strng{authorfullhashraw}{f6d12204c71f0e7b48d7db270e072c39}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Advances in Medical Education and Practice}
+      \field{title}{Simulation in bronchoscopy: current and future perspectives}
+      \field{volume}{8}
+      \field{year}{2017}
+      \field{pages}{755\bibrangedash 760}
+      \range{pages}{6}
+      \verb{doi}
+      \verb 10.2147/AMEP.S139929
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.2147/AMEP.S139929
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.2147/AMEP.S139929
+      \endverb
+      \keyw{broncoscopia,simulacao,treino}
+    \endentry
+    \entry{Pedersen2017}{article}{}{}
+      \name{author}{7}{}{%
+        {{hash=7de7c52221e09d48be44b55202e355f4}{%
+           family={Pedersen},
+           familyi={P\bibinitperiod},
+           given={T.\bibnamedelimi H.},
+           giveni={T\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
+        {{hash=8855c6a863bd5322842afe11cc98cf2e}{%
+           family={Gysin},
+           familyi={G\bibinitperiod},
+           given={J.},
+           giveni={J\bibinitperiod}}}%
+        {{hash=66d8c0c0c8377fb66bf70e9bbdc11838}{%
+           family={Wegmann},
+           familyi={W\bibinitperiod},
+           given={A.},
+           giveni={A\bibinitperiod}}}%
+        {{hash=fbce2feb1e11d21ec0949a6e44960d66}{%
+           family={Osswald},
+           familyi={O\bibinitperiod},
+           given={M.},
+           giveni={M\bibinitperiod}}}%
+        {{hash=90a99543e9c20f681928816c5bce6cea}{%
+           family={Ott},
+           familyi={O\bibinitperiod},
+           given={S.\bibnamedelimi R.},
+           giveni={S\bibinitperiod\bibinitdelim R\bibinitperiod}}}%
+        {{hash=36a5d6bf90f0ba481b4117f46dcaa5cd}{%
+           family={Theiler},
+           familyi={T\bibinitperiod},
+           given={L.},
+           giveni={L\bibinitperiod}}}%
+        {{hash=7034c98b00e04b6f15764b705647f269}{%
+           family={Greif},
+           familyi={G\bibinitperiod},
+           given={R.},
+           giveni={R\bibinitperiod}}}%
+      }
+      \strng{namehash}{98452daf1b33c31af5de151c0a966d71}
+      \strng{fullhash}{cf6a4aacb8c62da90f1ff4b6f9d96134}
+      \strng{fullhashraw}{cf6a4aacb8c62da90f1ff4b6f9d96134}
+      \strng{bibnamehash}{98452daf1b33c31af5de151c0a966d71}
+      \strng{authorbibnamehash}{98452daf1b33c31af5de151c0a966d71}
+      \strng{authornamehash}{98452daf1b33c31af5de151c0a966d71}
+      \strng{authorfullhash}{cf6a4aacb8c62da90f1ff4b6f9d96134}
+      \strng{authorfullhashraw}{cf6a4aacb8c62da90f1ff4b6f9d96134}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Anaesthesia}
+      \field{number}{8}
+      \field{title}{A randomised, controlled trial evaluating a low cost, 3D-printed bronchoscopy simulator}
+      \field{volume}{72}
+      \field{year}{2017}
+      \field{pages}{1005\bibrangedash 1009}
+      \range{pages}{5}
+      \verb{doi}
+      \verb 10.1111/anae.13951
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1111/anae.13951
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1111/anae.13951
+      \endverb
+      \keyw{broncoscopia,simulacao,impressao3d}
+    \endentry
+    \entry{Fu2023}{article}{}{}
+      \name{author}{5}{}{%
+        {{hash=233361f95f077100c2026f770b4b2c03}{%
+           family={Fu},
+           familyi={F\bibinitperiod},
+           given={Rao},
+           giveni={R\bibinitperiod}}}%
+        {{hash=f2cc0605a9c1e922bdfb2ade293af742}{%
+           family={Hone},
+           familyi={H\bibinitperiod},
+           given={Nicole\bibnamedelima G.},
+           giveni={N\bibinitperiod\bibinitdelim G\bibinitperiod}}}%
+        {{hash=a8429041b67945b605e2d74d9e38da4b}{%
+           family={Broadbent},
+           familyi={B\bibinitperiod},
+           given={James\bibnamedelima R.},
+           giveni={J\bibinitperiod\bibinitdelim R\bibinitperiod}}}%
+        {{hash=4f2b97098560fa7e08743ee5445a72d9}{%
+           family={Guy},
+           familyi={G\bibinitperiod},
+           given={Bernard\bibnamedelima J.},
+           giveni={B\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=799255974a2ecd9b86baafe7228aa52a}{%
+           family={Young},
+           familyi={Y\bibinitperiod},
+           given={Jeremy\bibnamedelima S.},
+           giveni={J\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+      }
+      \strng{namehash}{1b9b35bd38408866d073df1fd2bbedfd}
+      \strng{fullhash}{0d95258d70173223624163537b43ec2a}
+      \strng{fullhashraw}{0d95258d70173223624163537b43ec2a}
+      \strng{bibnamehash}{1b9b35bd38408866d073df1fd2bbedfd}
+      \strng{authorbibnamehash}{1b9b35bd38408866d073df1fd2bbedfd}
+      \strng{authornamehash}{1b9b35bd38408866d073df1fd2bbedfd}
+      \strng{authorfullhash}{0d95258d70173223624163537b43ec2a}
+      \strng{authorfullhashraw}{0d95258d70173223624163537b43ec2a}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Anaesthesia and Intensive Care}
+      \field{number}{4}
+      \field{title}{Dynamic three-dimensional printing: The future of bronchoscopic simulation training?}
+      \field{volume}{51}
+      \field{year}{2023}
+      \field{pages}{274\bibrangedash 280}
+      \range{pages}{7}
+      \verb{doi}
+      \verb 10.1177/0310057X231154015
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1177/0310057X231154015
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1177/0310057X231154015
+      \endverb
+      \keyw{impressao3d,simulacao-dinamica,broncoscopia}
+    \endentry
+    \entry{Santos2026}{unpublished}{}{}
+      \name{author}{1}{}{%
+        {{hash=9f79d1f263ab6ee9f1899b151fb727e8}{%
+           family={Santos},
+           familyi={S\bibinitperiod},
+           given={Bruno},
+           giveni={B\bibinitperiod}}}%
+      }
+      \strng{namehash}{9f79d1f263ab6ee9f1899b151fb727e8}
+      \strng{fullhash}{9f79d1f263ab6ee9f1899b151fb727e8}
+      \strng{fullhashraw}{9f79d1f263ab6ee9f1899b151fb727e8}
+      \strng{bibnamehash}{9f79d1f263ab6ee9f1899b151fb727e8}
+      \strng{authorbibnamehash}{9f79d1f263ab6ee9f1899b151fb727e8}
+      \strng{authornamehash}{9f79d1f263ab6ee9f1899b151fb727e8}
+      \strng{authorfullhash}{9f79d1f263ab6ee9f1899b151fb727e8}
+      \strng{authorfullhashraw}{9f79d1f263ab6ee9f1899b151fb727e8}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Documento de trabalho local na pasta Bibliografia}
+      \field{title}{Simulação dinâmica da videobroncofibroscopia em modelo impresso 3D}
+      \field{year}{2026}
+      \keyw{documento-local,simulacao-dinamica,broncoscopia}
+    \endentry
+    \entry{Chao2017}{article}{}{}
+      \name{author}{6}{}{%
+        {{hash=40151b2ceb905024b433ee0fe49fc275}{%
+           family={Chao},
+           familyi={C\bibinitperiod},
+           given={I.},
+           giveni={I\bibinitperiod}}}%
+        {{hash=ea9005eb0e22bcd85b67ca8120a02f33}{%
+           family={Young},
+           familyi={Y\bibinitperiod},
+           given={J.},
+           giveni={J\bibinitperiod}}}%
+        {{hash=8aa677243e98a41e266b1d329a3c0301}{%
+           family={Coles-Black},
+           familyi={C\bibinithyphendelim B\bibinitperiod},
+           given={J.},
+           giveni={J\bibinitperiod}}}%
+        {{hash=73c3025e4da67abcfe4902e11f3ee8dc}{%
+           family={Chuen},
+           familyi={C\bibinitperiod},
+           given={J.},
+           giveni={J\bibinitperiod}}}%
+        {{hash=d1e7e5b230a210729a86c28ff5850013}{%
+           family={Weinberg},
+           familyi={W\bibinitperiod},
+           given={L.},
+           giveni={L\bibinitperiod}}}%
+        {{hash=d4cf235d5cdaf649469b9f5cce8afcb3}{%
+           family={Rachbuch},
+           familyi={R\bibinitperiod},
+           given={C.},
+           giveni={C\bibinitperiod}}}%
+      }
+      \strng{namehash}{b891c1091ffc3a1e9d85d1f702b3060b}
+      \strng{fullhash}{5fb33c8686494048c53772f53d3fefe7}
+      \strng{fullhashraw}{5fb33c8686494048c53772f53d3fefe7}
+      \strng{bibnamehash}{b891c1091ffc3a1e9d85d1f702b3060b}
+      \strng{authorbibnamehash}{b891c1091ffc3a1e9d85d1f702b3060b}
+      \strng{authornamehash}{b891c1091ffc3a1e9d85d1f702b3060b}
+      \strng{authorfullhash}{5fb33c8686494048c53772f53d3fefe7}
+      \strng{authorfullhashraw}{5fb33c8686494048c53772f53d3fefe7}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Anaesthesia}
+      \field{number}{5}
+      \field{title}{The application of three-dimensional printing technology in anaesthesia: a systematic review}
+      \field{volume}{72}
+      \field{year}{2017}
+      \field{pages}{641\bibrangedash 650}
+      \range{pages}{10}
+      \verb{doi}
+      \verb 10.1111/anae.13812
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1111/anae.13812
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1111/anae.13812
+      \endverb
+      \keyw{impressao3d,anestesia,revisao-sistematica}
+    \endentry
+    \entry{Heinbecker1927}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=91f3a2b551f0e05abbbec1df778d4e60}{%
+           family={Heinbecker},
+           familyi={H\bibinitperiod},
+           given={Peter},
+           giveni={P\bibinitperiod}}}%
+      }
+      \strng{namehash}{91f3a2b551f0e05abbbec1df778d4e60}
+      \strng{fullhash}{91f3a2b551f0e05abbbec1df778d4e60}
+      \strng{fullhashraw}{91f3a2b551f0e05abbbec1df778d4e60}
+      \strng{bibnamehash}{91f3a2b551f0e05abbbec1df778d4e60}
+      \strng{authorbibnamehash}{91f3a2b551f0e05abbbec1df778d4e60}
+      \strng{authornamehash}{91f3a2b551f0e05abbbec1df778d4e60}
+      \strng{authorfullhash}{91f3a2b551f0e05abbbec1df778d4e60}
+      \strng{authorfullhashraw}{91f3a2b551f0e05abbbec1df778d4e60}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Journal of Clinical Investigation}
+      \field{number}{4}
+      \field{title}{A method for the demonstration of calibre changes in the bronchi in normal respiration}
+      \field{volume}{4}
+      \field{year}{1927}
+      \field{pages}{459\bibrangedash 469}
+      \range{pages}{11}
+      \verb{doi}
+      \verb 10.1172/JCI100133
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1172/JCI100133
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1172/JCI100133
+      \endverb
+      \keyw{calibre-bronquico,respiracao,artigo-historico}
+    \endentry
+    \entry{Ellis1936}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=2242c670a11e2c0a29c478dee260c138}{%
+           family={Ellis},
+           familyi={E\bibinitperiod},
+           given={Maxwell},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{2242c670a11e2c0a29c478dee260c138}
+      \strng{fullhash}{2242c670a11e2c0a29c478dee260c138}
+      \strng{fullhashraw}{2242c670a11e2c0a29c478dee260c138}
+      \strng{bibnamehash}{2242c670a11e2c0a29c478dee260c138}
+      \strng{authorbibnamehash}{2242c670a11e2c0a29c478dee260c138}
+      \strng{authornamehash}{2242c670a11e2c0a29c478dee260c138}
+      \strng{authorfullhash}{2242c670a11e2c0a29c478dee260c138}
+      \strng{authorfullhashraw}{2242c670a11e2c0a29c478dee260c138}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{The Journal of Physiology}
+      \field{number}{3}
+      \field{title}{The mechanism of the rhythmic changes in the calibre of the bronchi during respiration}
+      \field{volume}{87}
+      \field{year}{1936}
+      \field{pages}{298\bibrangedash 309}
+      \range{pages}{12}
+      \verb{doi}
+      \verb 10.1113/jphysiol.1936.sp003408
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1113/jphysiol.1936.sp003408
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1113/jphysiol.1936.sp003408
+      \endverb
+      \keyw{calibre-bronquico,respiracao,artigo-historico}
+    \endentry
+    \entry{Chen2015}{article}{}{}
+      \name{author}{4}{}{%
+        {{hash=af8b242a704fa6e5cb7608094ab3b0ff}{%
+           family={Chen},
+           familyi={C\bibinitperiod},
+           given={Alexander},
+           giveni={A\bibinitperiod}}}%
+        {{hash=ec6c5b5d9182ec1fae43f5679751acbe}{%
+           family={Pastis},
+           familyi={P\bibinitperiod},
+           given={Nicholas},
+           giveni={N\bibinitperiod}}}%
+        {{hash=00cb5671d72d4ebe65841bf674245a0d}{%
+           family={Furukawa},
+           familyi={F\bibinitperiod},
+           given={Brian},
+           giveni={B\bibinitperiod}}}%
+        {{hash=1c36176e7d6bed5427a6807b60c7b46d}{%
+           family={Silvestri},
+           familyi={S\bibinitperiod},
+           given={Gerard\bibnamedelima A.},
+           giveni={G\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+      }
+      \strng{namehash}{a7f3be235eae144f626efb9d7a5e819f}
+      \strng{fullhash}{489790188dce5b238f2e4af7417b9b30}
+      \strng{fullhashraw}{489790188dce5b238f2e4af7417b9b30}
+      \strng{bibnamehash}{a7f3be235eae144f626efb9d7a5e819f}
+      \strng{authorbibnamehash}{a7f3be235eae144f626efb9d7a5e819f}
+      \strng{authornamehash}{a7f3be235eae144f626efb9d7a5e819f}
+      \strng{authorfullhash}{489790188dce5b238f2e4af7417b9b30}
+      \strng{authorfullhashraw}{489790188dce5b238f2e4af7417b9b30}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Chest}
+      \field{number}{5}
+      \field{title}{The Effect of Respiratory Motion on Pulmonary Nodule Location During Electromagnetic Navigation Bronchoscopy}
+      \field{volume}{147}
+      \field{year}{2015}
+      \field{pages}{1275\bibrangedash 1281}
+      \range{pages}{7}
+      \verb{doi}
+      \verb 10.1378/chest.14-1425
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1378/chest.14-1425
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1378/chest.14-1425
+      \endverb
+      \keyw{movimento-respiratorio,broncoscopia,nodulo-pulmonar}
+    \endentry
+    \entry{Gunatilaka2020}{article}{}{}
+      \name{author}{5}{}{%
+        {{hash=4ab31188378c03472f289d33987ab9ce}{%
+           family={Gunatilaka},
+           familyi={G\bibinitperiod},
+           given={Chamindu\bibnamedelima C.},
+           giveni={C\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=0e0bf54d9c1dea165556bfa607dbcdc1}{%
+           family={Schuh},
+           familyi={S\bibinitperiod},
+           given={Andreas},
+           giveni={A\bibinitperiod}}}%
+        {{hash=b3dc74cf2fc2fe204fbfc0763ea1b239}{%
+           family={Higano},
+           familyi={H\bibinitperiod},
+           given={Nara\bibnamedelima S.},
+           giveni={N\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=d7b37dca543d1d76d3101ede108b34cb}{%
+           family={Woods},
+           familyi={W\bibinitperiod},
+           given={Jason\bibnamedelima C.},
+           giveni={J\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=0dd5a3d3423ccb47f5a8bf9532bb2331}{%
+           family={Bates},
+           familyi={B\bibinitperiod},
+           given={Alister\bibnamedelima J.},
+           giveni={A\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+      }
+      \strng{namehash}{da9e445f58a7913cb470f13981f7dc1a}
+      \strng{fullhash}{8fe6d9c8b93ce9d31ad48ce5e6b2c02b}
+      \strng{fullhashraw}{8fe6d9c8b93ce9d31ad48ce5e6b2c02b}
+      \strng{bibnamehash}{da9e445f58a7913cb470f13981f7dc1a}
+      \strng{authorbibnamehash}{da9e445f58a7913cb470f13981f7dc1a}
+      \strng{authornamehash}{da9e445f58a7913cb470f13981f7dc1a}
+      \strng{authorfullhash}{8fe6d9c8b93ce9d31ad48ce5e6b2c02b}
+      \strng{authorfullhashraw}{8fe6d9c8b93ce9d31ad48ce5e6b2c02b}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Computers in Biology and Medicine}
+      \field{title}{The effect of airway motion and breathing phase during imaging on CFD simulations of respiratory airflow}
+      \field{volume}{127}
+      \field{year}{2020}
+      \field{pages}{104099}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1016/j.compbiomed.2020.104099
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1016/j.compbiomed.2020.104099
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1016/j.compbiomed.2020.104099
+      \endverb
+      \keyw{vias-aereas,movimento-respiratorio,cfd}
+    \endentry
+    \entry{Kennedy2013}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=05a372670cd8bba663b6bd4bbcb3c1d6}{%
+           family={Kennedy},
+           familyi={K\bibinitperiod},
+           given={Cassie\bibnamedelima C.},
+           giveni={C\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=7991edee7803235b03f199b7d4647290}{%
+           family={Maldonado},
+           familyi={M\bibinitperiod},
+           given={Fabien},
+           giveni={F\bibinitperiod}}}%
+        {{hash=516cf52af5a23f2282bf2b62875f49c6}{%
+           family={Cook},
+           familyi={C\bibinitperiod},
+           given={David\bibnamedelima A.},
+           giveni={D\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+      }
+      \strng{namehash}{07bb7ca3ce7b337084a7aebeac849f70}
+      \strng{fullhash}{07bb7ca3ce7b337084a7aebeac849f70}
+      \strng{fullhashraw}{07bb7ca3ce7b337084a7aebeac849f70}
+      \strng{bibnamehash}{07bb7ca3ce7b337084a7aebeac849f70}
+      \strng{authorbibnamehash}{07bb7ca3ce7b337084a7aebeac849f70}
+      \strng{authornamehash}{07bb7ca3ce7b337084a7aebeac849f70}
+      \strng{authorfullhash}{07bb7ca3ce7b337084a7aebeac849f70}
+      \strng{authorfullhashraw}{07bb7ca3ce7b337084a7aebeac849f70}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Chest}
+      \field{number}{1}
+      \field{subtitle}{Systematic Review and Meta-analysis}
+      \field{title}{Simulation-Based Bronchoscopy Training}
+      \field{volume}{144}
+      \field{year}{2013}
+      \field{pages}{183\bibrangedash 192}
+      \range{pages}{10}
+      \verb{doi}
+      \verb 10.1378/chest.12-1786
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1378/chest.12-1786
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1378/chest.12-1786
+      \endverb
+      \keyw{broncoscopia,simulacao,revisao-sistematica}
+    \endentry
+    \entry{Gopal2018}{article}{}{}
+      \name{author}{7}{}{%
+        {{hash=3d91c2f19a4afe9af2311936cf197356}{%
+           family={Gopal},
+           familyi={G\bibinitperiod},
+           given={Mallika},
+           giveni={M\bibinitperiod}}}%
+        {{hash=334e3786f9f48e670bfcc77b3c767b28}{%
+           family={Skobodzinski},
+           familyi={S\bibinitperiod},
+           given={Alexus\bibnamedelima A.},
+           giveni={A\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=8e385efa43fbd61b21e5165f88f3e89f}{%
+           family={Sterbling},
+           familyi={S\bibinitperiod},
+           given={Helene\bibnamedelima M.},
+           giveni={H\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=6c635125094f85b70c971f6021c99d88}{%
+           family={Rao},
+           familyi={R\bibinitperiod},
+           given={Sowmya\bibnamedelima R.},
+           giveni={S\bibinitperiod\bibinitdelim R\bibinitperiod}}}%
+        {{hash=78f09ee9071099b65e725399325d5c19}{%
+           family={LaChapelle},
+           familyi={L\bibinitperiod},
+           given={Christopher},
+           giveni={C\bibinitperiod}}}%
+        {{hash=c935fe6c9143b3cda31648ff7d4af400}{%
+           family={Suzuki},
+           familyi={S\bibinitperiod},
+           given={Kei},
+           giveni={K\bibinitperiod}}}%
+        {{hash=9eacd330c9e3abf6fb9fe41e45625352}{%
+           family={Litle},
+           familyi={L\bibinitperiod},
+           given={Virginia\bibnamedelima R.},
+           giveni={V\bibinitperiod\bibinitdelim R\bibinitperiod}}}%
+      }
+      \strng{namehash}{063d5bc38277e97df9764c4b47c8a04f}
+      \strng{fullhash}{b5fd1b8f66268396b64c10fa4e6ad28d}
+      \strng{fullhashraw}{b5fd1b8f66268396b64c10fa4e6ad28d}
+      \strng{bibnamehash}{063d5bc38277e97df9764c4b47c8a04f}
+      \strng{authorbibnamehash}{063d5bc38277e97df9764c4b47c8a04f}
+      \strng{authornamehash}{063d5bc38277e97df9764c4b47c8a04f}
+      \strng{authorfullhash}{b5fd1b8f66268396b64c10fa4e6ad28d}
+      \strng{authorfullhashraw}{b5fd1b8f66268396b64c10fa4e6ad28d}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{The Annals of Thoracic Surgery}
+      \field{number}{1}
+      \field{title}{Bronchoscopy Simulation Training as a Tool in Medical School Education}
+      \field{volume}{106}
+      \field{year}{2018}
+      \field{pages}{280\bibrangedash 286}
+      \range{pages}{7}
+      \verb{doi}
+      \verb 10.1016/j.athoracsur.2018.02.011
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1016/j.athoracsur.2018.02.011
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1016/j.athoracsur.2018.02.011
+      \endverb
+      \keyw{broncoscopia,educacao-medica,simulacao}
+    \endentry
+    \entry{Anastakis1999}{article}{}{}
+      \name{author}{7}{}{%
+        {{hash=2c29467eb1d6bd3cd18e0e9edd34e00d}{%
+           family={Anastakis},
+           familyi={A\bibinitperiod},
+           given={Dimitri\bibnamedelima J.},
+           giveni={D\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=e76f4bc5fc85f03c913bbdf9766fb9c1}{%
+           family={Regehr},
+           familyi={R\bibinitperiod},
+           given={Glenn},
+           giveni={G\bibinitperiod}}}%
+        {{hash=45e899d7bee5173804730ba0c06e4a8d}{%
+           family={Reznick},
+           familyi={R\bibinitperiod},
+           given={Richard\bibnamedelima K.},
+           giveni={R\bibinitperiod\bibinitdelim K\bibinitperiod}}}%
+        {{hash=9754faa5fced249ccc57e2ec6defe2ea}{%
+           family={Cusimano},
+           familyi={C\bibinitperiod},
+           given={Michael},
+           giveni={M\bibinitperiod}}}%
+        {{hash=80f144ca9ae1083642fd12b751d98e1f}{%
+           family={Murnaghan},
+           familyi={M\bibinitperiod},
+           given={John},
+           giveni={J\bibinitperiod}}}%
+        {{hash=f8d0c6a112b5bfb49c401439f7b5d6f2}{%
+           family={Brown},
+           familyi={B\bibinitperiod},
+           given={Mitchell},
+           giveni={M\bibinitperiod}}}%
+        {{hash=f2af52d372f3d24e5290b59036e64c3b}{%
+           family={Hutchison},
+           familyi={H\bibinitperiod},
+           given={Carol},
+           giveni={C\bibinitperiod}}}%
+      }
+      \strng{namehash}{d63d19dfa9acdcf8707135b4b7826bea}
+      \strng{fullhash}{065c21681aaed798a46a621c6e77f0ae}
+      \strng{fullhashraw}{065c21681aaed798a46a621c6e77f0ae}
+      \strng{bibnamehash}{d63d19dfa9acdcf8707135b4b7826bea}
+      \strng{authorbibnamehash}{d63d19dfa9acdcf8707135b4b7826bea}
+      \strng{authornamehash}{d63d19dfa9acdcf8707135b4b7826bea}
+      \strng{authorfullhash}{065c21681aaed798a46a621c6e77f0ae}
+      \strng{authorfullhashraw}{065c21681aaed798a46a621c6e77f0ae}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{The American Journal of Surgery}
+      \field{number}{2}
+      \field{title}{Assessment of technical skills transfer from the bench training model to the human model}
+      \field{volume}{177}
+      \field{year}{1999}
+      \field{pages}{167\bibrangedash 170}
+      \range{pages}{4}
+      \verb{doi}
+      \verb 10.1016/S0002-9610(98)00327-4
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1016/S0002-9610(98)00327-4
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1016/S0002-9610(98)00327-4
+      \endverb
+      \keyw{transferencia,treino,competencias-tecnicas}
+    \endentry
+    \entry{Matsumoto2002}{article}{}{}
+      \name{author}{4}{}{%
+        {{hash=6bfc1a794223cb29d5837dd7a23c59dc}{%
+           family={Matsumoto},
+           familyi={M\bibinitperiod},
+           given={Edward\bibnamedelima D.},
+           giveni={E\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=15021adef7bb582cdef9d3722d26c56a}{%
+           family={Hamstra},
+           familyi={H\bibinitperiod},
+           given={Stanley\bibnamedelima J.},
+           giveni={S\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=3b89ddfd6edd0c1ed5edfc4d1436f651}{%
+           family={Radomski},
+           familyi={R\bibinitperiod},
+           given={Sidney\bibnamedelima B.},
+           giveni={S\bibinitperiod\bibinitdelim B\bibinitperiod}}}%
+        {{hash=e005c00c37305a621ac3b4c4bb7eefa3}{%
+           family={Cusimano},
+           familyi={C\bibinitperiod},
+           given={Michael\bibnamedelima D.},
+           giveni={M\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+      }
+      \strng{namehash}{6b0d7e83cf58bfa6cc5664d846e25a65}
+      \strng{fullhash}{d859a50bd88647d87509e8071e7584e2}
+      \strng{fullhashraw}{d859a50bd88647d87509e8071e7584e2}
+      \strng{bibnamehash}{6b0d7e83cf58bfa6cc5664d846e25a65}
+      \strng{authorbibnamehash}{6b0d7e83cf58bfa6cc5664d846e25a65}
+      \strng{authornamehash}{6b0d7e83cf58bfa6cc5664d846e25a65}
+      \strng{authorfullhash}{d859a50bd88647d87509e8071e7584e2}
+      \strng{authorfullhashraw}{d859a50bd88647d87509e8071e7584e2}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Journal of Urology}
+      \field{number}{3}
+      \field{title}{The effect of bench model fidelity on endourological skills: a randomized controlled study}
+      \field{volume}{167}
+      \field{year}{2002}
+      \field{pages}{1243\bibrangedash 1247}
+      \range{pages}{5}
+      \verb{doi}
+      \verb 10.1016/S0022-5347(05)65274-3
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1016/S0022-5347(05)65274-3
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1016/S0022-5347(05)65274-3
+      \endverb
+      \keyw{fidelidade,modelo-bancada,treino}
+    \endentry
+    \entry{Grober2004}{article}{}{}
+      \name{author}{7}{}{%
+        {{hash=7fc5ea0ad9f7b132faad954547b51f8b}{%
+           family={Grober},
+           familyi={G\bibinitperiod},
+           given={Ethan\bibnamedelima D.},
+           giveni={E\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=15021adef7bb582cdef9d3722d26c56a}{%
+           family={Hamstra},
+           familyi={H\bibinitperiod},
+           given={Stanley\bibnamedelima J.},
+           giveni={S\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=addc1619ff41309ccb6efe493e345bbe}{%
+           family={Wanzel},
+           familyi={W\bibinitperiod},
+           given={Kyle\bibnamedelima R.},
+           giveni={K\bibinitperiod\bibinitdelim R\bibinitperiod}}}%
+        {{hash=45e899d7bee5173804730ba0c06e4a8d}{%
+           family={Reznick},
+           familyi={R\bibinitperiod},
+           given={Richard\bibnamedelima K.},
+           giveni={R\bibinitperiod\bibinitdelim K\bibinitperiod}}}%
+        {{hash=6bfc1a794223cb29d5837dd7a23c59dc}{%
+           family={Matsumoto},
+           familyi={M\bibinitperiod},
+           given={Edward\bibnamedelima D.},
+           giveni={E\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=e37cb5f6e20bc8498353745dcbc9e9ec}{%
+           family={Sidhu},
+           familyi={S\bibinitperiod},
+           given={Ravindar\bibnamedelima S.},
+           giveni={R\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=fa79f9ca50c7d6576d8a8a7e31e80254}{%
+           family={Jarvi},
+           familyi={J\bibinitperiod},
+           given={Keith\bibnamedelima A.},
+           giveni={K\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+      }
+      \strng{namehash}{c3dd87718719bf6882b584ac892d3676}
+      \strng{fullhash}{56a22dae9012e3df37947f14b39d5021}
+      \strng{fullhashraw}{56a22dae9012e3df37947f14b39d5021}
+      \strng{bibnamehash}{c3dd87718719bf6882b584ac892d3676}
+      \strng{authorbibnamehash}{c3dd87718719bf6882b584ac892d3676}
+      \strng{authornamehash}{c3dd87718719bf6882b584ac892d3676}
+      \strng{authorfullhash}{56a22dae9012e3df37947f14b39d5021}
+      \strng{authorfullhashraw}{56a22dae9012e3df37947f14b39d5021}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Annals of Surgery}
+      \field{number}{2}
+      \field{title}{The Educational Impact of Bench Model Fidelity on the Acquisition of Technical Skill: The Use of Clinically Relevant Outcome Measures}
+      \field{volume}{240}
+      \field{year}{2004}
+      \field{pages}{374\bibrangedash 381}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1097/01.sla.0000133346.07434.30
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1097/01.sla.0000133346.07434.30
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1097/01.sla.0000133346.07434.30
+      \endverb
+      \keyw{fidelidade,competencias-tecnicas,avaliacao}
+    \endentry
+    \entry{Chandra2008}{article}{}{}
+      \name{author}{5}{}{%
+        {{hash=78b96f390979e712a85d0b6ef341116d}{%
+           family={Chandra},
+           familyi={C\bibinitperiod},
+           given={Deven\bibnamedelima B.},
+           giveni={D\bibinitperiod\bibinitdelim B\bibinitperiod}}}%
+        {{hash=4c7cc3bf142588da98ef8a164ccd0ffa}{%
+           family={Savoldelli},
+           familyi={S\bibinitperiod},
+           given={Georges\bibnamedelima L.},
+           giveni={G\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=105948dd4e410a8c4b46c141c7e18b34}{%
+           family={Joo},
+           familyi={J\bibinitperiod},
+           given={Hwan\bibnamedelima S.},
+           giveni={H\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=653fe98d0c09083491c80e990d6419e4}{%
+           family={Weiss},
+           familyi={W\bibinitperiod},
+           given={Israel\bibnamedelima D.},
+           giveni={I\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=f39710efcf035825446ba52021e20fce}{%
+           family={Naik},
+           familyi={N\bibinitperiod},
+           given={Viren\bibnamedelima N.},
+           giveni={V\bibinitperiod\bibinitdelim N\bibinitperiod}}}%
+      }
+      \strng{namehash}{2e0c2243e408c08ee7d9d480350b528c}
+      \strng{fullhash}{da11de3187696b7d20d82f7b2ce517a2}
+      \strng{fullhashraw}{da11de3187696b7d20d82f7b2ce517a2}
+      \strng{bibnamehash}{2e0c2243e408c08ee7d9d480350b528c}
+      \strng{authorbibnamehash}{2e0c2243e408c08ee7d9d480350b528c}
+      \strng{authornamehash}{2e0c2243e408c08ee7d9d480350b528c}
+      \strng{authorfullhash}{da11de3187696b7d20d82f7b2ce517a2}
+      \strng{authorfullhashraw}{da11de3187696b7d20d82f7b2ce517a2}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Anesthesiology}
+      \field{number}{6}
+      \field{title}{Fiberoptic Oral Intubation: The Effect of Model Fidelity on Training for Transfer to Patient Care}
+      \field{volume}{109}
+      \field{year}{2008}
+      \field{pages}{1007\bibrangedash 1013}
+      \range{pages}{7}
+      \verb{doi}
+      \verb 10.1097/ALN.0b013e31818d6c3c
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1097/ALN.0b013e31818d6c3c
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1097/ALN.0b013e31818d6c3c
+      \endverb
+      \keyw{fidelidade,treino,transferencia}
+    \endentry
+    \entry{Nicholls2016}{article}{}{}
+      \name{author}{4}{}{%
+        {{hash=06468ea4b06384136130d718f8acec5a}{%
+           family={Nicholls},
+           familyi={N\bibinitperiod},
+           given={Delwyn},
+           giveni={D\bibinitperiod}}}%
+        {{hash=9bb9e09650181fbe8955e5063b15d9ce}{%
+           family={Sweet},
+           familyi={S\bibinitperiod},
+           given={Linda},
+           giveni={L\bibinitperiod}}}%
+        {{hash=9a8e9587838120a3f7ed88aa852b1d7b}{%
+           family={Muller},
+           familyi={M\bibinitperiod},
+           given={Amanda},
+           giveni={A\bibinitperiod}}}%
+        {{hash=37295f40e7a31a602b2baf39c9a7a28a}{%
+           family={Hyett},
+           familyi={H\bibinitperiod},
+           given={Jon},
+           giveni={J\bibinitperiod}}}%
+      }
+      \strng{namehash}{b38c7b321703a88fd176101cdaf53c54}
+      \strng{fullhash}{04873b34c4bcc780be95f5b9c2e71794}
+      \strng{fullhashraw}{04873b34c4bcc780be95f5b9c2e71794}
+      \strng{bibnamehash}{b38c7b321703a88fd176101cdaf53c54}
+      \strng{authorbibnamehash}{b38c7b321703a88fd176101cdaf53c54}
+      \strng{authornamehash}{b38c7b321703a88fd176101cdaf53c54}
+      \strng{authorfullhash}{04873b34c4bcc780be95f5b9c2e71794}
+      \strng{authorfullhashraw}{04873b34c4bcc780be95f5b9c2e71794}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Medical Teacher}
+      \field{number}{10}
+      \field{title}{Teaching psychomotor skills in the twenty-first century: Revisiting and reviewing instructional approaches through the lens of contemporary literature}
+      \field{volume}{38}
+      \field{year}{2016}
+      \field{pages}{1056\bibrangedash 1063}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.3109/0142159X.2016.1150984
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.3109/0142159X.2016.1150984
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.3109/0142159X.2016.1150984
+      \endverb
+      \keyw{competencias-psicomotoras,educacao-medica}
+    \endentry
+    \entry{ProjetoBroncoscopia2023}{unpublished}{}{}
+      \name{author}{3}{}{%
+        {{hash=bfcdbb574f34a34ba9ef401ffdb4872c}{%
+           family={Barros},
+           familyi={B\bibinitperiod},
+           given={Pedro},
+           giveni={P\bibinitperiod}}}%
+        {{hash=9f79d1f263ab6ee9f1899b151fb727e8}{%
+           family={Santos},
+           familyi={S\bibinitperiod},
+           given={Bruno},
+           giveni={B\bibinitperiod}}}%
+        {{hash=33b52afa45990cb9a9a88395f8025fb5}{%
+           family={Brito},
+           familyi={B\bibinitperiod},
+           given={Ulisses},
+           giveni={U\bibinitperiod}}}%
+      }
+      \strng{namehash}{301dcbbe37b26d6e16384332412552bc}
+      \strng{fullhash}{301dcbbe37b26d6e16384332412552bc}
+      \strng{fullhashraw}{301dcbbe37b26d6e16384332412552bc}
+      \strng{bibnamehash}{301dcbbe37b26d6e16384332412552bc}
+      \strng{authorbibnamehash}{301dcbbe37b26d6e16384332412552bc}
+      \strng{authornamehash}{301dcbbe37b26d6e16384332412552bc}
+      \strng{authorfullhash}{301dcbbe37b26d6e16384332412552bc}
+      \strng{authorfullhashraw}{301dcbbe37b26d6e16384332412552bc}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Documento de trabalho local na pasta Bibliografia}
+      \field{title}{Projeto para desenvolvimento de modelo de simulação de árvore brônquica, com impressão 3D}
+      \field{year}{2023}
+      \keyw{documento-local,projeto,impressao3d}
+    \endentry
+    \entry{Naik2012}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=f39710efcf035825446ba52021e20fce}{%
+           family={Naik},
+           familyi={N\bibinitperiod},
+           given={Viren\bibnamedelima N.},
+           giveni={V\bibinitperiod\bibinitdelim N\bibinitperiod}}}%
+        {{hash=0ceff4ddaff38cd8bf59716eedbe4dcb}{%
+           family={Brien},
+           familyi={B\bibinitperiod},
+           given={Susan\bibnamedelima E.},
+           giveni={S\bibinitperiod\bibinitdelim E\bibinitperiod}}}%
+      }
+      \strng{namehash}{4e3742cd406cc223acd90b57b3cc06b1}
+      \strng{fullhash}{4e3742cd406cc223acd90b57b3cc06b1}
+      \strng{fullhashraw}{4e3742cd406cc223acd90b57b3cc06b1}
+      \strng{bibnamehash}{4e3742cd406cc223acd90b57b3cc06b1}
+      \strng{authorbibnamehash}{4e3742cd406cc223acd90b57b3cc06b1}
+      \strng{authornamehash}{4e3742cd406cc223acd90b57b3cc06b1}
+      \strng{authorfullhash}{4e3742cd406cc223acd90b57b3cc06b1}
+      \strng{authorfullhashraw}{4e3742cd406cc223acd90b57b3cc06b1}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Canadian Journal of Anesthesia}
+      \field{number}{2}
+      \field{title}{Review article: Simulation: a means to address and improve patient safety}
+      \field{volume}{60}
+      \field{year}{2012}
+      \true{nocite}
+      \field{pages}{192\bibrangedash 200}
+      \range{pages}{9}
+      \verb{doi}
+      \verb 10.1007/s12630-012-9860-z
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1007/s12630-012-9860-z
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1007/s12630-012-9860-z
+      \endverb
+      \keyw{simulacao,seguranca-do-doente}
+    \endentry
+    \entry{Davoudi2010}{article}{}{}
+      \name{author}{4}{}{%
+        {{hash=ff0c3cc3bcdcc1953fc11d32815c783b}{%
+           family={Davoudi},
+           familyi={D\bibinitperiod},
+           given={Mohsen},
+           giveni={M\bibinitperiod}}}%
+        {{hash=2702b416bd8b5a74ebc9f412d72c8cc2}{%
+           family={Wahidi},
+           familyi={W\bibinitperiod},
+           given={Momen\bibnamedelima M.},
+           giveni={M\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=2eccb6d0f547653968007eb9723b8523}{%
+           family={Zamanian\bibnamedelima Rohani},
+           familyi={Z\bibinitperiod\bibinitdelim R\bibinitperiod},
+           given={Nazanin},
+           giveni={N\bibinitperiod}}}%
+        {{hash=1668d984cfb9d3c142b0b22d520278b0}{%
+           family={Colt},
+           familyi={C\bibinitperiod},
+           given={Henri\bibnamedelima G.},
+           giveni={H\bibinitperiod\bibinitdelim G\bibinitperiod}}}%
+      }
+      \strng{namehash}{acb49ff8b427d88c1b1e20693393a72e}
+      \strng{fullhash}{03fb2877df1e8d3bb95186e88348f8dc}
+      \strng{fullhashraw}{03fb2877df1e8d3bb95186e88348f8dc}
+      \strng{bibnamehash}{acb49ff8b427d88c1b1e20693393a72e}
+      \strng{authorbibnamehash}{acb49ff8b427d88c1b1e20693393a72e}
+      \strng{authornamehash}{acb49ff8b427d88c1b1e20693393a72e}
+      \strng{authorfullhash}{03fb2877df1e8d3bb95186e88348f8dc}
+      \strng{authorfullhashraw}{03fb2877df1e8d3bb95186e88348f8dc}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Respiration}
+      \field{number}{4}
+      \field{title}{Comparative Effectiveness of Low- and High-Fidelity Bronchoscopy Simulation for Training in Conventional Transbronchial Needle Aspiration and User Preferences}
+      \field{volume}{80}
+      \field{year}{2010}
+      \true{nocite}
+      \field{pages}{327\bibrangedash 334}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1159/000318674
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1159/000318674
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1159/000318674
+      \endverb
+      \keyw{broncoscopia,fidelidade,treino}
+    \endentry
+    \entry{VideoApoioBroncoscopia1}{online}{}{}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labeltitlesource}{title}
+      \field{note}{Ligação recolhida em links.txt; confirmar título e autoria antes da versão final.}
+      \field{title}{Vídeo de apoio sobre broncoscopia}
+      \field{urlday}{12}
+      \field{urlmonth}{6}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.youtube.com/watch?v=yQJ8RxFrNUA
+      \endverb
+      \verb{url}
+      \verb https://www.youtube.com/watch?v=yQJ8RxFrNUA
+      \endverb
+      \keyw{video,apoio}
+    \endentry
+    \entry{VideoApoioBroncoscopia2}{online}{}{}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labeltitlesource}{title}
+      \field{note}{Ligação recolhida em links.txt; confirmar título e autoria antes da versão final.}
+      \field{title}{Vídeo de apoio sobre broncoscopia}
+      \field{urlday}{12}
+      \field{urlmonth}{6}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://www.youtube.com/watch?v=-jjwi5gk_4c
+      \endverb
+      \verb{url}
+      \verb https://www.youtube.com/watch?v=-jjwi5gk_4c
+      \endverb
+      \keyw{video,apoio}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

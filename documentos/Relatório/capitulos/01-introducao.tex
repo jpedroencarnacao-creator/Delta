@@ -1,0 +1,28 @@
+\chapter{Introdução}
+
+\section{Enquadramento}
+A broncoscopia flexível é um procedimento essencial em Pneumologia, Anestesiologia, Medicina Intensiva e Cirurgia Torácica. A sua execução exige coordenação psicomotora, reconhecimento anatómico, capacidade de navegação endoscópica e tomada de decisão em ambiente clínico variável. Por esse motivo, a simulação tem sido proposta como uma etapa relevante para reduzir a curva de aprendizagem e aumentar a segurança do treino antes da prática em doentes reais \parencite{Colt2001,Ost2001,Davoudi2008,Fielding2014,Nilsson2017}.
+
+O projeto apresentado neste relatório tem como objetivo desenvolver um modelo articulado de uma árvore brônquica capaz de reproduzir, de forma controlada, movimentos associados à respiração, à influência cardíaca, à tosse e à interação mecânica com o broncoscópio. A proposta parte de modelos impressos em 3D já descritos na literatura e acrescenta uma componente dinâmica, procurando aproximar a experiência de treino das condições observadas durante uma broncoscopia real \parencite{Pedersen2017,Fu2023,Santos2026}.
+
+\section{Motivação}
+Os simuladores comerciais de broncoscopia podem apresentar custos elevados, enquanto soluções impressas em 3D permitem criar modelos anatómicos acessíveis, personalizáveis e adaptáveis a diferentes níveis de dificuldade \parencite{Pedersen2017,Chao2017,Fu2023}. Contudo, muitos modelos físicos permanecem estáticos, limitando a reprodução de fenómenos fisiológicos como a alteração do calibre brônquico, o deslocamento respiratório das vias aéreas e a instabilidade provocada pela tosse ou pelo contacto do instrumento \parencite{Heinbecker1927,Ellis1936,Chen2015,Gunatilaka2020}.
+
+\section{Objetivos}
+O objetivo geral deste projeto é conceber, construir e validar um protótipo articulado de uma árvore brônquica para treino de videobroncofibroscopia.
+
+Os objetivos específicos são:
+\begin{itemize}
+  \item estudar requisitos anatómicos, mecânicos e pedagógicos de simuladores de broncoscopia;
+  \item desenvolver uma estrutura física compatível com impressão 3D e atuação mecânica;
+  \item integrar sensores, atuadores, eletrónica de controlo e alimentação;
+  \item implementar firmware e configurações de controlo para diferentes perfis de movimento;
+  \item testar o protótipo quanto a amplitude, repetibilidade, robustez e usabilidade;
+  \item documentar limitações e melhorias futuras.
+\end{itemize}
+
+\section{Metodologia}
+A metodologia do trabalho combina revisão bibliográfica, definição de requisitos, desenvolvimento iterativo de hardware, desenvolvimento de software embarcado e realização de testes funcionais. A revisão bibliográfica orienta os parâmetros de movimento e realismo do modelo; o desenvolvimento técnico traduz esses requisitos em mecanismos, eletrónica e código; e os testes verificam o comportamento do sistema face aos objetivos definidos.
+
+\section{Organização do relatório}
+O relatório está organizado em seis capítulos. O primeiro apresenta o enquadramento, a motivação e os objetivos. O segundo revê o estado da arte. O terceiro descreve o desenvolvimento do hardware. O quarto apresenta o software e as configurações. O quinto reúne testes e análise de resultados. O sexto sintetiza as conclusões e identifica trabalho futuro.
