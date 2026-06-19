@@ -1,3 +1,18 @@
+import os
+
+# ---------------------------------------------------------------------------
+# Corrige um bug conhecido do WebKitGTK no Raspberry Pi (VideoCore GPU):
+# a renderização via DMA-BUF fica corrompida (riscas/listas na janela),
+# tanto em sessões locais (ecrã físico) como remotas (VNC).
+# Ver: https://bugs.launchpad.net/bugs/2037015 (mesa/webkit2gtk)
+#
+# Desligar SÓ o renderizador DMA-BUF resolve a corrupção mantendo a
+# aceleração GPU para o resto — muito mais rápido do que forçar software
+# rendering completo (LIBGL_ALWAYS_SOFTWARE), que deixava tudo lento.
+# TEM de ser definido ANTES de importar nicegui/pywebview.
+# ---------------------------------------------------------------------------
+os.environ.setdefault('WEBKIT_DISABLE_DMABUF_RENDERER', '1')
+
 import asyncio
 import queue
 import threading
