@@ -1,3 +1,17 @@
+import os
+
+# ---------------------------------------------------------------------------
+# Força o WebKitGTK (usado pelo pywebview no Linux) a renderizar por
+# SOFTWARE em vez de usar aceleração GPU. Necessário quando se acede ao
+# Raspberry Pi remotamente via VNC (RealVNC/WayVNC) — a renderização
+# acelerada por GPU fica corrompida ao passar pelo VNC (riscas/listas na
+# janela). Sem efeito nenhum se estiveres com ecrã físico ligado ao Pi.
+# TEM de ser definido ANTES de importar nicegui/pywebview.
+# ---------------------------------------------------------------------------
+os.environ.setdefault('WEBKIT_DISABLE_COMPOSITING_MODE', '1')
+os.environ.setdefault('WEBKIT_DISABLE_DMABUF_RENDERER', '1')
+os.environ.setdefault('LIBGL_ALWAYS_SOFTWARE', '1')
+
 import asyncio
 import queue
 import threading
@@ -993,22 +1007,16 @@ if __name__ == '__main__':
     threading.Thread(target=serial_writer, daemon=True, name='serial-writer').start()
 
     # --------------------------------------------------------------------
-    # No Raspberry Pi corre-se normalmente em modo SERVIDOR (native=False):
-    # o NiceGUI fica disponível em http://<IP_do_Pi>:8081 e é acedido por
-    # um browser (Chromium em modo kiosk no próprio Pi, ou qualquer
-    # dispositivo na mesma rede, incluindo telemóvel via QR code).
+    # native=True abre uma janela local própria (via pywebview), igual ao
+    # comportamento no Windows. A página web continua disponível para
+    # outros dispositivos na mesma rede em http://<IP_do_Pi>:8081.
     #
-    # native=True (janela própria via pywebview) também funciona no Pi,
-    # mas exige bibliotecas GTK/WebKit instaladas (mais pesado em ARM) —
-    # normalmente: sudo apt install python3-gi gir1.2-webkit2-4.0
-    # Se preferires esse modo, muda native=False para native=True abaixo.
-    #
-    # Para abrir automaticamente em ecrã cheio no arranque do Raspberry Pi
-    # (modo kiosk), corre à parte, depois deste script arrancar:
-    #   chromium-browser --kiosk --app=http://localhost:8081
+    # Requer bibliotecas GTK/WebKit no Raspberry Pi OS:
+    #   sudo apt install -y python3-gi gir1.2-webkit2-4.0
+    # (normalmente já vêm pré-instaladas no Raspberry Pi OS Desktop)
     # --------------------------------------------------------------------
     ui.run(
-        native=False,
+        native=True,
         reload=False,
         host='0.0.0.0',
         port=8081,
