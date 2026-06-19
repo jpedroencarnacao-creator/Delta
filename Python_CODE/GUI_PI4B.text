@@ -1,0 +1,1017 @@
+import asyncio
+import queue
+import threading
+import time
+from nicegui import ui, app, run
+
+PASSWORD = '1234'
+
+# ---------------------------------------------------------------------------
+# Fila de comunicação entre a thread série e o NiceGUI (thread-safe)
+# ---------------------------------------------------------------------------
+serial_rx_queue = queue.Queue()   # ESP32 → interface (mensagens recebidas)
+serial_tx_queue = queue.Queue()   # interface → ESP32 (comandos a enviar)
+
+# Estado de ligação série acessível pela interface.
+# 'stage' tem 4 valores possíveis:
+#   'disconnected' — nunca ligou, ou foi desligado manualmente
+#   'connecting'   — porta aberta, à espera do handshake do ESP32
+#   'connected'    — handshake confirmado, comunicação ativa
+#   'error'        — falha ao abrir a porta OU erros de leitura repetidos
+#                    (ex: cabo desligado fisicamente)
+serial_status = {
+    'stage': 'disconnected',
+    'stop_reader': False,   # sinal para a thread reader parar
+}
+
+# Frases que o ESP32 envia durante o arranque — a chegada de QUALQUER uma
+# já é sinal de vida, mas só 'Escolha um comando:' confirma ligação completa.
+_HANDSHAKE_LINES = (
+    'setup chamado: 1',
+    'Teste LED RGB',
+    'Teste MG90S Servo',
+    'Servos attached successfully',
+)
+_HANDSHAKE_CONFIRM = 'Escolha um comando:'
+
+# Nº de erros de leitura seguidos antes de assumirmos "cabo desligado"
+_READ_ERROR_THRESHOLD = 5
+
+
+def serial_connect():
+    """Liga a porta série e arranca as threads de leitura/escrita."""
+    if serial_status['stage'] in ('connecting', 'connected'):
+        return
+    serial_status['stage'] = 'connecting'
+    serial_status['stop_reader'] = False
+    threading.Thread(target=serial_reader, daemon=True, name='serial-reader').start()
+    threading.Thread(target=serial_writer, daemon=True, name='serial-writer').start()
+
+
+def serial_disconnect():
+    """Desliga a porta série de forma limpa."""
+    global _ser
+    serial_status['stop_reader'] = True
+    serial_status['stage'] = 'disconnected'
+    if _ser and _ser.is_open:
+        try:
+            _ser.close()
+        except Exception:
+            pass
+    serial_rx_queue.put('[SÉRIE] Desligado pelo utilizador.')
+
+# ---------------------------------------------------------------------------
+# Objeto serial partilhado (criado na thread série, lido/escrito lá)
+# ---------------------------------------------------------------------------
+_ser = None          # serial.Serial() — só manipulado dentro das threads série
+_serial_ready = False
+
+def _detect_serial_port():
+    """Tenta encontrar automaticamente a porta série do ESP32 no Raspberry Pi.
+    Procura por dispositivos USB-série típicos (/dev/ttyUSB*, /dev/ttyACM*)
+    e recua para a UART dos pinos GPIO (/dev/serial0) se nada for encontrado."""
+    import glob
+    candidates = sorted(glob.glob('/dev/ttyUSB*')) + sorted(glob.glob('/dev/ttyACM*'))
+    if candidates:
+        return candidates[0]
+    return '/dev/serial0'  # UART dos pinos GPIO do Raspberry Pi
+
+
+SERIAL_PORT = _detect_serial_port()
+
+
+def serial_reader():
+    """Lê continuamente da porta série e coloca mensagens na fila RX.
+    Corre em thread daemon — nunca bloqueia o NiceGUI.
+
+    Gestão de estágios:
+    - abre a porta -> 'connecting' (já estava, definido em serial_connect)
+    - vê uma linha de handshake conhecida -> mantém 'connecting'
+    - vê a linha de confirmação final -> passa a 'connected'
+    - N erros de leitura seguidos (ex: cabo desligado) -> passa a 'error'
+    - uma leitura bem sucedida depois de erros -> limpa o contador
+    """
+    global _ser, _serial_ready
+    consecutive_errors = 0
+    try:
+        import serial
+        _ser = serial.Serial()
+        _ser.port     = SERIAL_PORT
+        _ser.baudrate = 115200
+        _ser.timeout  = 0.1
+        _ser.dtr      = False
+        _ser.rts      = True
+        _ser.open()
+        time.sleep(0.1)
+        _ser.rts = False
+        time.sleep(0.1)
+        _serial_ready = True
+        serial_rx_queue.put('[SÉRIE] Ligado. ESP32 deve ter feito reset agora.')
+        print('PI4B: Ligado. ESP32 deve ter feito reset agora.')
+
+        while not serial_status['stop_reader']:
+            try:
+                data = _ser.readline().decode('ascii', errors='ignore').strip()
+
+                if data:
+                    consecutive_errors = 0  # leitura OK — limpa contador de erro
+                    serial_rx_queue.put(f'ESP32: {data}')
+
+                    if _HANDSHAKE_CONFIRM in data:
+                        serial_status['stage'] = 'connected'
+                    elif any(h in data for h in _HANDSHAKE_LINES):
+                        if serial_status['stage'] != 'connected':
+                            serial_status['stage'] = 'connecting'
+
+            except Exception as e:
+                if serial_status['stop_reader']:
+                    break
+                consecutive_errors += 1
+                serial_rx_queue.put(f'[ERRO leitura] {e}')
+                if consecutive_errors >= _READ_ERROR_THRESHOLD:
+                    serial_status['stage'] = 'error'
+                time.sleep(1)
+
+    except Exception as e:
+        serial_status['stage'] = 'error'
+        serial_rx_queue.put(f'[SÉRIE] Falha ao ligar: {e}')
+        print(f'PI4B: Falha ao ligar à porta série: {e}')
+    finally:
+        if serial_status['stage'] not in ('error',) and not serial_status['stop_reader']:
+            # saiu do loop sem ser por pedido do utilizador nem por erro
+            # explícito — trata como erro também, por segurança
+            serial_status['stage'] = 'error'
+
+
+def serial_writer():
+    """Aguarda comandos na fila TX e envia-os para a porta série.
+    Corre em thread daemon — bloqueia em .get() sem usar CPU."""
+    while True:
+        cmd = serial_tx_queue.get()          # bloqueia até haver um comando
+        if _ser and _ser.is_open:
+            try:
+                _ser.write(cmd.encode('utf-8'))
+                print(f'PI4B: {cmd}')
+            except Exception as e:
+                serial_rx_queue.put(f'[ERRO envio] {e}')
+        serial_tx_queue.task_done()
+
+
+# ---------------------------------------------------------------------------
+# Estado global partilhado entre TODOS os clientes (janela + browser)
+# ---------------------------------------------------------------------------
+def get_state():
+    s = app.storage.general
+    if 'devmode' not in s:
+        s['devmode'] = 0
+    if 'serialhistory' not in s:
+        s['serialhistory'] = [
+            'Zona reservada para mensagens enviadas e recebidas pela serial.',
+            'A comunicação será ligada mais tarde.',
+        ]
+    if 'settings_view' not in s:
+        s['settings_view'] = 'closed'
+    if 'start_state' not in s:
+        s['start_state'] = 0
+    if 'stop_state' not in s:
+        s['stop_state'] = 1
+    if 'mode_state' not in s:
+        s['mode_state'] = 'Estatico'
+    if 'mode_dialog_open' not in s:
+        s['mode_dialog_open'] = False
+    return s
+
+
+def reset_state():
+    app.storage.general['devmode'] = 0
+    app.storage.general['serialhistory'] = [
+        'Zona reservada para mensagens enviadas e recebidas pela serial.',
+        'A comunicação será ligada mais tarde.',
+    ]
+    app.storage.general['settings_view'] = 'closed'
+    app.storage.general['start_state'] = 0
+    app.storage.general['stop_state'] = 1
+    app.storage.general['mode_state'] = 'Estatico'
+    app.storage.general['mode_dialog_open'] = False
+
+
+def drain_serial_rx():
+    """Drena todas as mensagens recebidas da série e adiciona ao histórico.
+    Chamada pelo ui.timer — corre no thread do NiceGUI, sem bloquear."""
+    changed = False
+    while not serial_rx_queue.empty():
+        try:
+            msg = serial_rx_queue.get_nowait()
+            get_state()['serialhistory'].append(msg)
+            changed = True
+        except queue.Empty:
+            break
+    if changed:
+        app.storage.general['serialhistory'] = get_state()['serialhistory']
+
+
+def send_serial(command):
+    """Envia um comando para o ESP32 (fila TX) E regista-o no histórico do
+    monitor serial — usar isto em vez de serial_tx_queue.put() diretamente
+    sempre que o envio deve aparecer visível no monitor (ex: botões)."""
+    serial_tx_queue.put(command)
+    get_state()['serialhistory'].append(f'PI4B: {command}')
+    app.storage.general['serialhistory'] = get_state()['serialhistory']
+
+
+def printpi(args):
+    print('PI4B:', args)
+
+
+def close_native_window():
+    if getattr(app, 'native', None) and app.native.main_window:
+        app.native.main_window.destroy()
+
+
+def shutdown_app():
+    if _ser and _ser.is_open:
+        _ser.close()
+    app.shutdown()
+
+
+def get_app_url():
+    import socket
+    port = 8081
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+        return f'http://{local_ip}:{port}'
+    except Exception:
+        return f'http://localhost:{port}'
+
+
+def generate_qr_code_base64(data):
+    try:
+        import qrcode
+        import io
+        import base64
+        qr = qrcode.QRCode(border=1, box_size=6)
+        qr.add_data(data)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color='black', back_color='white')
+        buffer = io.BytesIO()
+        img.save(buffer, format='PNG')
+        encoded = base64.b64encode(buffer.getvalue()).decode('ascii')
+        return f'data:image/png;base64,{encoded}'
+    except ImportError:
+        return None
+    except Exception as e:
+        print('Erro ao gerar QR code:', e)
+        return None
+
+
+def list_com_ports():
+    try:
+        import serial.tools.list_ports
+        ports = list(serial.tools.list_ports.comports())
+        if not ports:
+            return ['Nenhuma porta COM encontrada.']
+        return [f'{p.device} — {p.description}' for p in ports]
+    except ImportError:
+        return ['Biblioteca pyserial não instalada (pip install pyserial).']
+    except Exception as e:
+        return [f'Erro ao listar portas COM: {e}']
+
+
+def _run_nmcli(args, timeout=6):
+    """Corre um comando nmcli (NetworkManager CLI) e devolve o stdout.
+    nmcli é o gestor de rede padrão do Raspberry Pi OS — não precisa de
+    permissões especiais de localização como o Windows."""
+    import subprocess
+    result = subprocess.run(
+        ['nmcli'] + args,
+        capture_output=True, text=True, timeout=timeout
+    )
+    return result.stdout.strip()
+
+
+def get_network_status():
+    """Devolve o estado atual da ligação de rede (Wi-Fi com SSID, ou LAN/Ethernet)."""
+    try:
+        # 'nmcli -t -f TYPE,STATE,CONNECTION device' devolve linhas tipo:
+        # wifi:connected:MinhaRedeWiFi
+        # ethernet:connected:Wired connection 1
+        output = _run_nmcli(['-t', '-f', 'TYPE,STATE,CONNECTION', 'device'])
+
+        wifi_connection = None
+        lan_connected = False
+
+        for line in output.splitlines():
+            parts = line.split(':')
+            if len(parts) < 3:
+                continue
+            dev_type, state, connection = parts[0], parts[1], parts[2]
+
+            if dev_type == 'wifi' and state == 'connected':
+                wifi_connection = connection
+            if dev_type in ('ethernet',) and state == 'connected':
+                lan_connected = True
+
+        if wifi_connection:
+            return [f'Wi-Fi ligado: {wifi_connection}']
+        if lan_connected:
+            return ['Ligado por LAN (cabo de rede).']
+        return ['Nenhuma ligação de rede ativa detetada.']
+
+    except FileNotFoundError:
+        return ['nmcli não encontrado — verifica se o NetworkManager está instalado.']
+    except Exception as e:
+        return [f'Erro ao verificar rede: {e}']
+
+
+def get_available_networks():
+    """Devolve a lista de redes Wi-Fi visíveis nas proximidades."""
+    try:
+        # força um novo scan antes de listar, para resultados atualizados
+        import subprocess
+        subprocess.run(
+            ['nmcli', 'device', 'wifi', 'rescan'],
+            capture_output=True, timeout=6
+        )
+
+        output = _run_nmcli(['-t', '-f', 'SSID', 'device', 'wifi', 'list'])
+
+        names = []
+        for line in output.splitlines():
+            name = line.strip()
+            if name and name not in names:
+                names.append(name)
+
+        if not names:
+            return ['Nenhuma rede Wi-Fi encontrada nas proximidades.']
+        return names
+
+    except FileNotFoundError:
+        return ['nmcli não encontrado — verifica se o NetworkManager está instalado.']
+    except Exception as e:
+        return [f'Erro ao procurar redes: {e}']
+
+
+# ---------------------------------------------------------------------------
+# Página
+# ---------------------------------------------------------------------------
+@ui.page('/')
+def main_page():
+    ui.add_head_html('''
+    <style>
+        body, .nicegui-content {background-color: white;}
+        .mode-btn-default {
+            background: #d1d5db !important;
+            color: black !important;
+            border: 2px solid black !important;
+            border-radius: 12px !important;
+            font-weight: bold !important;
+            box-shadow: none !important;
+        }
+        .mode-btn-selected {
+            background: linear-gradient(135deg, #ffe066 0%, #ffc93c 45%, #ff9f1c 100%) !important;
+            color: black !important;
+            border: 3px solid #c53030 !important;
+            border-radius: 12px !important;
+            font-weight: bold !important;
+            box-shadow: 0 0 14px 4px rgba(255, 190, 60, 0.95) !important;
+        }
+
+        /* Força o textarea do monitor serial a crescer e ocupar o espaço disponível.
+           O NiceGUI envolve o textarea em múltiplos divs — é preciso forçar
+           height:100% em toda a cadeia até chegar ao textarea. */
+        .serial-monitor-wrap,
+        .serial-monitor-wrap > div,
+        .serial-monitor-wrap .q-field,
+        .serial-monitor-wrap .q-field__inner,
+        .serial-monitor-wrap .q-field__control,
+        .serial-monitor-wrap textarea {
+            height: 100% !important;
+            flex: 1 1 auto !important;
+        }
+        .serial-monitor-wrap {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+        .serial-monitor-wrap .q-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes blink-danger {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.85); }
+        }
+    </style>
+    ''')
+
+    state = get_state()
+
+    def apply_start_stop_styles():
+        s = get_state()
+        if s['start_state'] == 1:
+            start_button.style(
+                'background-color: #28a745 !important; color: white !important; '
+                'border: 2px solid black !important; border-radius: 10px; '
+                'font-weight: bold; font-size: 18px; width: 140px; height: 70px; '
+                'box-shadow: 0 0 12px 3px rgba(40,167,69,0.85); opacity: 1;'
+            )
+        else:
+            start_button.style(
+                'background-color: #1f7a33 !important; color: white !important; '
+                'border: 2px solid black !important; border-radius: 10px; '
+                'font-weight: bold; font-size: 18px; width: 140px; height: 70px; '
+                'box-shadow: none; opacity: 0.65;'
+            )
+        if s['stop_state'] == 1:
+            stop_button.style(
+                'background-color: #d9534f !important; color: white !important; '
+                'border: 2px solid black !important; border-radius: 10px; '
+                'font-weight: bold; font-size: 18px; width: 140px; height: 70px; '
+                'box-shadow: 0 0 12px 3px rgba(217,83,79,0.85); opacity: 1;'
+            )
+        else:
+            stop_button.style(
+                'background-color: #9f3b38 !important; color: white !important; '
+                'border: 2px solid black !important; border-radius: 10px; '
+                'font-weight: bold; font-size: 18px; width: 140px; height: 70px; '
+                'box-shadow: none; opacity: 0.65;'
+            )
+
+    # --- diálogo de password ------------------------------------------------
+    with ui.dialog() as password_dialog, ui.card():
+        ui.label('Acesso DEV').style('font-size: 18px; font-weight: bold;')
+        ui.label('Introduza a password DEV:')
+        password_input = ui.input(password=True).props('outlined autofocus').on('keydown.enter', lambda e: confirm_password())
+
+        def confirm_password():
+            if password_input.value == PASSWORD:
+                get_state()['devmode'] = 1
+                print('Modo DEV ativado')
+                password_dialog.close()
+                apply_visual_state()
+            else:
+                print('Password DEV incorreta')
+                ui.notify('Password DEV incorreta', color='negative')
+
+        with ui.row().classes('w-full justify-end'):
+            ui.button('Entrar', on_click=confirm_password)
+
+    # --- diálogo de seleção de modo -----------------------------------------
+    with ui.dialog() as mode_dialog, ui.card().style('padding: 20px; width: auto; max-width: 95vw;'):
+        ui.label('Selecionar Modo').style('font-size: 18px; font-weight: bold; margin-bottom: 8px;')
+        mode_buttons = {}
+
+        with ui.row().classes('no-wrap').style('gap: 10px; width: max-content;'):
+
+            # comando série associado a cada modo — só é enviado quando o
+            # modo muda de facto (clicar no modo já ativo não reenvia nada,
+            # e o modo inicial 'Estatico' não dispara envio no arranque).
+            MODE_SERIAL_COMMANDS = {
+                'Estatico': 'Ms',
+                'Coracao': 'Mb',
+                'Respiracao': 'Mr',
+                'Humano': 'Mh',
+                'Completo': 'Ma',
+            }
+
+            def select_mode(mode_name):
+                previous = get_state()['mode_state']
+                get_state()['mode_state'] = mode_name
+                print('Modo selecionado:', mode_name)
+                if mode_name != previous:
+                    command = MODE_SERIAL_COMMANDS.get(mode_name)
+                    if command:
+                        send_serial(command)
+                mode_dialog.close()
+
+            with ui.column().classes('items-center'):
+                mode_buttons['Estatico'] = ui.button('Estático', on_click=lambda: select_mode('Estatico'), color=None).classes('mode-btn-selected').style('width: 110px; height: 80px; font-size: 14px;')
+
+            with ui.column().classes('items-center'):
+                mode_buttons['Respiracao'] = ui.button('Respiração', on_click=lambda: select_mode('Respiracao'), color=None).classes('mode-btn-default').style('width: 110px; height: 80px; font-size: 14px;')
+
+            with ui.column().classes('items-center'):
+                mode_buttons['Coracao'] = ui.button('Coração', on_click=lambda: select_mode('Coracao'), color=None).classes('mode-btn-default').style('width: 110px; height: 80px; font-size: 14px;')
+
+            with ui.column().classes('items-center'):
+                mode_buttons['Humano'] = ui.button('Humano', on_click=lambda: select_mode('Humano'), color=None).classes('mode-btn-default').style('width: 110px; height: 80px; font-size: 14px;')
+                ui.label('(Resp+Bati)').style('font-size: 11px; color: #555;')
+
+            with ui.column().classes('items-center'):
+                mode_buttons['Completo'] = ui.button('Completo', on_click=lambda: select_mode('Completo'), color=None).classes('mode-btn-default').style('width: 110px; height: 80px; font-size: 14px;')
+                ui.label('(Resp+Bati+Tosse)').style('font-size: 11px; color: #555;')
+
+        def apply_mode_dialog_styles():
+            current = get_state()['mode_state']
+            for name, btn in mode_buttons.items():
+                btn.classes(remove='mode-btn-default mode-btn-selected')
+                if name == current:
+                    btn.classes(add='mode-btn-selected')
+                else:
+                    btn.classes(add='mode-btn-default')
+
+    # --- layout principal ---------------------------------------------------
+    with ui.row().classes('w-full no-wrap').style(
+        'height: 100vh; padding: 12px; box-sizing: border-box; gap: 12px;'
+    ):
+        with ui.column().style('flex: 3; height: 100%; justify-content: space-between;'):
+            with ui.row().classes('items-center').style('gap: 10px; position: relative;'):
+
+                def toggle_mode():
+                    if get_state()['devmode'] == 0:
+                        password_input.value = ''
+                        password_dialog.open()
+                    else:
+                        get_state()['devmode'] = 0
+                        print('Modo CLIENTE ativado')
+                        apply_visual_state()
+
+                mode_button = ui.button('Modo CLIENTE', on_click=toggle_mode, color=None)
+
+                # --- indicador global de ligação série ----------------------
+                # visível nos DOIS modos.
+                # Modo DEV, estágios 'connecting'/'error': abre o menu do
+                # botão que foi CLICADO (só esse, nunca os dois ao mesmo tempo).
+                # Modo DEV, restantes estágios: clique normal liga/desliga.
+                # Modo CLIENTE: só reage quando 'error' — clique força nova
+                # tentativa diretamente (sem menu, sem opção de desligar).
+                def make_conn_click_handler(menu):
+                    def handler():
+                        stage = serial_status['stage']
+                        is_dev = get_state()['devmode'] == 1
+
+                        if is_dev:
+                            if stage in ('connecting', 'error'):
+                                menu.open()
+                            elif stage == 'connected':
+                                serial_disconnect()
+                                apply_serial_indicator()
+                            else:
+                                serial_connect()
+                                apply_serial_indicator()
+                        else:
+                            if stage == 'error':
+                                asyncio.create_task(do_reconnect())
+                            # 'connecting', 'connected', 'disconnected': sem ação
+                    return handler
+
+                async def do_reconnect():
+                    """Tenta ligar duas vezes seguidas (reset -> conectar,
+                    repetido). Alguns caracteres saem corrompidos na primeira
+                    tentativa — o duplo reset estabiliza a ligação.
+                    Assíncrona para não bloquear a interface enquanto espera
+                    a porta abrir/fechar entre as duas tentativas."""
+                    serial_disconnect()
+                    await asyncio.sleep(0.3)
+                    serial_connect()
+                    await asyncio.sleep(0.5)   # dá tempo à 1ª tentativa abrir
+                    serial_disconnect()
+                    await asyncio.sleep(0.3)
+                    serial_connect()
+                    apply_serial_indicator()
+
+                def do_disconnect():
+                    serial_disconnect()
+                    apply_serial_indicator()
+
+                with ui.element('div').style(
+                    'position: relative; display: inline-block; '
+                    'width: 36px; height: 36px;'
+                ):
+                    global_conn_btn = ui.button(
+                        icon='link_off',
+                        color=None
+                    ).style(
+                        'background-color: #e0e0e0 !important; color: #888 !important; '
+                        'border-radius: 6px; width: 36px; height: 36px; '
+                        'min-width: 36px; padding: 0;'
+                    )
+                    # tooltip criado UMA VEZ — só o texto/visibilidade são
+                    # atualizados depois, nunca recriado (evita empilhamento)
+                    with global_conn_btn:
+                        global_conn_tooltip = ui.tooltip('')
+
+                    # pop-up de aviso (triângulo de perigo) — pisca quando a
+                    # última tentativa de ligação falhou. Visível em ambos os modos.
+                    danger_badge = ui.icon('warning', size='16px').style(
+                        'position: absolute; top: -6px; right: -6px; '
+                        'color: #ff9800; background: white; border-radius: 50%; '
+                        'padding: 1px; pointer-events: none; '
+                        'animation: blink-danger 1s infinite;'
+                    )
+                    danger_badge.set_visibility(False)
+
+                # menu com 2 opções (só DEV) — no-parent-event impede o
+                # Quasar de o abrir automaticamente ao clicar no elemento
+                # anterior; só abre quando o handler do botão chama .open().
+                with ui.menu().props('no-parent-event') as global_conn_menu:
+                    ui.menu_item('Tentar reconectar', on_click=do_reconnect)
+                    ui.menu_item('Desligar COM', on_click=do_disconnect)
+
+                global_conn_btn.on_click(make_conn_click_handler(global_conn_menu))
+
+            with ui.row().classes('w-full justify-center items-start').style('gap: 16px; margin-top: 24px;'):
+
+                def on_start_click():
+                    get_state()['start_state'] = 1
+                    get_state()['stop_state'] = 0
+                    send_serial('s')
+                    apply_visual_state()
+
+                def on_mode_click():
+                    apply_mode_dialog_styles()
+                    mode_dialog.open()
+
+                def on_stop_click():
+                    get_state()['stop_state'] = 1
+                    get_state()['start_state'] = 0
+                    send_serial('p')
+                    apply_visual_state()
+
+                start_button = ui.button('Start', on_click=on_start_click, color=None).style(
+                    'background-color: #1f7a33 !important; color: white !important; '
+                    'border: 2px solid black !important; border-radius: 10px; '
+                    'font-weight: bold; font-size: 18px; width: 140px; height: 70px; '
+                    'box-shadow: none; opacity: 0.65;'
+                )
+
+                ui.button('Mode', on_click=on_mode_click, color=None).style(
+                    'background-color: #337ab7 !important; color: white !important; '
+                    'border: 2px solid black !important; border-radius: 10px; '
+                    'font-weight: bold; font-size: 18px; width: 140px; height: 70px;'
+                )
+
+                stop_button = ui.button('Stop', on_click=on_stop_click, color=None).style(
+                    'background-color: #d9534f !important; color: white !important; '
+                    'border: 2px solid black !important; border-radius: 10px; '
+                    'font-weight: bold; font-size: 18px; width: 140px; height: 70px; '
+                    'box-shadow: 0 0 12px 3px rgba(217,83,79,0.85); opacity: 1;'
+                )
+
+            with ui.row().classes('items-start') as exit_row:
+                ui.button('Desligar', on_click=close_native_window, color=None).style(
+                    'background-color: #d9534f !important; color: white !important; '
+                    'border: 2px solid black !important; border-radius: 6px; '
+                    'font-weight: bold; width: 120px; height: 40px;'
+                )
+                sair_button = ui.button('Sair', on_click=shutdown_app, color=None).style(
+                    'background-color: black !important; color: white !important; '
+                    'border: 2px solid black !important; border-radius: 6px; '
+                    'font-weight: bold; width: 120px; height: 40px; '
+                    'box-shadow: 0 0 0 2px white, 0 0 0 4px black;'
+                )
+                sair_button.set_visibility(False)
+
+        with ui.column().style('flex: 2; height: 100%; min-height: 0;') as serial_container:
+            with ui.card().style(
+                'width: 100%; min-width: 340px; height: 100%; background-color: #f7f7f7; '
+                'border: 1px solid #cfcfcf; border-radius: 8px; '
+                'padding: 10px; box-shadow: none; display: flex; '
+                'flex-direction: column; min-height: 0;'
+            ):
+                # --- linha de título + controlos do monitor -----------------
+                with ui.row().classes('w-full items-center no-wrap').style('gap: 8px; margin-bottom: 4px;'):
+                    ui.label('Monitor Serial').style(
+                        'font-size: 16px; font-weight: bold; flex: 1; text-align: center;'
+                    )
+
+                    # estado local por cliente: auto-scroll ligado/desligado
+                    # começa ATIVO por padrão, como pedido
+                    auto_scroll_state = {'on': True}
+
+                    def toggle_auto_scroll():
+                        auto_scroll_state['on'] = not auto_scroll_state['on']
+                        if auto_scroll_state['on']:
+                            scroll_btn.props('icon=vertical_align_bottom')
+                            scroll_btn.tooltip('Auto-scroll: ON')
+                            scroll_btn.style(
+                                'background-color: #337ab7 !important; color: white !important; '
+                                'border-radius: 6px; min-width: 36px; height: 32px;'
+                            )
+                        else:
+                            scroll_btn.props('icon=vertical_align_center')
+                            scroll_btn.tooltip('Auto-scroll: OFF')
+                            scroll_btn.style(
+                                'background-color: #e0e0e0 !important; color: #555 !important; '
+                                'border-radius: 6px; min-width: 36px; height: 32px;'
+                            )
+
+                    scroll_btn = ui.button(
+                        icon='vertical_align_bottom',
+                        on_click=toggle_auto_scroll,
+                        color=None
+                    ).style(
+                        'background-color: #337ab7 !important; color: white !important; '
+                        'border-radius: 6px; min-width: 36px; height: 32px;'
+                    ).tooltip('Auto-scroll: ON')
+
+                    # botão indicador de ligação série (dentro do monitor, modo DEV)
+                    conn_btn = ui.button(
+                        icon='link_off',
+                        color=None
+                    ).style(
+                        'background-color: #e0e0e0 !important; color: #888 !important; '
+                        'border-radius: 6px; min-width: 36px; height: 32px;'
+                    )
+                    with conn_btn:
+                        conn_tooltip = ui.tooltip('')
+
+                with ui.menu().props('no-parent-event') as conn_menu:
+                    ui.menu_item('Tentar reconectar', on_click=do_reconnect)
+                    ui.menu_item('Desligar COM', on_click=do_disconnect)
+
+                conn_btn.on_click(make_conn_click_handler(conn_menu))
+
+                # --- textarea do monitor ------------------------------------
+                serial_monitor = ui.textarea(
+                    value='\n'.join(get_state()['serialhistory'])
+                ).props('readonly outlined').classes('w-full serial-monitor-wrap').style(
+                    'min-height: 200px;'
+                )
+
+                with ui.row().classes('w-full items-center no-wrap'):
+                    serial_input = ui.input(
+                        placeholder='Escrever comando para enviar pela serial...'
+                    ).props('outlined').classes('grow').on('keydown.enter', lambda e: send_serial_command())
+
+                    def send_serial_command():
+                        command = serial_input.value.strip()
+                        if not command:
+                            return
+                        send_serial(command)
+                        serial_input.value = ''
+                        apply_visual_state()
+
+                    ui.button('Enviar', on_click=send_serial_command).style('min-width: 90px;')
+
+    # --- canto inferior direito: Definições ---------------------------------
+    with ui.column().style(
+        'position: fixed; bottom: 16px; right: 16px; align-items: flex-end; z-index: 1000;'
+    ):
+        with ui.card().style(
+            'padding: 8px; padding-bottom: 64px; margin-bottom: -52px; '
+            'background-color: #f0f0f0; border: 1px solid #cfcfcf; '
+            'border-radius: 8px; min-width: 180px; z-index: 1;'
+        ) as settings_panel:
+
+            with ui.column().classes('w-full items-center gap-1') as qr_section:
+                app_url = get_app_url()
+                qr_data_uri = generate_qr_code_base64(app_url)
+                if qr_data_uri:
+                    ui.image(qr_data_uri).style('width: 140px; height: 140px; border: 1px solid #cfcfcf; border-radius: 6px;')
+                else:
+                    ui.label('QR code indisponível').style('font-size: 11px; color: #888;')
+                    ui.label('(pip install qrcode[pil])').style('font-size: 10px; color: #888;')
+                ui.label(app_url).style('font-size: 11px; color: #555; word-break: break-all;')
+                qr_separator = ui.separator().classes('w-full')
+
+            with ui.column().classes('w-full gap-2') as settings_menu:
+                com_button = ui.button('Porta COM', icon='usb').classes('w-full')
+                rede_button = ui.button('Rede', icon='wifi').classes('w-full')
+                config_button = ui.button('Configurações', icon='settings').classes('w-full')
+
+            with ui.column().classes('w-full gap-2') as com_panel:
+                ui.label('Portas COM disponíveis').style('font-weight: bold; font-size: 13px;')
+                com_list_container = ui.column().classes('w-full gap-1')
+
+            with ui.column().classes('w-full gap-2') as rede_panel:
+                ui.label('Estado da rede').style('font-weight: bold; font-size: 13px;')
+                rede_status_container = ui.column().classes('w-full gap-1')
+                ui.label('Redes disponíveis').style('font-weight: bold; font-size: 13px; margin-top: 4px;')
+                rede_list_container = ui.column().classes('w-full gap-1')
+
+        async def refresh_com_panel():
+            com_list_container.clear()
+            with com_list_container:
+                ui.label('A procurar...').style('font-size: 12px; color: #888;')
+            lines = await run.io_bound(list_com_ports)
+            com_list_container.clear()
+            with com_list_container:
+                for line in lines:
+                    ui.label(line).style('font-size: 12px;')
+
+        async def refresh_rede_panel():
+            rede_status_container.clear()
+            rede_list_container.clear()
+            with rede_status_container:
+                ui.label('A verificar...').style('font-size: 12px; color: #888;')
+            status_lines = await run.io_bound(get_network_status)
+            rede_status_container.clear()
+            with rede_status_container:
+                for line in status_lines:
+                    ui.label(line).style('font-size: 12px;')
+            with rede_list_container:
+                ui.label('A procurar redes...').style('font-size: 12px; color: #888;')
+            network_lines = await run.io_bound(get_available_networks)
+            rede_list_container.clear()
+            with rede_list_container:
+                for line in network_lines:
+                    ui.label(line).style('font-size: 12px;')
+
+        last_applied_view = {'value': None}
+
+        def show_com_panel():
+            get_state()['settings_view'] = 'com'
+            apply_settings_view()
+
+        def show_rede_panel():
+            get_state()['settings_view'] = 'rede'
+            apply_settings_view()
+
+        com_button.on_click(show_com_panel)
+        rede_button.on_click(show_rede_panel)
+
+        def toggle_settings():
+            current = get_state()['settings_view']
+            if current == 'closed':
+                get_state()['settings_view'] = 'menu'
+            elif current in ('com', 'rede'):
+                get_state()['settings_view'] = 'menu'
+            else:
+                get_state()['settings_view'] = 'closed'
+            apply_settings_view()
+
+        def apply_settings_view():
+            view = get_state()['settings_view']
+            settings_panel.set_visibility(view != 'closed')
+            qr_section.set_visibility(view == 'menu')
+            qr_separator.set_visibility(view == 'menu')
+            settings_menu.set_visibility(view == 'menu')
+            com_panel.set_visibility(view == 'com')
+            rede_panel.set_visibility(view == 'rede')
+            if view != last_applied_view['value']:
+                last_applied_view['value'] = view
+                if view == 'com':
+                    asyncio.create_task(refresh_com_panel())
+                elif view == 'rede':
+                    asyncio.create_task(refresh_rede_panel())
+
+        ui.button('Definições', icon='tune', on_click=toggle_settings).style(
+            'background-color: #6c757d; color: white; border-radius: 6px; '
+            'font-weight: bold; width: 150px; height: 40px; position: relative; z-index: 2;'
+        )
+
+    # --- apply_visual_state -------------------------------------------------
+    _last_tooltip_state = {'value': None}
+
+    def apply_serial_indicator():
+        """Atualiza TODOS os indicadores de ligação série (o do canto superior,
+        visível nos dois modos, e o de dentro do monitor, só visível em DEV),
+        e o badge de aviso, visível em ambos os modos.
+
+        4 estágios visuais:
+          disconnected -> cinzento, ícone link_off
+          connecting   -> amarelo a piscar, ícone sync (a tentar ligar)
+          connected    -> verde fixo, ícone link
+          error        -> vermelho a piscar, ícone link_off + badge de aviso
+        """
+        stage = serial_status['stage']
+        is_dev = get_state()['devmode'] == 1
+
+        STAGE_STYLE = {
+            'disconnected': (
+                'link_off',
+                'background-color: #e0e0e0 !important; color: #888 !important; '
+                'border-radius: 6px; min-width: 36px; height: 32px; animation: none;'
+            ),
+            'connecting': (
+                'sync',
+                'background-color: #fff3cd !important; color: #b8860b !important; '
+                'border-radius: 6px; min-width: 36px; height: 32px; '
+                'animation: blink-danger 1s infinite;'
+            ),
+            'connected': (
+                'link',
+                'background-color: #e6f7ea !important; color: #28a745 !important; '
+                'border-radius: 6px; min-width: 36px; height: 32px; animation: none;'
+            ),
+            'error': (
+                'link_off',
+                'background-color: #fdeaea !important; color: #d9534f !important; '
+                'border-radius: 6px; min-width: 36px; height: 32px; '
+                'animation: blink-danger 1s infinite;'
+            ),
+        }
+        icon, style = STAGE_STYLE[stage]
+
+        for btn in (conn_btn, global_conn_btn):
+            btn.props(f'icon={icon}')
+            btn.style(style)
+
+        # Tooltips: em modo DEV só faz sentido mostrar legenda quando
+        # 'connected' (ação clara: desconectar) ou 'disconnected' (ligar).
+        # Em 'connecting'/'error' NÃO mostramos tooltip nenhum — como o
+        # próprio botão Definições, para não tapar o menu de opções.
+        #
+        # IMPORTANTE: .tooltip() no NiceGUI ADICIONA um novo elemento de
+        # tooltip a cada chamada em vez de substituir — chamá-lo a cada
+        # tick do timer (0.5s) empilhava dezenas de tooltips sobrepostos.
+        # Por isso só atualizamos quando (stage, is_dev) muda de facto.
+        tooltip_key = (stage, is_dev)
+        if tooltip_key != _last_tooltip_state['value']:
+            _last_tooltip_state['value'] = tooltip_key
+
+            TOOLTIPS_DEV = {
+                'disconnected': 'Série: desligada — clica para ligar',
+                'connecting':   None,
+                'connected':    'Série: ligada — clica para desconectar',
+                'error':        None,
+            }
+            TOOLTIPS_CLIENT = {
+                'disconnected': 'Série: desligada',
+                'connecting':   'Série: a ligar...',
+                'connected':    'Série: ligada',
+                'error':        'Série: erro — clica para tentar reconectar',
+            }
+            tooltip = (TOOLTIPS_DEV if is_dev else TOOLTIPS_CLIENT)[stage]
+
+            global_conn_tooltip.text = tooltip or ''
+            global_conn_tooltip.set_visibility(bool(tooltip))
+            conn_tooltip.text = tooltip or ''
+            conn_tooltip.set_visibility(bool(tooltip))
+
+        # badge de perigo (pisca) — visível em ambos os modos, só no estágio de erro
+        danger_badge.set_visibility(stage == 'error')
+
+    def apply_visual_state():
+        s = get_state()
+        drain_serial_rx()   # puxa mensagens novas da série para o histórico
+
+        if s['devmode'] == 1:
+            mode_button.text = 'Modo DEV'
+            mode_button.style(
+                'background-color: #ffd84d; color: black; '
+                'border: 2px solid #d9534f; border-radius: 14px; '
+                'font-weight: bold; width: 120px; height: 60px;'
+            )
+            serial_container.set_visibility(True)
+        else:
+            mode_button.text = 'Modo CLIENTE'
+            mode_button.style(
+                'background-color: #337ab7; color: white; '
+                'border: 2px solid #8ec5ff; border-radius: 14px; '
+                'font-weight: bold; width: 120px; height: 60px;'
+            )
+            serial_container.set_visibility(False)
+
+        sair_button.set_visibility(s['devmode'] == 1)
+        serial_monitor.value = '\n'.join(get_state()['serialhistory'])
+
+        # auto-scroll: força o textarea a ir para o fim se estiver ativo.
+        # Usa a classe .serial-monitor-wrap para localizar o textarea.
+        if auto_scroll_state['on']:
+            ui.run_javascript('''
+                const ta = document.querySelector('.serial-monitor-wrap textarea');
+                if (ta) ta.scrollTop = ta.scrollHeight;
+            ''')
+
+        apply_serial_indicator()
+        apply_settings_view()
+        apply_mode_dialog_styles()
+        apply_start_stop_styles()
+
+    ui.timer(0.5, apply_visual_state)
+    apply_visual_state()
+
+
+# ---------------------------------------------------------------------------
+# Arranque
+# ---------------------------------------------------------------------------
+if __name__ == '__main__':
+    reset_state()
+
+    # As threads série SÃO arrancadas automaticamente ao iniciar.
+    # serial_status['stage'] passa de 'connecting' a 'connected' assim que
+    # o handshake do ESP32 for confirmado (ver _HANDSHAKE_CONFIRM acima).
+    serial_status['stage'] = 'connecting'
+    threading.Thread(target=serial_reader, daemon=True, name='serial-reader').start()
+    threading.Thread(target=serial_writer, daemon=True, name='serial-writer').start()
+
+    # --------------------------------------------------------------------
+    # No Raspberry Pi corre-se normalmente em modo SERVIDOR (native=False):
+    # o NiceGUI fica disponível em http://<IP_do_Pi>:8081 e é acedido por
+    # um browser (Chromium em modo kiosk no próprio Pi, ou qualquer
+    # dispositivo na mesma rede, incluindo telemóvel via QR code).
+    #
+    # native=True (janela própria via pywebview) também funciona no Pi,
+    # mas exige bibliotecas GTK/WebKit instaladas (mais pesado em ARM) —
+    # normalmente: sudo apt install python3-gi gir1.2-webkit2-4.0
+    # Se preferires esse modo, muda native=False para native=True abaixo.
+    #
+    # Para abrir automaticamente em ecrã cheio no arranque do Raspberry Pi
+    # (modo kiosk), corre à parte, depois deste script arrancar:
+    #   chromium-browser --kiosk --app=http://localhost:8081
+    # --------------------------------------------------------------------
+    ui.run(
+        native=False,
+        reload=False,
+        host='0.0.0.0',
+        port=8081,
+        title='PI_4B Control Panel',
+        storage_secret='pi4b-secret-key',
+    )
