@@ -2,21 +2,11 @@ import os
 
 # ---------------------------------------------------------------------------
 # Corrige um bug conhecido do WebKitGTK no Raspberry Pi (VideoCore GPU):
-# a renderização via DMA-BUF fica corrompida (riscas/listas na janela),
-# tanto em sessões locais (ecrã físico) como remotas (VNC).
+# a renderização via DMA-BUF fica corrompida (riscas/listas na janela).
 # Ver: https://bugs.launchpad.net/bugs/2037015 (mesa/webkit2gtk)
-#
-# WEBKIT_DISABLE_DMABUF_RENDERER=1 resolve a corrupção, mas por si só faz
-# o WebKit recuar para um caminho de composição mais lento. As variáveis
-# abaixo recuperam parte dessa performance, mantendo a aceleração GPU
-# (V3D/VC4) ativa a nível do sistema — só evitam especificamente o
-# caminho DMA-BUF com defeito.
 # TEM de ser definido ANTES de importar nicegui/pywebview.
 # ---------------------------------------------------------------------------
 os.environ.setdefault('WEBKIT_DISABLE_DMABUF_RENDERER', '1')
-os.environ.setdefault('WEBKIT_FORCE_COMPOSITING_MODE', '1')  # mantém compositor acelerado
-os.environ.setdefault('GBM_BACKEND', 'vc4')                  # usa o backend GBM certo da VideoCore
-os.environ.setdefault('GDK_BACKEND', 'x11')                  # evita ambiguidade Wayland/X11
 
 import asyncio
 import queue
@@ -1013,16 +1003,38 @@ if __name__ == '__main__':
     threading.Thread(target=serial_writer, daemon=True, name='serial-writer').start()
 
     # --------------------------------------------------------------------
-    # native=True abre uma janela local própria (via pywebview), igual ao
-    # comportamento no Windows. A página web continua disponível para
-    # outros dispositivos na mesma rede em http://<IP_do_Pi>:8081.
+    # No Raspberry Pi, o WebKitGTK (usado por native=True/pywebview) tem
+    # um bug de renderização conhecido (riscas) e fica lento ao corrigi-lo
+    # via WEBKIT_DISABLE_DMABUF_RENDERER. Por isso aqui corre-se em modo
+    # SERVIDOR (native=False) e abre-se o Chromium em modo kiosk, que tem
+    # suporte de GPU muito mais maduro no Pi e fecha normalmente com
+    # Alt+F4 ou Ctrl+W, sem ficar preso em ecrã cheio sem saída.
     #
-    # Requer bibliotecas GTK/WebKit no Raspberry Pi OS:
-    #   sudo apt install -y python3-gi gir1.2-webkit2-4.0
-    # (normalmente já vêm pré-instaladas no Raspberry Pi OS Desktop)
+    # A página web continua disponível para outros dispositivos na mesma
+    # rede em http://<IP_do_Pi>:8081 (ex: telemóvel via QR code).
     # --------------------------------------------------------------------
+    def _launch_kiosk_browser():
+        import subprocess
+        import time as _time
+        _time.sleep(1.5)  # dá tempo ao servidor NiceGUI arrancar primeiro
+        for browser_cmd in ('chromium-browser', 'chromium'):
+            try:
+                subprocess.Popen([
+                    browser_cmd,
+                    '--kiosk',
+                    '--app=http://localhost:8081',
+                    '--noerrdialogs',
+                    '--disable-infobars',
+                ])
+                return
+            except FileNotFoundError:
+                continue
+        print('PI4B: Chromium não encontrado — abre manualmente http://localhost:8081 no browser.')
+
+    threading.Thread(target=_launch_kiosk_browser, daemon=True, name='kiosk-launcher').start()
+
     ui.run(
-        native=True,
+        native=False,
         reload=False,
         host='0.0.0.0',
         port=8081,
