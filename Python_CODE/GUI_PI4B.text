@@ -6,12 +6,17 @@ import os
 # tanto em sessões locais (ecrã físico) como remotas (VNC).
 # Ver: https://bugs.launchpad.net/bugs/2037015 (mesa/webkit2gtk)
 #
-# Desligar SÓ o renderizador DMA-BUF resolve a corrupção mantendo a
-# aceleração GPU para o resto — muito mais rápido do que forçar software
-# rendering completo (LIBGL_ALWAYS_SOFTWARE), que deixava tudo lento.
+# WEBKIT_DISABLE_DMABUF_RENDERER=1 resolve a corrupção, mas por si só faz
+# o WebKit recuar para um caminho de composição mais lento. As variáveis
+# abaixo recuperam parte dessa performance, mantendo a aceleração GPU
+# (V3D/VC4) ativa a nível do sistema — só evitam especificamente o
+# caminho DMA-BUF com defeito.
 # TEM de ser definido ANTES de importar nicegui/pywebview.
 # ---------------------------------------------------------------------------
 os.environ.setdefault('WEBKIT_DISABLE_DMABUF_RENDERER', '1')
+os.environ.setdefault('WEBKIT_FORCE_COMPOSITING_MODE', '1')  # mantém compositor acelerado
+os.environ.setdefault('GBM_BACKEND', 'vc4')                  # usa o backend GBM certo da VideoCore
+os.environ.setdefault('GDK_BACKEND', 'x11')                  # evita ambiguidade Wayland/X11
 
 import asyncio
 import queue
