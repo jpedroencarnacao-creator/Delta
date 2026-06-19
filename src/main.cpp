@@ -266,6 +266,10 @@ MotionStorage Bat_move; //Declaração de objetos para utilizar com as structure
 MotionInstance Bat_inst;
 MotionStorage Resp_move; //Declaração de objetos para utilizar com as structures de movimento
 MotionInstance Resp_inst;
+MotionStorage Tosse_move; //Declaração de objetos para utilizar com as structures de movimento
+MotionInstance Tosse_inst;
+MotionStorage* currentMove = nullptr;
+MotionInstance* currentInst = nullptr;
 
 void Iniciate_Bat_Move() { //Serve para copiar os valores definidos mais acima para o objeto Bat_move, que é do tipo MotionStorage. 
                         // ->    Isto é só para facilitar a criação de movimentos de teste, ou seja, para não ter que copiar os valores manualmente para o Bat_move cada vez que quiseres testar algo.
@@ -495,6 +499,8 @@ Adafruit_NeoPixel pixel(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 char Mode = 'S'; // 'S' = Single, 'M' = Manual
 char CH_Command_Out = '\0';
 char CH_Command_IN = '\0';
+char ST_Command_Out[100];
+char ST_Command_IN[100];
 int command_counter = 0;
 bool LineReady_IN = false;
 bool LineReady_Out = false;
@@ -537,7 +543,9 @@ int Safe_comand = 0;
 void FSM_Serial_reader(unsigned long nowMs){
 static short int state;
 static int counter = 0;
+static int n = 0;
 static char CH_Bus;
+static char ST_BUS[100];
 state_test = state;
 /*
 Têm em atenção constituição de cada caso:
@@ -555,6 +563,7 @@ switch (state) {
       CH_Command_Out = '\0'; 
 
       if(Serial.available() > 0 && Mode == 'S'){state = 1;} 
+      if(Serial.available() > 0 && Mode == 'M'){state = 6;} 
     break;
 
 
@@ -581,7 +590,7 @@ switch (state) {
       CH_Bus = '\0';
 
       if(LineReady_IN == true && Mode == 'S'){state = 1;}
-     // if(LineReady_IN == true && Mode == 'M'){state = 1;} // falta adicionar o estado de string
+      if(LineReady_IN == true && Mode == 'M'){state = 6;} 
     break;
 
 
@@ -596,19 +605,64 @@ switch (state) {
 
       if(LineReady_IN == true){state = 0;}
     break;
-
 /*
-    case 7: 
-      
+    case 6: 
+      ST_BUS[counter] = Serial.read();
+      Serial.print("ST_Bus: ");
+      Serial.println(ST_BUS[counter]);
+      counter++;
+
+      if(ST_BUS[counter-1] == ' '){state = 6;}
+      //if(Serial.available() > 0 && ST_BUS[counter-1] != '\n'){state = 6;}
+      if(ST_BUS[counter-1] == '\n'){state = 8;}
     break;
-
-
-    case 8: 
-      
-    break;
-
 */
-    
+    case 6: {
+    int c = Serial.read();
+    ST_BUS[n] = (char)c;
+
+    Serial.print("ST_Bus char = '");
+    Serial.print(ST_BUS[n]);
+    Serial.print("'  code = ");
+    Serial.println(c);
+
+
+      if(ST_BUS[n] == ' '){state = 6;}
+      if(ST_BUS[n] != '\n' && ST_BUS[n] != ' '){state = 7;} 
+      if(ST_BUS[n] == '\n'){state = 8;} 
+    break;
+}
+
+    case 7:
+    n++;
+
+    if(Serial.available() > 0){state = 6;}
+    if(Serial.available() < 1){state = 8;}
+    break;
+
+    case 8: {
+  Serial.print("ST_Bus completo: ");
+  Serial.println(ST_BUS);
+  int maxCopy = n;
+  if (maxCopy >= (int)sizeof(ST_Command_Out)) {
+      maxCopy = sizeof(ST_Command_Out) - 1;
+  }
+  strncpy(ST_Command_Out, ST_BUS, maxCopy);
+
+  if(1){state = 9;}
+  break;
+}
+
+
+    case 9:
+    ST_BUS[n] = '\0';   // substitui o '\n'
+    //ST_Command_Out[maxCopy] = '\0';
+    n = 0;
+
+    if(LineReady_IN == true){state = 0;}
+    break;
+
+
     }
     return;
 }
@@ -616,6 +670,9 @@ switch (state) {
 void FSM_Serial_Command(unsigned long nowMs){
 static short int state;
 state_test2 = state;
+static int n = 0;
+static int m = 0;
+static char ST_copy[100];
 /*
 Têm em atenção constituição de cada caso:
 case x: 
@@ -641,6 +698,7 @@ switch (state) {
       if(CH_Command_IN == 'P' || CH_Command_IN == 'p'){state = 3;}
       if(CH_Command_IN == 'L' || CH_Command_IN == 'l'){state = 5;}
       if(CH_Command_IN == 'M' || CH_Command_IN == 'm'){state = 14;}
+      if(CH_Command_IN == 'W' || CH_Command_IN == 'w'){state = 23;}
     break;
 
 
@@ -834,7 +892,7 @@ switch (state) {
       CH_Command_Out = '\0';
             Bat_inst.active = true;
             Resp_inst.active = true;
-          //Tosse_inst.active = false;
+            Tosse_inst.active = false;
 
       if(1){state = 21;}
     break;
@@ -846,7 +904,7 @@ switch (state) {
       CH_Command_Out = '\0';
             Bat_inst.active = false;
             Resp_inst.active = true;
-          //Tosse_inst.active = false;
+            Tosse_inst.active = false;
 
       if(1){state = 21;}
     break;
@@ -858,7 +916,7 @@ switch (state) {
       CH_Command_Out = '\0';
             Bat_inst.active = true;
             Resp_inst.active = false;
-          //Tosse_inst.active = false;
+            Tosse_inst.active = false;
 
       if(1){state = 21;}
     break;
@@ -870,17 +928,17 @@ switch (state) {
       CH_Command_Out = '\0';
             Bat_inst.active = false;
             Resp_inst.active = false;
-          //Tosse_inst.active = false;
+            Tosse_inst.active = false;
 
       if(1){state = 21;}
     break;
 
 
     case 21: 
-      Serial.println("want to start de cicle? y/n"); 
-      LineReady_Out = false;
+      //Serial.println("want to start de cicle? y/n"); 
+      //LineReady_Out = false;
 
-      if(1){state = 22;}
+      if(1){state = 4;}
     break;
 
     case 22: 
@@ -888,24 +946,126 @@ switch (state) {
       if(CH_Command_IN == 'n'){state = 3;}
     break;
 
-    
+    case 23: 
+      Mode = 'M';
+      Serial.println("Comando Mode multiple characters");
+      LineReady_Out = true;
+
+      if(1){state = 24;}
+    break;
+
+    case 24: 
+      LineReady_Out = false;
+      n = 0;
+
+      if(ST_Command_IN[n] == 'D'){state = 25;}
+      if(ST_Command_IN[n] == 'd'){state = 26;}
+    break;
+
+    case 25: 
+      start_comand = 0;
+      n++;
+
+      if(1){state = 27;}
+    break;
+
+    case 26: 
+      n++;
+
+      if(1){state = 28;}
+    break;
+
+    case 27: 
+      if(ST_Command_IN[n] == 'R' || ST_Command_IN[n] == 'r'){state = 28;}
+      if(ST_Command_IN[n] == 'B' || ST_Command_IN[n] == 'b'){state = 29;}
+      if(ST_Command_IN[n] == 'T' || ST_Command_IN[n] == 't'){state = 30;}
+    break;
+
+    case 28: 
+      currentMove = &Resp_move;
+      currentInst = &Resp_inst;
+
+      if(1){state = 31;}
+    break;
+
+
+    case 29: 
+      currentMove = &Bat_move;
+      currentInst = &Bat_inst;
+
+      if(1){state = 31;}
+    break;
+
+
+    case 30: 
+      currentMove = &Tosse_move;
+      currentInst = &Tosse_inst;
+
+      if(1){state = 31;}
+    break;
+
+
+    case 31:
+      n++;
+
+      if(ST_Command_IN[n] == 'T' || ST_Command_IN[n] == 't'){state = 32;} //Periodo
+      if(ST_Command_IN[n] == 'P' || ST_Command_IN[n] == 'p'){state = 33;} //Pausa
+      if(ST_Command_IN[n] == 'M' || ST_Command_IN[n] == 'm'){state = 34;} //Movimento
+    break;
+
+
+    case 32: 
+      n++;
+      m = 0;
+
+      if(ST_Command_IN[n] == '['){state = 32;}
+      if(ST_Command_IN[n] != '['){state = 35;}
+    break;
+
+
+    case 33: 
+      //L
+    break;
+
+
+    case 34: 
+      //L
+    break;
+
+
+    case 35: 
+      ST_copy[m]=ST_Command_IN[n];
+      n++;
+      m++;
+
+      if(ST_Command_IN[n] != ']'){state = 35;}
+      if(ST_Command_IN[n] == ']'){state = 36;}
+    break;
+
+
+    case 36: 
+      //L
+      currentMove->period=atof(ST_copy);
+      memset(ST_copy,0,sizeof(ST_copy));
+      LineReady_Out = true;
+
+      if(1){state = 37;}
+    break;
+
+    case 37:
+    Mode = 'S';
+
+    if(1){state = 4;}
+    break;
     }
+    
     return;
 }
-/*
-void setup(){
-    Serial.begin(115200);
-    setup_counter++;
-    Serial.print("setup chamado: ");
-    Serial.println(setup_counter);
 
-}
 
-void loop(){
-//Serial.println("beep");
-//delay(500);
-}
-*/
+
+
+
 
 void setup() {
 
@@ -957,7 +1117,7 @@ float tempo_inicial = millis();
 
   
     unsigned long now1 = millis();
-    trig_serial_OUT = trig_display_fsm(actual_time,1000);
+    trig_serial_OUT = trig_display_fsm(actual_time,100);
     FSM_Serial_reader(now1);
     FSM_Serial_Command(now1);
 
@@ -999,7 +1159,8 @@ if(trig_serial_IN == 1 && Safe_comand == 1){
 trig_serial_IN = trig_serial_OUT;
 LineReady_IN=LineReady_Out;
 CH_Command_IN=CH_Command_Out;
-
+strncpy(ST_Command_IN, ST_Command_Out, sizeof(ST_Command_IN));
+ST_Command_IN[sizeof(ST_Command_IN)-1] = '\0';
 }
 
 
