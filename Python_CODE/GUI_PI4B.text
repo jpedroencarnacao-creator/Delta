@@ -1,17 +1,3 @@
-import os
-
-# ---------------------------------------------------------------------------
-# Força o WebKitGTK (usado pelo pywebview no Linux) a renderizar por
-# SOFTWARE em vez de usar aceleração GPU. Necessário quando se acede ao
-# Raspberry Pi remotamente via VNC (RealVNC/WayVNC) — a renderização
-# acelerada por GPU fica corrompida ao passar pelo VNC (riscas/listas na
-# janela). Sem efeito nenhum se estiveres com ecrã físico ligado ao Pi.
-# TEM de ser definido ANTES de importar nicegui/pywebview.
-# ---------------------------------------------------------------------------
-os.environ.setdefault('WEBKIT_DISABLE_COMPOSITING_MODE', '1')
-os.environ.setdefault('WEBKIT_DISABLE_DMABUF_RENDERER', '1')
-os.environ.setdefault('LIBGL_ALWAYS_SOFTWARE', '1')
-
 import asyncio
 import queue
 import threading
