@@ -1,7 +1,8 @@
-import asyncio
+﻿import asyncio
 import queue
 import threading
 import time
+from typing import Any, cast
 from nicegui import ui, app, run
 
 PASSWORD = '1234'
@@ -243,7 +244,7 @@ def generate_qr_code_base64(data):
         qr.make(fit=True)
         img = qr.make_image(fill_color='black', back_color='white')
         buffer = io.BytesIO()
-        img.save(buffer, format='PNG')
+        cast(Any, img).save(buffer, format='PNG')
         encoded = base64.b64encode(buffer.getvalue()).decode('ascii')
         return f'data:image/png;base64,{encoded}'
     except ImportError:
@@ -731,7 +732,7 @@ def main_page():
                     ).props('outlined').classes('grow').on('keydown.enter', lambda e: send_serial_command())
 
                     def send_serial_command():
-                        command = serial_input.value.strip()
+                        command = str(serial_input.value or '').strip()
                         if not command:
                             return
                         send_serial(command)
@@ -848,7 +849,7 @@ def main_page():
         )
 
     # --- apply_visual_state -------------------------------------------------
-    _last_tooltip_state = {'value': None}
+    _last_tooltip_state: dict[str, tuple[str, bool] | None] = {'value': None}
 
     def apply_serial_indicator():
         """Atualiza TODOS os indicadores de ligação série (o do canto superior,

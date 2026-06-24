@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>PI_4B Control Panel — Mobile</title>
+<style>
+
+:root {
+    --bg:          #f0f0f0;
+    --panel:       #ffffff;
+    --border:      #cccccc;
+    --text:        #333333;
+    --accent:      #337ab7;
+    --accent-dark: #225a8a;
+    --green-on:    #28a745;
+    --green-off:   #1f7a33;
+    --red-on:      #d9534f;
+    --red-off:     #9f3b38;
+    --yellow:      #ffd84d;
+    --gray:        #6c757d;
+    --radius:      10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text); }
+
+/* Botão de modo */
+.btn-mode {
+    font-weight: bold; font-size: 15px; padding: 10px 18px;
+    border-radius: 14px; border: 2px solid; cursor: pointer; min-width: 140px;
+}
+.btn-mode.cliente { background: var(--accent); color: white; border-color: #8ec5ff; }
+.btn-mode.dev     { background: var(--yellow); color: black; border-color: #d9534f; }
+
+/* Botões grandes Start/Stop */
+.btn-big {
+    font-weight: bold; font-size: 18px; padding: 16px 8px;
+    border-radius: var(--radius); border: 2px solid black;
+    cursor: pointer; width: 140px; height: 70px;
+}
+.btn-big.on-green  { background: var(--green-on);  color: white; box-shadow: 0 0 12px 3px rgba(40,167,69,.7); }
+.btn-big.off-green { background: var(--green-off); color: #ccc; }
+.btn-big.on-red    { background: var(--red-on);    color: white; box-shadow: 0 0 12px 3px rgba(217,83,79,.7); }
+.btn-big.off-red   { background: var(--red-off);   color: #ccc; }
+
+/* Botão Mode */
+.btn-mode-action {
+    font-weight: bold; font-size: 18px; padding: 16px 8px;
+    border-radius: var(--radius); border: 2px solid black;
+    background: var(--accent); color: white;
+    cursor: pointer; width: 140px; height: 70px;
+}
+
+/* Indicador de ligação série */
+.conn-indicator {
+    font-size: 18px; padding: 6px 10px; border-radius: 8px;
+    border: none; cursor: pointer; font-weight: bold;
+    width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+}
+.conn-off        { background: #e0e0e0; color: #888; }
+.conn-connecting { background: #fff3cd; color: #b8860b;
+                   animation: blink 1s infinite; }
+.conn-on         { background: #e6f7ea; color: var(--green-on); }
+.conn-error      { background: #fdeaea; color: var(--red-on);
+                   animation: blink 1s infinite; }
+@keyframes blink {
+    0%,100% { opacity:1; } 50% { opacity:0.3; }
+}
+
+/* Botões de modo de movimento */
+.mode-option {
+    padding: 12px 8px; border-radius: var(--radius);
+    border: 2px solid black; cursor: pointer; font-weight: bold;
+    background: #d1d5db; color: black; font-size: 14px;
+    transition: background .15s;
+}
+.mode-option.mode-selected {
+    background: var(--yellow); border-color: black;
+}
+
+/* Monitor serial */
+.serial-monitor {
+    width: 100%; font-family: monospace; font-size: 13px;
+    background: #1e1e1e; color: #d4d4d4; border: none;
+    border-radius: 8px; padding: 10px; resize: none;
+}
+
+/* Botão de controlo */
+.btn-ctrl {
+    padding: 10px 16px; border-radius: 8px; border: none;
+    cursor: pointer; font-weight: bold; font-size: 14px; color: white;
+}
+.btn-ctrl.danger  { background: #d9534f; }
+.btn-ctrl.dark    { background: black;
+                    box-shadow: 0 0 0 2px white, 0 0 0 4px black; }
+.btn-ctrl.gray    { background: var(--gray); }
+.btn-ctrl.blue    { background: var(--accent); }
+.btn-ctrl.scroll-btn { background: #e0e0e0; color: #555; }
+.btn-ctrl.scroll-btn.active { background: var(--accent); color: white; }
+
+/* Modais */
+.modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.45);
+    align-items: center; justify-content: center; z-index: 1000;
+}
+.modal-card {
+    background: white; border-radius: 16px; padding: 24px;
+    box-shadow: 0 18px 50px rgba(0,0,0,.25);
+    max-width: 95vw;
+}
+.modal-card input {
+    width: 100%; padding: 10px; border: 1px solid #ccc;
+    border-radius: 8px; font-size: 16px; margin: 10px 0;
+}
+
+body { padding: 16px; }
+.app  { max-width: 480px; margin: 0 auto; display: grid; gap: 14px; }
+.card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 20px; padding: 16px;
+    box-shadow: 0 4px 8px rgba(0,0,0,.1);
+}
+.section-title {
+    font-size: 13px; font-weight: bold; text-transform: uppercase;
+    letter-spacing: .06em; color: #666; margin-bottom: 10px;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand h1 { font-size: 22px; }
+.brand p  { font-size: 13px; color: #666; margin-top: 2px; }
+
+/* Linha de topo: modo + conexão */
+.top-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* Grid de botões */
+.btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn-grid.single { grid-template-columns: 1fr; }
+.btn-grid .btn-big { width: 100%; height: 60px; font-size: 16px; }
+.btn-grid .btn-mode-action { width: 100%; height: 60px; font-size: 16px; }
+
+/* Monitor serial */
+.serial-monitor { height: 220px; }
+
+/* Conn menu mobile */
+.conn-menu-wrap { position: relative; }
+.conn-menu {
+    display: none; flex-direction: column; gap: 6px;
+    position: absolute; top: 50px; left: 0;
+    background: white; border: 1px solid #ccc;
+    border-radius: 14px; padding: 10px; min-width: 180px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.18); z-index: 600;
+}
+</style>
+</head>
+<body>
+<main class="app">
+
+  <!-- Cabeçalho -->
+  <section class="brand">
+    <div>
+      <h1>PI_4B Control</h1>
+      <p>Interface remota</p>
+    </div>
+  </section>
+
+  <!-- Modo + Ligação -->
+  <section class="card">
+    <div class="section-title">Controlo</div>
+    <div class="top-row">
+      <button id="modeBtn" class="btn-mode cliente" onclick="onModeBtn()">MODO CLIENTE</button>
+      <div class="conn-menu-wrap">
+        <button class="conn-indicator conn-off" onclick="onConnClick(this)" title="Desligado">🔗</button>
+        <div class="conn-menu" id="connMenu">
+          <button class="btn-ctrl blue" onclick="sendAction('serial_reconnect'); closeConnMenu();">Tentar reconectar</button>
+          <button class="btn-ctrl danger dev-only" style="display:none"
+                  onclick="sendAction('serial_disconnect'); closeConnMenu();">Desligar COM</button>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top: 10px;">
+      <a href="/configuracoes_movimentos" target="_blank"
+         style="display:inline-block; padding:10px 16px; background:#337ab7; color:white;
+                border-radius:8px; font-weight:bold; font-size:14px; text-decoration:none; width:100%; text-align:center;">
+        ⚙ Configurações Movimentos
+      </a>
+    </div>
+  </section>
+
+  <!-- Start / Mode / Stop -->
+  <section class="card">
+    <div class="section-title">Ações</div>
+    <div class="btn-grid">
+      <button id="startBtn" class="btn-big off-green" onclick="sendAction('start')">Start</button>
+      <button id="stopBtn"  class="btn-big on-red"   onclick="sendAction('stop')">Stop</button>
+      <button class="btn-mode-action" style="grid-column:span 2"
+              onclick="openModeDialog()">Mode</button>
+    </div>
+  </section>
+
+  <!-- Monitor serial (só DEV) -->
+  <section class="card dev-only" style="display:none">
+    <div class="section-title" style="display:flex; justify-content:space-between">
+      Monitor Serial
+      <button id="scrollBtn" class="btn-ctrl scroll-btn active"
+              onclick="toggleAutoScroll()" title="Auto-scroll: ON">⬇</button>
+    </div>
+    <textarea id="serialMonitor" class="serial-monitor" readonly></textarea>
+    <div style="display:flex; gap:8px; margin-top:8px">
+      <input id="serialInput" type="text" placeholder="Comando..."
+             style="flex:1; padding:10px; border-radius:10px; border:1px solid #ccc; font-size:15px;"
+             onkeydown="if(event.key==='Enter') sendManual()">
+      <button class="btn-ctrl blue" onclick="sendManual()">Enviar</button>
+    </div>
+  </section>
+
+  <!-- Desligar / Sair -->
+  <section class="card">
+    <div class="btn-grid">
+      <button class="btn-ctrl danger" style="padding:14px"
+              onclick="window.close()">Desligar</button>
+      <button class="btn-ctrl dark dev-only" style="padding:14px; display:none"
+              onclick="if(confirm('Encerrar o programa completamente?')) sendAction('sair')">Sair</button>
+    </div>
+  </section>
+
+</main>
+
+<!-- MODAL: Password DEV -->
+<div class="modal-overlay" id="passwordModal">
+  <div class="modal-card" style="width:100%; max-width:360px">
+    <h3 style="margin-bottom:8px">Acesso DEV</h3>
+    <input id="passwordInput" type="password" placeholder="Password DEV"
+           inputmode="text" autocomplete="current-password">
+    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px">
+      <button class="btn-ctrl gray"
+              onclick="document.getElementById('passwordModal').style.display='none'">Cancelar</button>
+      <button class="btn-ctrl blue" onclick="confirmPassword()">Entrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Selecionar Modo -->
+<div class="modal-overlay" id="modeModal" onclick="if(event.target.id==='modeModal') closeModeDialog()">
+  <div class="modal-card" style="width:100%; max-width:480px">
+    <h3 style="margin-bottom:16px">Selecionar Modo</h3>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+      <button class="mode-option" data-mode="Estatico"   onclick="selectMode('Estatico')">Estático</button>
+      <button class="mode-option" data-mode="Respiracao" onclick="selectMode('Respiracao')">Respiração</button>
+      <button class="mode-option" data-mode="Coracao"    onclick="selectMode('Coracao')">Coração</button>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:4px">
+        <button class="mode-option" style="width:100%" data-mode="Humano" onclick="selectMode('Humano')">Humano</button>
+        <small style="color:#555">(Resp+Bati)</small>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:4px">
+        <button class="mode-option" style="width:100%" data-mode="Completo" onclick="selectMode('Completo')">Completo</button>
+        <small style="color:#555">(Resp+Bati+Tosse)</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+const socket = io();
+
+// recebe atualização completa de estado
+socket.on('state_update', (s) => {
+    applyState(s);
+});
+
+// recebe só mudança de estágio da série
+socket.on('serial_stage', (data) => {
+    applySerialStage(data.stage);
+});
+
+function applyState(s) {
+    // modo DEV/CLIENTE
+    const isDev = s.devmode === 1;
+    const modeBtn = document.getElementById('modeBtn');
+    if (modeBtn) {
+        modeBtn.textContent = isDev ? 'MODO DEV' : 'MODO CLIENTE';
+        modeBtn.className = 'btn-mode ' + (isDev ? 'dev' : 'cliente');
+    }
+    document.querySelectorAll('.dev-only').forEach(el => {
+        el.style.display = isDev ? '' : 'none';
+    });
+
+    // start / stop
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn  = document.getElementById('stopBtn');
+    if (startBtn) startBtn.className = 'btn-big ' + (s.start_state === 1 ? 'on-green'  : 'off-green');
+    if (stopBtn)  stopBtn.className  = 'btn-big ' + (s.stop_state  === 1 ? 'on-red'    : 'off-red');
+
+    // modo de movimento
+    document.querySelectorAll('.mode-option').forEach(btn => {
+        btn.classList.toggle('mode-selected', btn.dataset.mode === s.mode_state);
+    });
+
+    // histórico serial
+    const mon = document.getElementById('serialMonitor');
+    if (mon) {
+        const tail = (s.history_tail || []).join('\\n');
+        if (mon.value !== tail) {
+            mon.value = tail;
+            if (window.autoScroll) mon.scrollTop = mon.scrollHeight;
+        }
+    }
+
+    applySerialStage(s.serial_stage);
+}
+
+function applySerialStage(stage) {
+    document.querySelectorAll('.conn-indicator').forEach(btn => {
+        btn.dataset.stage = stage;
+        const map = {
+            disconnected: {icon: '🔗', cls: 'conn-off',       tip: 'Desligado'},
+            connecting:   {icon: '↻',  cls: 'conn-connecting', tip: 'A ligar...'},
+            connected:    {icon: '🔗', cls: 'conn-on',         tip: 'Ligado'},
+            error:        {icon: '⚠',  cls: 'conn-error',      tip: 'Erro de ligação'},
+        };
+        const m = map[stage] || map.disconnected;
+        btn.textContent  = m.icon;
+        btn.className    = 'conn-indicator ' + m.cls;
+        btn.title        = m.tip;
+    });
+}
+
+window.autoScroll = true;
+
+function toggleAutoScroll() {
+    window.autoScroll = !window.autoScroll;
+    const btn = document.getElementById('scrollBtn');
+    if (btn) {
+        btn.classList.toggle('active', window.autoScroll);
+        btn.title = 'Auto-scroll: ' + (window.autoScroll ? 'ON' : 'OFF');
+    }
+}
+
+function sendAction(action, body={}) {
+    fetch('/' + action, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body),
+    }).catch(err => console.error('Erro:', err));
+}
+
+function onModeBtn() {
+    const isDev = document.getElementById('modeBtn')
+                    .classList.contains('dev');
+    if (isDev) {
+        sendAction('toggle_devmode');
+    } else {
+        document.getElementById('passwordModal').style.display = 'flex';
+        document.getElementById('passwordInput').value = '';
+        document.getElementById('passwordInput').focus();
+    }
+}
+
+function confirmPassword() {
+    const pw = document.getElementById('passwordInput').value;
+    sendAction('toggle_devmode', {password: pw});
+    document.getElementById('passwordModal').style.display = 'none';
+}
+
+function openModeDialog() {
+    document.getElementById('modeModal').style.display = 'flex';
+}
+
+function closeModeDialog() {
+    document.getElementById('modeModal').style.display = 'none';
+}
+
+function selectMode(modeName) {
+    sendAction('select_mode', {mode: modeName});
+    closeModeDialog();
+}
+
+function onConnClick(btn) {
+    const stage = btn.dataset.stage || 'disconnected';
+    const isDev = document.getElementById('modeBtn')
+                    .classList.contains('dev');
+    if (isDev) {
+        if (stage === 'connecting' || stage === 'error') {
+            document.getElementById('connMenu').style.display = 'flex';
+        } else if (stage === 'connected') {
+            sendAction('serial_disconnect');
+        } else {
+            sendAction('serial_connect');
+        }
+    } else {
+        if (stage === 'error') {
+            sendAction('serial_reconnect');
+        }
+    }
+}
+
+function closeConnMenu() {
+    document.getElementById('connMenu').style.display = 'none';
+}
+
+// fecha modais ao clicar fora
+document.addEventListener('click', (e) => {
+    const connMenu = document.getElementById('connMenu');
+    if (connMenu && !connMenu.contains(e.target) &&
+        !e.target.classList.contains('conn-indicator')) {
+        connMenu.style.display = 'none';
+    }
+});
+
+// fecha modal de password com Enter
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        const pwModal = document.getElementById('passwordModal');
+        if (pwModal && pwModal.style.display === 'flex') confirmPassword();
+    }
+});
+</script>
+
+<script>
+function sendManual() {
+    const input = document.getElementById('serialInput');
+    const cmd = input.value.trim();
+    if (!cmd) return;
+    sendAction('send_serial', {command: cmd});
+    input.value = '';
+}
+
+// redirect automático para desktop se não for mobile em portrait
+function checkDevice() {
+    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+    const isPortrait = window.innerHeight > window.innerWidth;
+    if (!isMobile || !isPortrait) window.location.replace('/');
+}
+checkDevice();
+window.addEventListener('resize', checkDevice);
+
+fetch('/state').then(r => r.json()).then(applyState);
+</script>
+</body>
+</html>

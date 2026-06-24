@@ -1,0 +1,11 @@
+{
+    "python.defaultInterpreterPath": "python",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/Python_CODE"
+    ],
+    "python.terminal.activateEnvironment": true,
+    "python.analysis.typeCheckingMode": "basic",
+    "files.associations": {
+        "*.text": "plaintext"
+    }
+}
