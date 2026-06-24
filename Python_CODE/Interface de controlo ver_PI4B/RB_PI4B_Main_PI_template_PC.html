@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>PI_4B Control Panel</title>
+<style>
+
+:root {
+    --bg:          #f0f0f0;
+    --panel:       #ffffff;
+    --border:      #cccccc;
+    --text:        #333333;
+    --accent:      #337ab7;
+    --accent-dark: #225a8a;
+    --green-on:    #28a745;
+    --green-off:   #1f7a33;
+    --red-on:      #d9534f;
+    --red-off:     #9f3b38;
+    --yellow:      #ffd84d;
+    --gray:        #6c757d;
+    --radius:      10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text); }
+
+/* Botão de modo */
+.btn-mode {
+    font-weight: bold; font-size: 15px; padding: 10px 18px;
+    border-radius: 14px; border: 2px solid; cursor: pointer; min-width: 140px;
+}
+.btn-mode.cliente { background: var(--accent); color: white; border-color: #8ec5ff; }
+.btn-mode.dev     { background: var(--yellow); color: black; border-color: #d9534f; }
+
+/* Botões grandes Start/Stop */
+.btn-big {
+    font-weight: bold; font-size: 18px; padding: 16px 8px;
+    border-radius: var(--radius); border: 2px solid black;
+    cursor: pointer; width: 140px; height: 70px;
+}
+.btn-big.on-green  { background: var(--green-on);  color: white; box-shadow: 0 0 12px 3px rgba(40,167,69,.7); }
+.btn-big.off-green { background: var(--green-off); color: #ccc; }
+.btn-big.on-red    { background: var(--red-on);    color: white; box-shadow: 0 0 12px 3px rgba(217,83,79,.7); }
+.btn-big.off-red   { background: var(--red-off);   color: #ccc; }
+
+/* Botão Mode */
+.btn-mode-action {
+    font-weight: bold; font-size: 18px; padding: 16px 8px;
+    border-radius: var(--radius); border: 2px solid black;
+    background: var(--accent); color: white;
+    cursor: pointer; width: 140px; height: 70px;
+}
+
+/* Indicador de ligação série */
+.conn-indicator {
+    font-size: 18px; padding: 6px 10px; border-radius: 8px;
+    border: none; cursor: pointer; font-weight: bold;
+    width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+}
+.conn-off        { background: #e0e0e0; color: #888; }
+.conn-connecting { background: #fff3cd; color: #b8860b;
+                   animation: blink 1s infinite; }
+.conn-on         { background: #e6f7ea; color: var(--green-on); }
+.conn-error      { background: #fdeaea; color: var(--red-on);
+                   animation: blink 1s infinite; }
+@keyframes blink {
+    0%,100% { opacity:1; } 50% { opacity:0.3; }
+}
+
+/* Botões de modo de movimento */
+.mode-option {
+    padding: 12px 8px; border-radius: var(--radius);
+    border: 2px solid black; cursor: pointer; font-weight: bold;
+    background: #d1d5db; color: black; font-size: 14px;
+    transition: background .15s;
+}
+.mode-option.mode-selected {
+    background: var(--yellow); border-color: black;
+}
+
+/* Monitor serial */
+.serial-monitor {
+    width: 100%; font-family: monospace; font-size: 13px;
+    background: #1e1e1e; color: #d4d4d4; border: none;
+    border-radius: 8px; padding: 10px; resize: none;
+}
+
+/* Botão de controlo */
+.btn-ctrl {
+    padding: 10px 16px; border-radius: 8px; border: none;
+    cursor: pointer; font-weight: bold; font-size: 14px; color: white;
+}
+.btn-ctrl.danger  { background: #d9534f; }
+.btn-ctrl.dark    { background: black;
+                    box-shadow: 0 0 0 2px white, 0 0 0 4px black; }
+.btn-ctrl.gray    { background: var(--gray); }
+.btn-ctrl.blue    { background: var(--accent); }
+.btn-ctrl.scroll-btn { background: #e0e0e0; color: #555; }
+.btn-ctrl.scroll-btn.active { background: var(--accent); color: white; }
+
+/* Modais */
+.modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.45);
+    align-items: center; justify-content: center; z-index: 1000;
+}
+.modal-card {
+    background: white; border-radius: 16px; padding: 24px;
+    box-shadow: 0 18px 50px rgba(0,0,0,.25);
+    max-width: 95vw;
+}
+.modal-card input {
+    width: 100%; padding: 10px; border: 1px solid #ccc;
+    border-radius: 8px; font-size: 16px; margin: 10px 0;
+}
+
+body { padding: 12px; height: 100vh; overflow: hidden; }
+.layout { display: flex; gap: 12px; height: calc(100vh - 24px); }
+
+/* Coluna esquerda */
+.left-col {
+    flex: 3; display: flex; flex-direction: column;
+    justify-content: space-between;
+}
+.top-row  { display: flex; align-items: center; gap: 10px; }
+.mid-row  { display: flex; justify-content: center; align-items: center; gap: 16px; }
+.bot-row  { display: flex; gap: 10px; }
+
+/* Coluna direita — monitor serial (só visível em modo DEV) */
+.right-col {
+    flex: 2; display: flex; flex-direction: column;
+    background: white; border-radius: var(--radius);
+    padding: 10px; padding-bottom: 70px; gap: 8px; min-height: 0;
+}
+.monitor-header {
+    display: flex; align-items: center; justify-content: space-between;
+}
+.serial-monitor { flex: 1; min-height: 0; }
+
+/* Painel de definições (canto inferior direito, posição fixa) */
+.settings-wrap {
+    position: fixed; bottom: 16px; right: 16px;
+    align-items: flex-end; display: flex; flex-direction: column; z-index: 500;
+}
+.settings-panel {
+    background: #f0f0f0; border: 1px solid #ccc; border-radius: 10px;
+    padding: 8px; min-width: 180px;
+    margin-bottom: -52px; padding-bottom: 60px; z-index: 1;
+}
+.settings-panel.hidden { display: none; }
+.settings-panel .btn-settings-item {
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    padding: 8px 10px; border-radius: 8px; border: none; background: var(--accent);
+    color: white; font-weight: bold; cursor: pointer; margin-bottom: 6px;
+    font-size: 14px;
+}
+.settings-panel .subpanel.hidden { display: none; }
+
+/* QR code */
+.qr-section { text-align: center; margin-bottom: 8px; }
+.qr-section img { width: 130px; height: 130px; }
+.qr-url { font-size: 10px; color: #555; word-break: break-all; margin-top: 4px; }
+
+/* Separador */
+hr { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
+
+/* Menu de conexão */
+.conn-menu {
+    display: none; flex-direction: column; gap: 6px;
+    position: absolute; top: 50px; left: 0;
+    background: white; border: 1px solid #ccc;
+    border-radius: 10px; padding: 8px; min-width: 160px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.15); z-index: 600;
+}
+.conn-menu-wrap { position: relative; }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- COLUNA ESQUERDA -->
+  <div class="left-col">
+
+    <!-- Linha do topo: Modo + Indicador de ligação -->
+    <div class="top-row">
+      <button id="modeBtn" class="btn-mode cliente" onclick="onModeBtn()">MODO CLIENTE</button>
+      <div class="conn-menu-wrap">
+        <button class="conn-indicator conn-off" onclick="onConnClick(this)" title="Desligado">🔗</button>
+        <div class="conn-menu" id="connMenu">
+          <button class="btn-ctrl blue" onclick="sendAction('serial_reconnect'); closeConnMenu();">Tentar reconectar</button>
+          <button class="btn-ctrl danger" onclick="sendAction('serial_disconnect'); closeConnMenu();">Desligar COM</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botão Configurações Movimentos (visível em ambos os modos) -->
+    <div style="margin-top: 10px;">
+      <button class="btn-ctrl blue" onclick="openMovementsModal()"
+              style="width: 200px; padding: 10px; font-size: 14px;">
+        ⚙ Configurações Movimentos
+      </button>
+    </div>
+
+    <!-- Linha do meio: Start / Mode / Stop -->
+    <div class="mid-row">
+      <button id="startBtn" class="btn-big off-green" onclick="sendAction('start')">Start</button>
+      <button class="btn-mode-action" onclick="openModeDialog()">Mode</button>
+      <button id="stopBtn"  class="btn-big on-red"   onclick="sendAction('stop')">Stop</button>
+    </div>
+
+    <!-- Linha do fundo: Desligar + Sair (DEV only) -->
+    <div class="bot-row">
+      <button class="btn-ctrl danger" onclick="sendAction('desligar')">Desligar</button>
+      <button class="btn-ctrl dark dev-only" style="display:none"
+              onclick="if(confirm('Encerrar o programa completamente?')) sendAction('sair')">Sair</button>
+    </div>
+  </div>
+
+  <!-- COLUNA DIREITA: Monitor Serial (só no modo DEV) -->
+  <div class="right-col dev-only" style="display:none">
+    <div class="monitor-header">
+      <strong>Monitor Serial</strong>
+      <div style="display:flex; gap:6px">
+        <button id="scrollBtn" class="btn-ctrl scroll-btn active"
+                onclick="toggleAutoScroll()" title="Auto-scroll: ON">⬇</button>
+        <button class="conn-indicator conn-off" onclick="onConnClick(this)" title="Desligado">🔗</button>
+      </div>
+    </div>
+    <textarea id="serialMonitor" class="serial-monitor" readonly></textarea>
+    <div style="display:flex; gap:8px">
+      <input id="serialInput" type="text" placeholder="Escrever comando..."
+             style="flex:1; padding:8px; border-radius:8px; border:1px solid #ccc; font-size:14px;"
+             onkeydown="if(event.key==='Enter') sendManual()">
+      <button class="btn-ctrl blue" onclick="sendManual()">Enviar</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- PAINEL DE DEFINIÇÕES (canto inferior direito) -->
+<div class="settings-wrap">
+  <div class="settings-panel hidden" id="settingsPanel">
+
+    <!-- QR Code + URL -->
+    <div id="qrSubpanel">
+      <div class="qr-section">
+        {% if qr_img %}
+          <img src="{{ qr_img }}" alt="QR code">
+        {% else %}
+          <small style="color:#888">QR code indisponível<br>(pip install qrcode[pil])</small>
+        {% endif %}
+        <div class="qr-url">{{ app_url }}</div>
+      </div>
+      <hr>
+      <!-- Menu principal das definições -->
+      <div id="defMenu">
+        <button class="btn-settings-item" onclick="showSubpanel('comSubpanel')">🔌 Porta COM</button>
+        <button class="btn-settings-item" onclick="showSubpanel('redeSubpanel')">📶 Rede</button>
+        <button class="btn-settings-item" onclick="showSubpanel('configSubpanel')">⚙ Configurações</button>
+      </div>
+    </div>
+
+    <!-- Subpainel: Porta COM -->
+    <div id="comSubpanel" class="subpanel hidden">
+      <strong style="font-size:13px">Portas COM disponíveis</strong>
+      <div id="comList" style="margin-top:6px; font-size:12px">A procurar...</div>
+    </div>
+
+    <!-- Subpainel: Rede -->
+    <div id="redeSubpanel" class="subpanel hidden">
+      <strong style="font-size:13px">Estado da rede</strong>
+      <div id="redeStatus" style="margin-top:4px; font-size:12px"></div>
+      <strong style="font-size:13px; margin-top:8px; display:block">Redes disponíveis</strong>
+      <div id="redeList" style="margin-top:4px; font-size:12px">A procurar...</div>
+    </div>
+
+    <!-- Subpainel: Configurações (placeholder) -->
+    <div id="configSubpanel" class="subpanel hidden">
+      <strong style="font-size:13px">Configurações</strong>
+      <div style="font-size:12px; margin-top:6px; color:#888">Em desenvolvimento.</div>
+    </div>
+
+  </div>
+
+  <button class="btn-ctrl gray" id="defBtn"
+          onclick="toggleSettings()" style="width:150px; height:40px; position:relative; z-index:2;">
+    ⚙ Definições
+  </button>
+</div>
+
+<!-- MODAL: Password DEV -->
+<div class="modal-overlay" id="passwordModal">
+  <div class="modal-card" style="width:320px">
+    <h3 style="margin-bottom:8px">Acesso DEV</h3>
+    <p>Introduza a password DEV:</p>
+    <input id="passwordInput" type="password" placeholder="Password"
+           inputmode="text" autocomplete="current-password">
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px">
+      <button class="btn-ctrl gray" onclick="document.getElementById('passwordModal').style.display='none'">Cancelar</button>
+      <button class="btn-ctrl blue" onclick="confirmPassword()">Entrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Selecionar Modo -->
+<div class="modal-overlay" id="modeModal" onclick="if(event.target.id==='modeModal') closeModeDialog()">
+  <div class="modal-card">
+    <h3 style="margin-bottom:16px">Selecionar Modo</h3>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center">
+      <div style="display:flex; flex-direction:column; align-items:center; gap:4px">
+        <button class="mode-option" data-mode="Estatico" onclick="selectMode('Estatico')">Estático</button>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:4px">
+        <button class="mode-option" data-mode="Respiracao" onclick="selectMode('Respiracao')">Respiração</button>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:4px">
+        <button class="mode-option" data-mode="Coracao" onclick="selectMode('Coracao')">Coração</button>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:4px">
+        <button class="mode-option" data-mode="Humano" onclick="selectMode('Humano')">Humano</button>
+        <small style="color:#555">(Resp+Bati)</small>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:4px">
+        <button class="mode-option" data-mode="Completo" onclick="selectMode('Completo')">Completo</button>
+        <small style="color:#555">(Resp+Bati+Tosse)</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+const socket = io();
+
+// recebe atualização completa de estado
+socket.on('state_update', (s) => {
+    applyState(s);
+});
+
+// recebe só mudança de estágio da série
+socket.on('serial_stage', (data) => {
+    applySerialStage(data.stage);
+});
+
+function applyState(s) {
+    // modo DEV/CLIENTE
+    const isDev = s.devmode === 1;
+    const modeBtn = document.getElementById('modeBtn');
+    if (modeBtn) {
+        modeBtn.textContent = isDev ? 'MODO DEV' : 'MODO CLIENTE';
+        modeBtn.className = 'btn-mode ' + (isDev ? 'dev' : 'cliente');
+    }
+    document.querySelectorAll('.dev-only').forEach(el => {
+        el.style.display = isDev ? '' : 'none';
+    });
+
+    // start / stop
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn  = document.getElementById('stopBtn');
+    if (startBtn) startBtn.className = 'btn-big ' + (s.start_state === 1 ? 'on-green'  : 'off-green');
+    if (stopBtn)  stopBtn.className  = 'btn-big ' + (s.stop_state  === 1 ? 'on-red'    : 'off-red');
+
+    // modo de movimento
+    document.querySelectorAll('.mode-option').forEach(btn => {
+        btn.classList.toggle('mode-selected', btn.dataset.mode === s.mode_state);
+    });
+
+    // histórico serial
+    const mon = document.getElementById('serialMonitor');
+    if (mon) {
+        const tail = (s.history_tail || []).join('\\n');
+        if (mon.value !== tail) {
+            mon.value = tail;
+            if (window.autoScroll) mon.scrollTop = mon.scrollHeight;
+        }
+    }
+
+    applySerialStage(s.serial_stage);
+}
+
+function applySerialStage(stage) {
+    document.querySelectorAll('.conn-indicator').forEach(btn => {
+        btn.dataset.stage = stage;
+        const map = {
+            disconnected: {icon: '🔗', cls: 'conn-off',       tip: 'Desligado'},
+            connecting:   {icon: '↻',  cls: 'conn-connecting', tip: 'A ligar...'},
+            connected:    {icon: '🔗', cls: 'conn-on',         tip: 'Ligado'},
+            error:        {icon: '⚠',  cls: 'conn-error',      tip: 'Erro de ligação'},
+        };
+        const m = map[stage] || map.disconnected;
+        btn.textContent  = m.icon;
+        btn.className    = 'conn-indicator ' + m.cls;
+        btn.title        = m.tip;
+    });
+}
+
+window.autoScroll = true;
+
+function toggleAutoScroll() {
+    window.autoScroll = !window.autoScroll;
+    const btn = document.getElementById('scrollBtn');
+    if (btn) {
+        btn.classList.toggle('active', window.autoScroll);
+        btn.title = 'Auto-scroll: ' + (window.autoScroll ? 'ON' : 'OFF');
+    }
+}
+
+function sendAction(action, body={}) {
+    fetch('/' + action, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body),
+    }).catch(err => console.error('Erro:', err));
+}
+
+function onModeBtn() {
+    const isDev = document.getElementById('modeBtn')
+                    .classList.contains('dev');
+    if (isDev) {
+        sendAction('toggle_devmode');
+    } else {
+        document.getElementById('passwordModal').style.display = 'flex';
+        document.getElementById('passwordInput').value = '';
+        document.getElementById('passwordInput').focus();
+    }
+}
+
+function confirmPassword() {
+    const pw = document.getElementById('passwordInput').value;
+    sendAction('toggle_devmode', {password: pw});
+    document.getElementById('passwordModal').style.display = 'none';
+}
+
+function openModeDialog() {
+    document.getElementById('modeModal').style.display = 'flex';
+}
+
+function closeModeDialog() {
+    document.getElementById('modeModal').style.display = 'none';
+}
+
+function selectMode(modeName) {
+    sendAction('select_mode', {mode: modeName});
+    closeModeDialog();
+}
+
+function onConnClick(btn) {
+    const stage = btn.dataset.stage || 'disconnected';
+    const isDev = document.getElementById('modeBtn')
+                    .classList.contains('dev');
+    if (isDev) {
+        if (stage === 'connecting' || stage === 'error') {
+            document.getElementById('connMenu').style.display = 'flex';
+        } else if (stage === 'connected') {
+            sendAction('serial_disconnect');
+        } else {
+            sendAction('serial_connect');
+        }
+    } else {
+        if (stage === 'error') {
+            sendAction('serial_reconnect');
+        }
+    }
+}
+
+function closeConnMenu() {
+    document.getElementById('connMenu').style.display = 'none';
+}
+
+// fecha modais ao clicar fora
+document.addEventListener('click', (e) => {
+    const connMenu = document.getElementById('connMenu');
+    if (connMenu && !connMenu.contains(e.target) &&
+        !e.target.classList.contains('conn-indicator')) {
+        connMenu.style.display = 'none';
+    }
+});
+
+// fecha modal de password com Enter
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        const pwModal = document.getElementById('passwordModal');
+        if (pwModal && pwModal.style.display === 'flex') confirmPassword();
+    }
+});
+</script>
+
+<script>
+function sendManual() {
+    const input = document.getElementById('serialInput');
+    const cmd = input.value.trim();
+    if (!cmd) return;
+    sendAction('send_serial', {command: cmd});
+    input.value = '';
+}
+
+// --- Painel de definições ---
+let settingsView = 'closed'; // closed | menu | com | rede | config
+
+function toggleSettings() {
+    if (settingsView === 'closed') {
+        settingsView = 'menu';
+    } else if (settingsView === 'menu') {
+        settingsView = 'closed';
+    } else {
+        settingsView = 'menu'; // voltar ao menu principal
+    }
+    applySettingsView();
+}
+
+function showSubpanel(subId) {
+    settingsView = subId.replace('Subpanel', '');
+    applySettingsView();
+    if (subId === 'comSubpanel')   loadComPorts();
+    if (subId === 'redeSubpanel')  loadRede();
+}
+
+function applySettingsView() {
+    const panel  = document.getElementById('settingsPanel');
+    const qr     = document.getElementById('qrSubpanel');
+    const defMenu = document.getElementById('defMenu');
+    const subpanels = ['comSubpanel', 'redeSubpanel', 'configSubpanel'];
+
+    panel.classList.toggle('hidden', settingsView === 'closed');
+    const isMenu = settingsView === 'menu';
+    qr.style.display = isMenu ? '' : 'none';
+
+    subpanels.forEach(id => {
+        document.getElementById(id).classList.toggle('hidden',
+            settingsView !== id.replace('Subpanel', ''));
+    });
+}
+
+function loadComPorts() {
+    document.getElementById('comList').textContent = 'A procurar...';
+    fetch('/info/com_ports').then(r => r.json()).then(data => {
+        document.getElementById('comList').innerHTML =
+            data.map(l => `<div style="margin:2px 0">${l}</div>`).join('');
+    });
+}
+
+function loadRede() {
+    document.getElementById('redeStatus').textContent = 'A verificar...';
+    document.getElementById('redeList').textContent   = 'A procurar redes...';
+    fetch('/info/network').then(r => r.json()).then(data => {
+        document.getElementById('redeStatus').textContent = data.status;
+        document.getElementById('redeList').innerHTML =
+            data.networks.map(n => `<div style="margin:2px 0">${n}</div>`).join('');
+    });
+}
+
+// aplica estado inicial ao carregar a página
+fetch('/state').then(r => r.json()).then(applyState);
+</script>
+
+<!-- ============================================================ -->
+<!-- MODAL: Configurações Movimentos (cobre ~80% do ecrã)        -->
+<!-- ============================================================ -->
+<style>
+.mov-modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.55);
+    align-items: center; justify-content: center; z-index: 2000;
+}
+.mov-modal-card {
+    background: #f8f8f8; border-radius: 18px;
+    width: 90vw; height: 88vh;
+    box-shadow: 0 24px 60px rgba(0,0,0,.35);
+    display: flex; flex-direction: column; overflow: hidden;
+}
+.mov-modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; background: #4a7c59; color: white;
+    border-radius: 18px 18px 0 0; flex-shrink: 0;
+}
+.mov-modal-header h2 { font-size: 18px; margin: 0; }
+
+/* Corpo dividido ao meio */
+.mov-modal-body {
+    flex: 1; display: flex; overflow: hidden; min-height: 0;
+}
+.mov-col-left {
+    flex: 1; overflow-y: auto; padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 12px;
+    border-right: 2px solid #e0e0e0;
+}
+.mov-col-right {
+    flex: 1; overflow-y: auto; padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 14px;
+}
+
+/* Secções principais colapsáveis (acordeão) */
+.mov-group {
+    background: white; border-radius: 12px;
+    border: 2px solid #4a7c59; overflow: hidden;
+}
+.mov-group-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; background: #4a7c59; color: white;
+    cursor: pointer; user-select: none;
+}
+.mov-group-header h2 {
+    font-size: 15px; font-weight: bold; margin: 0;
+}
+.mov-group-arrow {
+    font-size: 14px; transition: transform .2s;
+}
+.mov-group-arrow.open { transform: rotate(180deg); }
+.mov-group-body {
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 12px 14px;
+}
+.mov-group-body.collapsed { display: none; }
+
+/* Secções internas (sub-secções dentro de cada grupo) */
+.mov-section {
+    background: #f8f8f8; border-radius: 10px; border: 1px solid #ddd;
+    padding: 11px 14px;
+}
+.mov-section h3 {
+    font-size: 13px; font-weight: bold; margin-bottom: 8px;
+    color: #4a7c59; border-bottom: 1px solid #eee; padding-bottom: 5px;
+}
+.mov-fields {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+}
+.mov-field label {
+    display: block; font-size: 11px; color: #555; margin-bottom: 3px;
+}
+.mov-field input, .mov-field select {
+    width: 100%; padding: 6px 8px; border: 1px solid #ccc;
+    border-radius: 7px; font-size: 13px;
+}
+.mov-field input:focus, .mov-field select:focus {
+    outline: none; border-color: #4a7c59;
+    box-shadow: 0 0 0 2px rgba(74,124,89,.2);
+}
+
+/* Gráficos por secção */
+.mov-grafico-pair {
+    background: white; border-radius: 10px; border: 1px solid #ddd;
+    padding: 10px; display: flex; flex-direction: column; gap: 6px;
+}
+.mov-grafico-pair h3 {
+    font-size: 13px; font-weight: bold; color: #4a7c59; margin: 0 0 6px 0;
+}
+.mov-grafico-pair img { width: 100%; border-radius: 6px; }
+.mov-grafico-placeholder {
+    background: #f5f5f5; border-radius: 8px; min-height: 160px;
+    display: flex; align-items: center; justify-content: center;
+    color: #aaa; font-size: 13px;
+}
+
+/* Pontos XYZ */
+.mov-points {
+    font-family: monospace; font-size: 11px; background: #f0f0f0;
+    border-radius: 6px; padding: 6px 8px; word-break: break-all;
+    max-height: 60px; overflow-y: auto; margin-top: 4px;
+}
+
+/* Footer */
+.mov-modal-footer {
+    display: flex; gap: 10px; padding: 10px 18px;
+    background: #ececec; border-top: 1px solid #ddd;
+    flex-shrink: 0; flex-wrap: wrap; align-items: center;
+}
+.mov-status { flex: 1; font-size: 13px; color: #555; min-width: 100px; }
+</style>
+
+<div class="mov-modal-overlay" id="movModal">
+  <div class="mov-modal-card">
+
+    <div class="mov-modal-header">
+      <h2>⚙ Configurações Movimentos</h2>
+      <button onclick="closeMovementsModal()"
+              style="background:none;border:none;color:white;font-size:22px;cursor:pointer;">✕</button>
+    </div>
+
+    <div class="mov-modal-body">
+
+      <!-- COLUNA ESQUERDA: 3 grupos colapsáveis -->
+      <div class="mov-col-left">
+
+        <!-- ══════════════════════════════════════════ -->
+        <!-- GRUPO 1 — BATIMENTO CARDÍACO               -->
+        <!-- ══════════════════════════════════════════ -->
+        <div class="mov-group" id="group_batimento">
+          <div class="mov-group-header" onclick="toggleGroup('group_batimento')">
+            <h2>💓 Batimento Cardíaco</h2>
+            <span class="mov-group-arrow open">▼</span>
+          </div>
+          <div class="mov-group-body" id="group_batimento_body">
+
+            <div class="mov-section">
+              <h3>Curva 1 — Elipse Rotacionada</h3>
+              <div class="mov-fields">
+                <div class="mov-field"><label>Semi-eixo maior (a)</label><input type="number" step="0.1" id="c1_a"></div>
+                <div class="mov-field"><label>Semi-eixo menor (b)</label><input type="number" step="0.1" id="c1_b"></div>
+                <div class="mov-field"><label>Centro X (xc)</label><input type="number" step="0.1" id="c1_xc"></div>
+                <div class="mov-field"><label>Centro Y (yc)</label><input type="number" step="0.1" id="c1_yc"></div>
+                <div class="mov-field"><label>Rotação α (°)</label><input type="number" step="1" id="c1_alpha_deg"></div>
+                <div class="mov-field"><label>Nº pontos</label><input type="number" step="1" min="2" id="c1_n_pontos"></div>
+                <div class="mov-field"><label>Sentido</label>
+                  <select id="c1_sentido">
+                    <option value="ccw">CCW (anti-horário)</option>
+                    <option value="cw">CW (horário)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="mov-section">
+              <h3>Tempos</h3>
+              <div class="mov-fields">
+                <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="batimento_periodo"></div>
+                <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="batimento_espera_inicio"></div>
+                <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="batimento_espera_fim"></div>
+                <div class="mov-field"><label>Ponto de início</label><input type="number" step="1" min="0" id="batimento_ponto_inicio"></div>
+              </div>
+              <div style="margin-top:6px;font-size:11px;color:#666">Pontos calculados:</div>
+              <div class="mov-points" id="batimento_pts_x"><b>X:</b> —</div>
+              <div class="mov-points" id="batimento_pts_y"><b>Y:</b> —</div>
+              <div class="mov-points" id="batimento_pts_z"><b>Z:</b> —</div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════ -->
+        <!-- GRUPO 2 — RESPIRAÇÃO                       -->
+        <!-- ══════════════════════════════════════════ -->
+        <div class="mov-group" id="group_respiracao">
+          <div class="mov-group-header" onclick="toggleGroup('group_respiracao')">
+            <h2>🫁 Respiração</h2>
+            <span class="mov-group-arrow open">▼</span>
+          </div>
+          <div class="mov-group-body" id="group_respiracao_body">
+
+            <div class="mov-section">
+              <h3>Curva 2 — Parábola (plano ZX)</h3>
+              <div class="mov-fields">
+                <div class="mov-field"><label>Altura máx. Z</label><input type="number" step="0.5" id="c2_altura"></div>
+                <div class="mov-field"><label>Largura máx. X</label><input type="number" step="0.5" id="c2_largura"></div>
+                <div class="mov-field"><label>Nº pontos</label><input type="number" step="1" min="2" id="c2_n_pontos"></div>
+                <div class="mov-field"><label>Inclinação θ (°)</label><input type="number" step="1" id="c2_theta_deg"></div>
+              </div>
+            </div>
+
+            <div class="mov-section">
+              <h3>Tempos</h3>
+              <div class="mov-fields">
+                <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="respiracao_periodo"></div>
+                <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="respiracao_espera_inicio"></div>
+                <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="respiracao_espera_fim"></div>
+                <div class="mov-field"><label>Ponto de início</label><input type="number" step="1" min="0" id="respiracao_ponto_inicio"></div>
+              </div>
+              <div style="margin-top:6px;font-size:11px;color:#666">Pontos calculados:</div>
+              <div class="mov-points" id="respiracao_pts_x"><b>X:</b> —</div>
+              <div class="mov-points" id="respiracao_pts_y"><b>Y:</b> —</div>
+              <div class="mov-points" id="respiracao_pts_z"><b>Z:</b> —</div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════ -->
+        <!-- GRUPO 3 — TOSSE                            -->
+        <!-- ══════════════════════════════════════════ -->
+        <div class="mov-group" id="group_tosse">
+          <div class="mov-group-header" onclick="toggleGroup('group_tosse')">
+            <h2>😮‍💨 Tosse</h2>
+            <span class="mov-group-arrow open">▼</span>
+          </div>
+          <div class="mov-group-body" id="group_tosse_body">
+
+            <div class="mov-section">
+              <h3>Curva 3 — Circunferência (Vibração)</h3>
+              <div class="mov-fields">
+                <div class="mov-field"><label>Raio</label><input type="number" step="0.1" min="0.1" id="c3_raio"></div>
+                <div class="mov-field"><label>Nº pontos</label><input type="number" step="1" min="2" id="c3_n_pontos"></div>
+                <div class="mov-field"><label>Sentido</label>
+                  <select id="c3_sentido">
+                    <option value="ccw">CCW (anti-horário)</option>
+                    <option value="cw">CW (horário)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="mov-section">
+              <h3>Vibração da Tosse</h3>
+              <div class="mov-fields">
+                <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="vibracao_tosse_periodo"></div>
+                <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="vibracao_tosse_espera_inicio"></div>
+                <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="vibracao_tosse_espera_fim"></div>
+                <div class="mov-field"><label>Ponto de início</label><input type="number" step="1" min="0" id="vibracao_tosse_ponto_inicio"></div>
+              </div>
+              <div style="margin-top:6px;font-size:11px;color:#666">Pontos calculados:</div>
+              <div class="mov-points" id="vibracao_tosse_pts_x"><b>X:</b> —</div>
+              <div class="mov-points" id="vibracao_tosse_pts_y"><b>Y:</b> —</div>
+              <div class="mov-points" id="vibracao_tosse_pts_z"><b>Z:</b> —</div>
+            </div>
+
+            <div class="mov-section">
+              <h3>Tosse</h3>
+              <div class="mov-fields">
+                <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="tosse_periodo"></div>
+                <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="tosse_espera_inicio"></div>
+                <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="tosse_espera_fim"></div>
+                <div class="mov-field"><label>Ponto de início</label><input type="number" step="1" min="0" id="tosse_ponto_inicio"></div>
+              </div>
+              <div style="margin-top:6px;font-size:11px;color:#666">Pontos calculados:</div>
+              <div class="mov-points" id="tosse_pts_x"><b>X:</b> —</div>
+              <div class="mov-points" id="tosse_pts_y"><b>Y:</b> —</div>
+              <div class="mov-points" id="tosse_pts_z"><b>Z:</b> —</div>
+            </div>
+
+          </div>
+        </div>
+
+      </div><!-- /col-left -->
+
+      <!-- COLUNA DIREITA: 3 pares de gráficos — um por curva -->
+      <div class="mov-col-right" id="movColRight">
+
+        <div class="mov-grafico-pair" id="graf_batimento">
+          <h3>Batimento Cardíaco — 2D e 3D (Curva 1)</h3>
+          <div class="mov-grafico-placeholder" id="graf_batimento_ph">A calcular...</div>
+        </div>
+
+        <div class="mov-grafico-pair" id="graf_respiracao">
+          <h3>Respiração — 2D e 3D (Curva 2)</h3>
+          <div class="mov-grafico-placeholder" id="graf_respiracao_ph">A calcular...</div>
+        </div>
+
+        <div class="mov-grafico-pair" id="graf_tosse_vibracao">
+          <h3>Tosse / Vibrações — 2D e 3D (Curva 3)</h3>
+          <div class="mov-grafico-placeholder" id="graf_tosse_vibracao_ph">A calcular...</div>
+        </div>
+
+      </div><!-- /col-right -->
+
+    </div><!-- /mov-modal-body -->
+
+    <div class="mov-modal-footer">
+      <span class="mov-status" id="movStatus">—</span>
+      <button class="btn-ctrl blue" onclick="movCalcular()">📊 Calcular</button>
+      <button class="btn-ctrl gray" onclick="movRecarregarESP()"
+              title="Lê os dados do ESP32 e atualiza as configurações">⬇ Recarregar do ESP32</button>
+      <button class="btn-ctrl blue" onclick="movGuardar()">💾 Guardar</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let _movConfig = {};
+
+function toggleGroup(groupId) {
+    const body  = document.getElementById(groupId + '_body');
+    const arrow = document.querySelector('#' + groupId + ' .mov-group-arrow');
+    if (!body) return;
+    const collapsed = body.classList.toggle('collapsed');
+    if (arrow) arrow.classList.toggle('open', !collapsed);
+}
+
+const MOV_CHAVES = ['respiracao', 'batimento', 'tosse', 'vibracao_tosse'];
+const MOV_LABELS = {
+    respiracao:     'Respiração',
+    batimento:      'Batimento Cardíaco',
+    tosse:          'Tosse',
+    vibracao_tosse: 'Vibração Tosse',
+};
+
+// mapeamento: qual gráfico (c1 ou c2) corresponde a cada movimento
+const MOV_CURVA = {
+    respiracao: 'c1',
+    batimento:  'c1',
+    tosse:      'c2',
+};
+
+function openMovementsModal() {
+    document.getElementById('movModal').style.display = 'flex';
+    movCarregarConfig();
+}
+
+function closeMovementsModal() {
+    document.getElementById('movModal').style.display = 'none';
+}
+
+document.getElementById('movModal').addEventListener('click', function(e) {
+    if (e.target === this) closeMovementsModal();
+});
+
+function movSetStatus(msg, cor) {
+    const el = document.getElementById('movStatus');
+    el.textContent = msg;
+    el.style.color = cor || '#555';
+}
+
+function movCarregarConfig() {
+    movSetStatus('A carregar...', '#888');
+    fetch('/movements/config')
+        .then(r => r.json())
+        .then(config => {
+            _movConfig = config;
+            movPreencherCampos(config);
+            movCriarSeccoesMovimentos(config);
+            movCalcular();
+            movSetStatus('Configurações carregadas.', '#28a745');
+        })
+        .catch(() => movSetStatus('Erro ao carregar configurações.', '#d9534f'));
+}
+
+function movPreencherCampos(config) {
+    const c1 = config.curva1 || {};
+    const c2 = config.curva2 || {};
+    const c3 = config.curva3 || {};
+    const set = (id, val) => {
+        const el = document.getElementById(id);
+        if (el && val !== undefined) el.value = val;
+    };
+    // curvas
+    set('c1_a', c1.a); set('c1_b', c1.b); set('c1_xc', c1.xc); set('c1_yc', c1.yc);
+    set('c1_alpha_deg', c1.alpha_deg); set('c1_n_pontos', c1.n_pontos);
+    set('c1_sentido', c1.sentido);
+    set('c2_altura', c2.altura); set('c2_largura', c2.largura);
+    set('c2_n_pontos', c2.n_pontos); set('c2_theta_deg', c2.theta_deg);
+    set('c3_raio', c3.raio); set('c3_n_pontos', c3.n_pontos);
+    set('c3_sentido', c3.sentido);
+    // movimentos
+    ['batimento', 'respiracao', 'vibracao_tosse', 'tosse'].forEach(chave => {
+        const m = config[chave] || {};
+        set(`${chave}_periodo`,       m.periodo);
+        set(`${chave}_espera_inicio`, m.espera_inicio);
+        set(`${chave}_espera_fim`,    m.espera_fim);
+        set(`${chave}_ponto_inicio`,  m.ponto_inicio);
+        // pontos calculados guardados
+        const fmt = arr => (arr || []).map(v => (+v).toFixed(3)).join(', ');
+        const upd = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+        upd(`${chave}_pts_x`, `<b>X:</b> ${fmt(m.pontos_x) || '—'}`);
+        upd(`${chave}_pts_y`, `<b>Y:</b> ${fmt(m.pontos_y) || '—'}`);
+        upd(`${chave}_pts_z`, `<b>Z:</b> ${fmt(m.pontos_z) || '—'}`);
+    });
+}
+
+function movCriarSeccoesMovimentos(config) {
+    // HTML já é estático — só preenche os valores via movPreencherCampos
+    movPreencherCampos(config);
+}
+
+function movLerCampos() {
+    const num = id => parseFloat(document.getElementById(id)?.value) || 0;
+    const int = id => parseInt(document.getElementById(id)?.value)   || 0;
+    const str = id => document.getElementById(id)?.value || '';
+    const data = {
+        curva1: {
+            a: num('c1_a'), b: num('c1_b'), xc: num('c1_xc'), yc: num('c1_yc'),
+            alpha_deg: num('c1_alpha_deg'), n_pontos: int('c1_n_pontos'),
+            sentido: str('c1_sentido'),
+        },
+        curva2: {
+            altura: num('c2_altura'), largura: num('c2_largura'),
+            n_pontos: int('c2_n_pontos'), theta_deg: num('c2_theta_deg'),
+        },
+        curva3: {
+            raio: num('c3_raio'), n_pontos: int('c3_n_pontos'),
+            sentido: str('c3_sentido'),
+        },
+    };
+    MOV_CHAVES.forEach(chave => {
+        data[chave] = {
+            periodo:       num(`${chave}_periodo`),
+            espera_inicio: num(`${chave}_espera_inicio`),
+            espera_fim:    num(`${chave}_espera_fim`),
+            ponto_inicio:  int(`${chave}_ponto_inicio`),
+        };
+    });
+    return data;
+}
+
+function movCalcular() {
+    movSetStatus('A calcular...', '#b8860b');
+
+    // mostra "a calcular" em todos os placeholders
+    ['batimento', 'respiracao', 'tosse_vibracao'].forEach(id => {
+        const ph = document.getElementById(`graf_${id}_ph`);
+        if (ph) ph.innerHTML = '⏳ A calcular...';
+        const container = document.getElementById(`graf_${id}`);
+        if (container) container.querySelectorAll('img').forEach(i => i.remove());
+    });
+
+    fetch('/movements/calcular', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(movLerCampos()),
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (!res.ok) {
+            movSetStatus('Erro: ' + (res.error || 'desconhecido'), '#d9534f');
+            return;
+        }
+
+        // cada gráfico devolvido separadamente
+        // 3 pares de gráficos — um por curva
+        const grafMap = res.graficos || {};
+        _movAtualizarGrafico('batimento',      grafMap.c1_2d,             grafMap.c1_3d);
+        _movAtualizarGrafico('respiracao',     grafMap.tosse_2d,          grafMap.tosse_3d);
+        _movAtualizarGrafico('tosse_vibracao', grafMap.vibracao_tosse_2d, grafMap.vibracao_tosse_3d);
+
+        // atualiza pontos nas secções de texto
+        if (res.pontos_c1) _movAtualizarPontos('batimento',      res.pontos_c1);
+        if (res.pontos_c2) _movAtualizarPontos('respiracao',     res.pontos_c2);
+        if (res.pontos_c3) _movAtualizarPontos('vibracao_tosse', res.pontos_c3);
+        if (res.pontos_c2) _movAtualizarPontos('tosse',          res.pontos_c2);
+
+        movSetStatus('Cálculo concluído ✓', '#28a745');
+    })
+    .catch(e => movSetStatus('Erro de comunicação: ' + e, '#d9534f'));
+}
+
+function _movAtualizarGrafico(secId, img2d, img3d) {
+    const container = document.getElementById(`graf_${secId}`);
+    const ph        = document.getElementById(`graf_${secId}_ph`);
+    if (!container) return;
+
+    if (img2d || img3d) {
+        if (ph) ph.style.display = 'none';
+        // remove imagens antigas antes de adicionar novas
+        container.querySelectorAll('img').forEach(i => i.remove());
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'display:grid; grid-template-columns:1fr 1fr; gap:6px;';
+        if (img2d) {
+            const i = document.createElement('img');
+            i.src = img2d; i.alt = '2D';
+            i.style.cssText = 'width:100%; border-radius:6px;';
+            wrapper.appendChild(i);
+        }
+        if (img3d) {
+            const i = document.createElement('img');
+            i.src = img3d; i.alt = '3D';
+            i.style.cssText = 'width:100%; border-radius:6px;';
+            wrapper.appendChild(i);
+        }
+        container.appendChild(wrapper);
+    } else {
+        if (ph) ph.innerHTML = '—';
+    }
+}
+
+function _movAtualizarPontos(chave, pts) {
+    const fmt = arr => (arr || []).map(v => (+v).toFixed(3)).join(', ');
+    const upd = (id, html) => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = html;
+    };
+    upd(`${chave}_pts_x`, `<b>X:</b> ${fmt(pts.x)}`);
+    upd(`${chave}_pts_y`, `<b>Y:</b> ${fmt(pts.y)}`);
+    upd(`${chave}_pts_z`, `<b>Z:</b> ${fmt(pts.z)}`);
+}
+
+function movRecarregarESP() {
+    movSetStatus('A ler dados do ESP32...', '#b8860b');
+    fetch('/movements/reload_from_esp', { method: 'POST' })
+        .then(r => r.json())
+        .then(res => {
+            if (res.ok || res.config) {
+                _movConfig = res.config || _movConfig;
+                movPreencherCampos(_movConfig);
+                movCriarSeccoesMovimentos(_movConfig);
+                movSetStatus('Dados do ESP32 carregados ✓', '#28a745');
+            } else {
+                movSetStatus('Erro: ' + (res.error || (res.erros || []).join(', ')), '#d9534f');
+            }
+        })
+        .catch(() => movSetStatus('Sem resposta do ESP32.', '#d9534f'));
+}
+
+function movGuardar() {
+    fetch('/movements/config', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(movLerCampos()),
+    })
+    .then(r => r.json())
+    .then(res => movSetStatus(
+        res.ok ? 'Guardado ✓' : 'Erro ao guardar.',
+        res.ok ? '#28a745' : '#d9534f'
+    ))
+    .catch(() => movSetStatus('Erro ao guardar.', '#d9534f'));
+}
+</script>
+</body>
+</html>

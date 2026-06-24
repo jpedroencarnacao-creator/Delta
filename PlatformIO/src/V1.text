@@ -54,7 +54,7 @@ Manipulador_Config delta_1_Cfg = {
     .servoOffsetZ = 0.0f,
     .angleMin = 0.78539816339744830961566084581988f, //45 degrees
     .angleMax = 3.9269908169872415480783042290994f, //225 degrees
-    .rotationOffsetZ = -15.0f * PI / 180.0f, //-75 degrees in radians
+    .rotationOffsetZ = -15.6f * PI / 180.0f, //-75 degrees in radians
 
     // calibração de PWM
     .servo1MinPulse = 520,
@@ -81,7 +81,7 @@ Manipulador_Config delta_2_Cfg = {
     .servoOffsetZ = 0.0f,
     .angleMin = 0.78539816339744830961566084581988f, //45 degrees
     .angleMax = 3.9269908169872415480783042290994f, //225 degrees
-    .rotationOffsetZ = -45.0f * PI / 180.0f, //-45 degrees in radians
+    .rotationOffsetZ = -44.4f * PI / 180.0f, //-45 degrees in radians
 
     // calibração de PWM
     //Servo_1 -> thetta3
@@ -138,7 +138,6 @@ float X_tosse_vibracao[] = {2.000, 1.618, 0.618, -0.618, -1.618, -2.000, -1.618,
 float Y_tosse_vibracao[] = {0.000, -1.176, -1.902, -1.902, -1.176, 0.000, 1.176, 1.902, 1.902, 1.176};
 float Z_tosse_vibracao[] = {0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000};
 
-//const int N_test2 = 18;
 const int N_tosse_vibracao = 10;
 float T_period_tosse_vibracao = 0.5f; 
 float T_pausedt_tosse_vibracao_Ini = 0.0f; 
@@ -375,7 +374,7 @@ void Iniciate_Bat_Instance() { //Serve para arrancar a structure de temporaria d
     Bat_inst.def           = &Bat_move;
     Bat_inst.currentIndex  = 0;
     Bat_inst.segmentStartMs = 0; //millis(); // ou 0, e tratamos no update
-    Bat_inst.active        = false;
+    Bat_inst.active        = true;
     Bat_inst.Individual_start_comand = 1;
     Bat_inst.Executing       = 0; // novo: inicia o movimento em pausa, ou seja, não começa imediatamente
     Bat_inst.state         = 0;
@@ -395,7 +394,7 @@ void Iniciate_Resp_Instance() { //Serve para arrancar a structure de temporaria 
     Resp_inst.def           = &Resp_move;
     Resp_inst.currentIndex  = 0;
     Resp_inst.segmentStartMs = 0; //millis(); // ou 0, e tratamos no update
-    Resp_inst.active        = false;
+    Resp_inst.active        = true;
     Resp_inst.Individual_start_comand = 1;
     Resp_inst.Executing       = false; // novo: inicia o movimento em pausa, ou seja, não começa imediatamente
     Resp_inst.state         = 0;
@@ -416,7 +415,7 @@ void Iniciate_Tosse_Instance() { //Serve para arrancar a structure de temporaria
      Tosse_inst.def           = &Tosse_move;
     Tosse_inst.currentIndex  = 0;
     Tosse_inst.segmentStartMs = 0; //millis(); // ou 0, e tratamos no update
-    Tosse_inst.active        = false;
+    Tosse_inst.active        = true;
     Tosse_inst.Individual_start_comand = 0;
     Tosse_inst.Executing       = false; // novo: inicia o movimento em pausa, ou seja, não começa imediatamente
     Tosse_inst.state         = 0;
@@ -470,8 +469,8 @@ float lerp(float a, float b, float t);
 float applyEasing(float alpha, char mode);
 float spline3(float p0, float p1, float p2, float t);
 void Intermed_position(boolean start, MotionInstance& inst, unsigned long nowMs, Coordinate& xyz, boolean trig_serial);
-bool Fusao_plus_IK_D1(const Coordinate& respi, const Coordinate& batim , const Coordinate& tosse);
-bool Fusao_plus_IK_D2(const Coordinate& respi, const Coordinate& batim , const Coordinate& tosse);
+bool Fusao_plus_IK_D1(const Coordinate& respi, const Coordinate& batim, const Coordinate& tosse);
+bool Fusao_plus_IK_D2(const Coordinate& respi, const Coordinate& batim, const Coordinate& tosse);
 //------------------FSM-------------------------------
 void FSM_Motion_Update(boolean start, MotionInstance& inst, unsigned long nowMs);
 void FSM_Serial_reader(unsigned long nowMs);
@@ -1226,12 +1225,13 @@ float tempo_inicial = millis();
     unsigned long now2 = millis();
     // --- Apenas um comentario temporario, -> tenho que ativar denovo isto mais tarde!!
     FSM_Motion_Update(start_comand , Bat_inst, now2);
-    FSM_Motion_Update(start_comand , Resp_inst, now2);
-    FSM_Motion_Update(start_comand , Tosse_inst, now2);
     unsigned long now3 = millis();
     Intermed_position(start_comand ,Bat_inst, now3, Lerp_Batim_OUT, trig_serial_IN);
+    FSM_Motion_Update(start_comand , Resp_inst, now2);
     Intermed_position(start_comand ,Resp_inst, now3, Lerp_Respi_OUT, trig_serial_IN);
+    FSM_Motion_Update(start_comand, Tosse_inst, now3);
     Intermed_position(start_comand ,Tosse_inst, now3, Lerp_Tosse_OUT, trig_serial_IN);
+
 
     bool ik1 = Fusao_plus_IK_D1(Lerp_Respi_OUT, Lerp_Batim_OUT, Lerp_Tosse_OUT);
     bool ik2 = Fusao_plus_IK_D2(Lerp_Respi_OUT, Lerp_Batim_OUT, Lerp_Tosse_OUT);
@@ -1249,7 +1249,7 @@ float demora = tempo_final - tempo_inicial;
 Clock_loop++;
 //Serial.print("Clock loop: ");
    // Serial.println(Clock_loop);
-if(trig_serial_IN == 1 && Safe_comand == 1){
+if(trig_serial_IN == 1 && Safe_comand == 0){
   
     //Serial.print("Estado da leitura:");
     //Serial.println(state_test);
@@ -1261,8 +1261,8 @@ if(trig_serial_IN == 1 && Safe_comand == 1){
     //Serial.println(Lerp_Respi_OUT.Y);
     //Serial.print("                    Z:");
     //Serial.println(Lerp_Respi_OUT.Z);
-    Serial.print("sinal_tossir = ");
-    Serial.println(sinal_tossir);
+    //Serial.print("sinal_tossir = ");
+    //Serial.println(sinal_tossir);
   
 
   }
@@ -1587,7 +1587,7 @@ float lerp(float a, float b, float t) { //Interpolação linear entre dois ponto
 void Intermed_position(boolean start, MotionInstance& inst, unsigned long nowMs, Coordinate& xyz, boolean trig_serial) {
     MotionStorage& m = *(inst.def);
 
-    if (!inst.active || m.n_Points <= 1 || m.period <= 0.0f || (start == 0 && inst.Executing == 0) ||inst.Individual_start_comand == 0) {
+    if (!inst.active || m.n_Points <= 1 || m.period <= 0.0f || (start == 0 && inst.Executing == 0)) {
         xyz.X = 0.0f;
         xyz.Y = 0.0f;
         xyz.Z = 0.0f;
@@ -1910,18 +1910,18 @@ switch (inst.state) {
 
 
 bool Fusao_plus_IK_D1(const Coordinate& respi, const Coordinate& batim , const Coordinate& tosse) {
-    float X_total = 1.0f * respi.X + 0.2f * batim.X + -15.0f + Index0.X + tosse.X;
-    float Y_total = 1.0f * respi.Y + 0.2f * batim.Y + -10.0f + Index0.Y + tosse.X;
-    float Z_total = 1.0f * respi.Z * Resp_inst.Z_amp_mult + 0.2f * batim.Z +  50.0f + Index0.Z + tosse.X;
+    float X_total = 1.0f * respi.X + 0.2f * batim.X + -15.0f + Index0.X;
+    float Y_total = 1.0f * respi.Y + 0.2f * batim.Y + -10.0f + Index0.Y;
+    float Z_total = 1.0f * respi.Z * Resp_inst.Z_amp_mult + 0.2f * batim.Z +  50.0f + Index0.Z;
 
     bool ik_ok = inverse_kinematics(delta_1_Cfg, X_total, Y_total, Z_total);
     return ik_ok;
 }
 
-bool Fusao_plus_IK_D2(const Coordinate& respi, const Coordinate& batim , const Coordinate& tosse) {
-    float X_total = 1.0f * respi.X + 0.0f * batim.X + -15.0f + Index0.X + tosse.X;
-    float Y_total = 1.0f * respi.Y + 0.0f * batim.Y + -10.0f + Index0.Y + tosse.X;
-    float Z_total = 1.0f * respi.Z * Resp_inst.Z_amp_mult + 0.0f * batim.Z +  50.0f + Index0.Z + tosse.X;
+bool Fusao_plus_IK_D2(const Coordinate& respi, const Coordinate& batim  , const Coordinate& tosse) {
+    float X_total = 1.0f * respi.X + 0.0f * batim.X + -15.0f + Index0.X;
+    float Y_total = 1.0f * respi.Y + 0.0f * batim.Y + -10.0f + Index0.Y;
+    float Z_total = 1.0f * respi.Z * Resp_inst.Z_amp_mult + 0.0f * batim.Z +  50.0f + Index0.Z;
 
     bool ik_ok = inverse_kinematics(delta_2_Cfg, -1.0f * X_total, Y_total, Z_total);
     return ik_ok;
@@ -1946,7 +1946,7 @@ void AtualizarTosseAleatoria(unsigned long nowMs) {
     if (start_comand == 0) return;
     if (!Resp_inst.active || Resp_inst.def == nullptr) return;
     if (!Tosse_inst.active) return;   // só quando o modo de tosse estiver ligado
-
+    Serial.println("entrei em AtualizarTosseAleatoria");
     MotionStorage& m = Resp_move;
 
     // se já há um sinal de tosse em curso ou em preparação, não marcamos outra
@@ -1955,7 +1955,7 @@ void AtualizarTosseAleatoria(unsigned long nowMs) {
     // se ainda não há alvo definido, cria um
     if (proximaTosseMs == 0) {
         // intervalo inicial aleatório entre 3 e 8 segundos, por exemplo
-        unsigned long intervalo = random(4000, 10000);
+        unsigned long intervalo = random(3000, 8000);
         proximaTosseMs = nowMs + intervalo;
         Serial.print("Tempo até á proxima tosse:");
         Serial.println(proximaTosseMs);
@@ -1999,12 +1999,26 @@ void AtualizarTosseAleatoria(unsigned long nowMs) {
 
 void Preparacao_Tosse() {
     if (start_comand == 0) {
-        sinal_tossir         = false;
-        Tosse_em_preparacao  = false;
-        Tosse_signal         = 0;
-        Resp_inst.Z_amp_mult = 1.0f;   // garantir reset se programa parar
-        return;
+    // se a tosse já tinha alterado parâmetros, repõe
+    if (Tosse_em_preparacao) {
+        Resp_move.period      = Resp_period_padrao;
+        Resp_move.T_pause_Ini = Resp_T_pause_Ini_padrao;
+        Resp_move.updateDtMs();
+        Resp_move.updateDt_PauseMs();
     }
+
+    Resp_inst.Z_amp_mult = 1.0f;
+
+    sinal_tossir         = false;
+    Tosse_em_preparacao  = false;
+    Tosse_signal         = 0;
+
+    // e garante que a vibração pára também
+    Tosse_inst.Individual_start_comand = 0;
+    Tosse_inst.active = false;
+
+    return;
+}
 
     short int estadoResp = Resp_inst.state;
 
@@ -2014,14 +2028,14 @@ void Preparacao_Tosse() {
             sinal_tossir = false;
             return;
         }
-
+        Tosse_inst.Individual_start_comand = 1;   // arranca vibração
         // copiar valores padrão
         Resp_period_padrao      = Resp_move.period;
         Resp_T_pause_Ini_padrao = Resp_move.T_pause_Ini;
 
         // alterar para tosse
-        Resp_move.period      = 0.30f;   // segundos
-        Resp_move.T_pause_Ini = 0.0f;   // segundos
+        Resp_move.period      = 0.50f;   // segundos
+        Resp_move.T_pause_Ini = 0.1f;   // segundos
         Resp_inst.Z_amp_mult  = 1.50f;  // aumentar amplitude em Z
 
         Resp_move.updateDtMs();
@@ -2035,6 +2049,7 @@ void Preparacao_Tosse() {
 
     // 2) fim da tosse: FSM voltou ao state 1
     if (Tosse_em_preparacao && estadoResp == 1) {
+        Tosse_inst.Individual_start_comand = 0;
         Resp_move.period      = Resp_period_padrao;
         Resp_move.T_pause_Ini = Resp_T_pause_Ini_padrao;
         Resp_inst.Z_amp_mult  = 1.0f;   // volta a 1.0
