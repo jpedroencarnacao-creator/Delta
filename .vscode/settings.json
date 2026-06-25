@@ -1,11 +1,15 @@
 {
     "C_Cpp.intelliSenseEngine": "disabled",
-    "python.defaultInterpreterPath": "C:\\Users\\jpedr\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
     "python.analysis.extraPaths": [
-        "${workspaceFolder}/Python_CODE"
+        "${workspaceFolder}/Python_CODE",
+        "${workspaceFolder}/Python_CODE/Interface de controlo ver_PI4B",
+        "${workspaceFolder}/Python_CODE/Interface de controlo ver_windows"
     ],
     "python.terminal.activateEnvironment": true,
     "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportMissingTypeStubs": "none"
+    },
     "files.associations": {
         "*.text": "plaintext"
     }

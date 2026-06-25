@@ -14,9 +14,12 @@ Para correr no Raspberry Pi:
 # ===========================================================================
 # IMPORTS
 # ===========================================================================
+import base64
+import io
 import json
 import os
 import queue
+import qrcode
 import re
 import shutil
 import socket
@@ -26,8 +29,9 @@ import time
 from pathlib import Path
 
 from flask import Flask, render_template_string, request, jsonify
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO
 import serial
+import serial.tools.list_ports
 
 
 # ===========================================================================
@@ -162,8 +166,13 @@ def _detect_serial_port():
         if candidates:
             return str(candidates[0])
 
+    for pattern in ('/dev/ttyUSB*', '/dev/ttyACM*'):
+        matches = sorted(Path('/').glob(pattern.lstrip('/')))
+        if matches:
+            device = str(matches[0]).replace('\\', '/')
+            return device if device.startswith('/') else '/' + device
+
     try:
-        import serial.tools.list_ports
         ports = list(serial.tools.list_ports.comports())
         # Procura primeiro por descricoes tipicas de ESP32 / CH340 / CP210x.
         for p in ports:
@@ -177,13 +186,22 @@ def _detect_serial_port():
     except Exception:
         pass
 
-    for pattern in ('/dev/ttyACM*', '/dev/ttyUSB*', '/dev/serial0', '/dev/ttyAMA*'):
+    for pattern in ('/dev/serial0', '/dev/ttyAMA*', '/dev/ttyS*'):
         matches = sorted(Path('/').glob(pattern.lstrip('/')))
         if matches:
             device = str(matches[0]).replace('\\', '/')
             return device if device.startswith('/') else '/' + device
 
     return '/dev/serial0'
+
+
+def _available_serial_devices():
+    devices = []
+    for pattern in ('/dev/serial/by-id/*', '/dev/ttyUSB*', '/dev/ttyACM*', '/dev/serial0', '/dev/ttyAMA*', '/dev/ttyS*'):
+        for path in sorted(Path('/').glob(pattern.lstrip('/'))):
+            device = str(path)
+            devices.append(device if device.startswith('/') else '/' + device)
+    return devices
 
 
 SERIAL_PORT = _detect_serial_port()
@@ -218,6 +236,7 @@ def serial_reader():
     global _ser, _serial_ready
     consecutive_errors = 0
     try:
+        append_history(f'[SÉRIE] A tentar abrir {SERIAL_PORT} @ {SERIAL_BAUD} baud...')
         _ser           = serial.Serial()
         _ser.port      = SERIAL_PORT
         _ser.baudrate  = SERIAL_BAUD
@@ -237,6 +256,9 @@ def serial_reader():
                 if data:
                     consecutive_errors = 0
                     append_history(f'ESP32: {data}')
+                    if serial_status['stage'] != 'connected':
+                        serial_status['stage'] = 'connected'
+                        push_serial_stage()
 
                     # durante leituras sequenciais (reloadFromESP),
                     # coloca também na fila de resposta dedicada
@@ -273,6 +295,12 @@ def serial_reader():
     except Exception as e:
         serial_status['stage'] = 'error'
         append_history(f'[SÉRIE] Falha ao ligar: {e}')
+        devices = _available_serial_devices()
+        if devices:
+            append_history(f'[SÉRIE] Portas série visíveis: {", ".join(devices)}')
+        else:
+            append_history('[SÉRIE] Nenhuma porta /dev/ttyUSB*, /dev/ttyACM* ou /dev/serial/by-id visível.')
+            append_history('[SÉRIE] Verifica cabo USB de dados, alimentação do ESP32 e se o dispositivo aparece com: ls /dev/ttyUSB* /dev/ttyACM*')
         push_serial_stage()
     finally:
         serial_status['stage'] = 'error' if not serial_status['stop_reader'] else 'disconnected'
@@ -371,7 +399,6 @@ def get_app_url():
 
 def generate_qr_base64(data):
     try:
-        import qrcode, io, base64
         qr = qrcode.QRCode(border=1, box_size=5)
         qr.add_data(data)
         qr.make(fit=True)
@@ -385,7 +412,6 @@ def generate_qr_base64(data):
 
 def list_com_ports():
     try:
-        import serial.tools.list_ports
         ports = list(serial.tools.list_ports.comports())
         return [f'{p.device} — {p.description}' for p in ports] or ['Nenhuma porta encontrada.']
     except Exception as e:
@@ -906,7 +932,12 @@ def open_browser():
     browser_commands = []
     for executable in ('chromium-browser', 'chromium', 'google-chrome'):
         if shutil.which(executable):
-            args = [executable]
+            args = [
+                executable,
+                '--password-store=basic',
+                '--no-first-run',
+                '--disable-features=AutofillServerCommunication',
+            ]
             if kiosk:
                 args.extend(['--kiosk', '--disable-restore-session-state'])
             args.append(url)
@@ -928,6 +959,7 @@ def open_browser():
 # MAIN
 # ===========================================================================
 if __name__ == '__main__':
+    SERIAL_PORT = _detect_serial_port()
     reset_state()
 
     # Arranca threads de comunicação série

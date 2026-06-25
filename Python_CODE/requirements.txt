@@ -1,2 +1,7 @@
+flask
+flask-socketio
+matplotlib
 nicegui
+numpy
 pyserial
+qrcode[pil]

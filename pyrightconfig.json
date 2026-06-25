@@ -1,0 +1,10 @@
+{
+  "venvPath": ".",
+  "venv": ".venv",
+  "pythonVersion": "3.13",
+  "extraPaths": [
+    "Python_CODE",
+    "Python_CODE/Interface de controlo ver_PI4B",
+    "Python_CODE/Interface de controlo ver_windows"
+  ]
+}
