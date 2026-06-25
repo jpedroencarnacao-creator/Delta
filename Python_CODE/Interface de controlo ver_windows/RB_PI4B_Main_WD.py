@@ -1,14 +1,17 @@
 """
-RB_PI4B_Main_PI.py - Ficheiro principal do PI_4B Control Panel para Raspberry Pi.
+RB_PI4B_Main_WD.py — Ficheiro principal do PI_4B Control Panel para Windows.
 
 Arquitetura: Flask (servidor web) + Flask-SocketIO (push em tempo real) +
-threads de comunicacao serie. A interface local pode abrir automaticamente no
-browser do Raspberry Pi, e a interface mobile e servida pelo mesmo servidor
-para acesso via telemovel/tablet na mesma rede.
+threads de comunicação série. A interface local abre automaticamente no
+browser padrão do Windows em modo kiosk, e a interface mobile é servida
+pelo mesmo servidor para acesso via telemóvel/tablet na mesma rede.
 
-Para correr no Raspberry Pi:
-    python3 -m pip install flask flask-socketio pyserial qrcode[pil]
-    python3 RB_PI4B_Main_PI.py
+Para correr:
+    pip install flask flask-socketio pyserial
+    python RB_PI4B_Main_WD.py
+
+Instalar biblioteca de qr code (opcional, para o QR code na aba de definições):
+    pip install qrcode[pil]
 """
 
 # ===========================================================================
@@ -17,8 +20,6 @@ Para correr no Raspberry Pi:
 import json
 import os
 import queue
-import re
-import shutil
 import socket
 import subprocess
 import threading
@@ -35,7 +36,6 @@ import serial
 # ===========================================================================
 APP_HOST     = os.environ.get('PI4B_HOST', '0.0.0.0')
 APP_PORT     = int(os.environ.get('PI4B_PORT', '5000'))
-SERIAL_PORT_ENV = os.environ.get('PI4B_SERIAL_PORT')
 SERIAL_BAUD  = 115200
 PASSWORD_DEV = '1234'
 
@@ -143,57 +143,30 @@ _serial_ready  = False
 
 
 def _detect_serial_port():
-    """Tenta encontrar automaticamente a porta serie do ESP32 no Raspberry Pi.
-
-    A ordem favorece portas USB com nomes persistentes em /dev/serial/by-id.
-    Tambem aceita override por variavel de ambiente PI4B_SERIAL_PORT.
-    """
-    if SERIAL_PORT_ENV:
-        return SERIAL_PORT_ENV
-
-    by_id = Path('/dev/serial/by-id')
-    if by_id.exists():
-        candidates = sorted(by_id.iterdir())
-        preferred = ('esp', 'cp210', 'ch340', 'ch341', 'usb', 'uart', 'serial')
-        for path in candidates:
-            name = path.name.lower()
-            if any(key in name for key in preferred):
-                return str(path)
-        if candidates:
-            return str(candidates[0])
-
+    """No Windows, tenta encontrar automaticamente a porta COM do ESP32
+    usando pyserial. Recua para COM7 se não encontrar nada."""
     try:
         import serial.tools.list_ports
         ports = list(serial.tools.list_ports.comports())
-        # Procura primeiro por descricoes tipicas de ESP32 / CH340 / CP210x.
+        # procura primeiro por descrições típicas de ESP32 / CH340 / CP210x
         for p in ports:
-            text = ' '.join(str(v or '') for v in (
-                p.device, p.description, p.manufacturer, p.product, p.hwid,
-            )).lower()
-            if any(k in text for k in ('cp210', 'ch340', 'ch341', 'esp', 'usb serial', 'silicon labs')):
+            desc = (p.description or '').lower()
+            if any(k in desc for k in ('cp210', 'ch340', 'ch341', 'esp', 'usb serial')):
                 return p.device
+        # se não encontrar por descrição, devolve a primeira porta disponível
         if ports:
             return ports[0].device
     except Exception:
         pass
-
-    for pattern in ('/dev/ttyACM*', '/dev/ttyUSB*', '/dev/serial0', '/dev/ttyAMA*'):
-        matches = sorted(Path('/').glob(pattern.lstrip('/')))
-        if matches:
-            device = str(matches[0]).replace('\\', '/')
-            return device if device.startswith('/') else '/' + device
-
-    return '/dev/serial0'
+    return 'COM7'  # porta por defeito
 
 
 SERIAL_PORT = _detect_serial_port()
 
 
 def serial_connect():
-    global SERIAL_PORT
     if serial_status['stage'] in ('connecting', 'connected'):
         return
-    SERIAL_PORT = _detect_serial_port()
     serial_status['stage']       = 'connecting'
     serial_status['stop_reader'] = False
     threading.Thread(target=serial_reader, daemon=True, name='serial-reader').start()
@@ -264,12 +237,6 @@ def serial_reader():
                     push_serial_stage()
                 time.sleep(1)
 
-    except PermissionError as e:
-        serial_status['stage'] = 'error'
-        append_history(f'[SÉRIE] Sem permissao para {SERIAL_PORT}: {e}')
-        append_history('[SÉRIE] No Raspberry Pi, adiciona o utilizador ao grupo dialout e reinicia a sessão:')
-        append_history('[SÉRIE] sudo usermod -a -G dialout $USER')
-        push_serial_stage()
     except Exception as e:
         serial_status['stage'] = 'error'
         append_history(f'[SÉRIE] Falha ao ligar: {e}')
@@ -392,103 +359,81 @@ def list_com_ports():
         return [f'Erro: {e}']
 
 
-def _run_cmd(args, timeout=5):
-    """Corre um comando Linux simples e devolve stdout."""
+def _run_powershell(command):
+    """Corre um comando PowerShell e devolve o stdout."""
     result = subprocess.run(
-        args,
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-        check=False,
+        ['powershell', '-NoProfile', '-Command', command],
+        capture_output=True, text=True, timeout=8
     )
     return result.stdout.strip()
 
 
-def _get_default_interface():
-    try:
-        out = _run_cmd(['ip', 'route', 'show', 'default'])
-        match = re.search(r'\bdev\s+(\S+)', out)
-        if match:
-            return match.group(1)
-    except FileNotFoundError:
-        pass
-    return None
-
-
-def _get_wifi_ssid(interface=None):
-    if shutil.which('nmcli'):
+def _run_netsh(args):
+    """Corre um comando netsh com fallback de encoding para Windows PT."""
+    raw = subprocess.run(['netsh'] + args, capture_output=True, timeout=5).stdout
+    for enc in ('cp850', 'cp1252', 'utf-8'):
         try:
-            out = _run_cmd(['nmcli', '-t', '-f', 'ACTIVE,SSID', 'dev', 'wifi'])
-            for line in out.splitlines():
-                active, _, ssid = line.partition(':')
-                if active == 'yes' and ssid:
-                    return ssid.replace(r'\:', ':')
-        except Exception:
-            pass
-
-    if shutil.which('iwgetid'):
-        args = ['iwgetid', '-r']
-        if interface:
-            args.insert(1, interface)
-        try:
-            ssid = _run_cmd(args)
-            if ssid:
-                return ssid
-        except Exception:
-            pass
-    return None
+            return raw.decode(enc)
+        except (UnicodeDecodeError, AttributeError):
+            continue
+    return raw.decode('utf-8', errors='replace')
 
 
 def get_network_status():
-    """Deteta estado da rede no Raspberry Pi/Linux."""
+    """Deteta estado da rede via PowerShell (não precisa de permissão de localização)."""
     try:
-        iface = _get_default_interface()
-        if not iface:
-            return 'Sem ligação de rede ativa.'
+        out = _run_powershell(
+            "Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | "
+            "Select-Object Name, InterfaceDescription | Format-List"
+        )
+        wifi_up = lan_up = False
+        for block in out.split('\n\n'):
+            lower = block.lower()
+            if any(k in lower for k in ('wi-fi', 'wireless', 'wlan')):
+                wifi_up = True
+            if any(k in lower for k in ('ethernet', 'lan')):
+                lan_up = True
 
-        if iface.startswith(('wl', 'wlan')):
-            ssid = _get_wifi_ssid(iface)
-            return f'Wi-Fi ligado: {ssid}' if ssid else f'Wi-Fi ligado ({iface}).'
-        if iface.startswith(('eth', 'en')):
-            return f'Ligado por LAN ({iface}).'
-        return f'Ligado pela interface {iface}.'
+        if wifi_up:
+            ssid = _run_powershell(
+                "(Get-NetConnectionProfile | "
+                "Where-Object {$_.InterfaceAlias -match 'Wi-Fi|Wireless|WLAN'}).Name"
+            )
+            return f'Wi-Fi ligado: {ssid}' if ssid else 'Wi-Fi ligado (SSID não identificado).'
+        if lan_up:
+            return 'Ligado por LAN (cabo de rede).'
+        return 'Sem ligação de rede ativa.'
+    except FileNotFoundError:
+        return 'PowerShell não encontrado.'
     except Exception as e:
         return f'Erro ao verificar rede: {e}'
 
 
 def get_available_networks():
-    """Lista redes Wi-Fi disponíveis no Raspberry Pi/Linux."""
-    names = []
-
-    if shutil.which('nmcli'):
-        try:
-            out = _run_cmd(['nmcli', '-t', '-f', 'SSID', 'dev', 'wifi', 'list', '--rescan', 'yes'], timeout=12)
-            for line in out.splitlines():
-                ssid = line.strip().replace(r'\:', ':')
-                if ssid and ssid not in names:
-                    names.append(ssid)
-            if names:
-                return names
-        except Exception:
-            pass
-
-    if shutil.which('iw'):
-        try:
-            interfaces = sorted(Path('/sys/class/net').glob('wl*')) + sorted(Path('/sys/class/net').glob('wlan*'))
-            iface = interfaces[0].name if interfaces else 'wlan0'
-            out = _run_cmd(['iw', 'dev', iface, 'scan'], timeout=12)
-            for match in re.finditer(r'^\s*SSID:\s*(.+)$', out, flags=re.MULTILINE):
-                ssid = match.group(1).strip()
-                if ssid and ssid not in names:
-                    names.append(ssid)
-            if names:
-                return names
-        except PermissionError:
-            return ['Sem permissão para procurar redes Wi-Fi.']
-        except Exception:
-            pass
-
-    return ['Nenhuma rede Wi-Fi encontrada ou ferramenta Wi-Fi indisponível.']
+    """Lista redes Wi-Fi disponíveis via netsh (requer serviços de localização no Windows 11)."""
+    try:
+        out = _run_netsh(['wlan', 'show', 'networks'])
+        if 'location permission' in out.lower() or 'location services' in out.lower():
+            return [
+                'Windows está a bloquear a listagem de redes Wi-Fi.',
+                'Ativa em: Definições > Privacidade > Localização > Apps de desktop.',
+            ]
+        if not out.strip():
+            return ['Sem adaptador Wi-Fi disponível.']
+        names = []
+        for line in out.splitlines():
+            if ':' not in line:
+                continue
+            key, _, value = line.partition(':')
+            key = key.strip().lower()
+            value = value.strip()
+            if key.startswith('ssid') and key[4:].strip().isdigit() and value:
+                names.append(value)
+        return names or ['Nenhuma rede Wi-Fi encontrada nas proximidades.']
+    except FileNotFoundError:
+        return ['netsh não encontrado.']
+    except Exception as e:
+        return [f'Erro: {e}']
 
 
 # ===========================================================================
@@ -590,8 +535,8 @@ def _send_and_wait(command, timeout=6.0):
 
 # ===========================================================================
 # HTML — TEMPLATES (carregados dos ficheiros .html separados)
-# RB_PI4B_Main_PI_template_PC.html  — interface desktop/kiosk
-# RB_PI4B_Main_PI_template_MB.html  — interface mobile/tablet
+# RB_PI4B_Main_WD_template_PC.html  — interface desktop/kiosk
+# RB_PI4B_Main_WD_template_MB.html  — interface mobile/tablet
 # ===========================================================================
 def _load_template(filename):
     """Lê o ficheiro HTML template na mesma pasta que este script."""
@@ -600,10 +545,10 @@ def _load_template(filename):
         return path.read_text(encoding='utf-8')
     except FileNotFoundError:
         return (f'<h1>Template não encontrado: {filename}</h1>'
-                f'<p>Certifica-te que o ficheiro está na mesma pasta que RB_PI4B_Main_PI.py</p>')
+                f'<p>Certifica-te que o ficheiro está na mesma pasta que RB_PI4B_Main_WD.py</p>')
 
-TEMPLATE_KIOSK  = _load_template('RB_PI4B_Main_PI_template_PC.html')
-TEMPLATE_MOBILE = _load_template('RB_PI4B_Main_PI_template_MB.html')
+TEMPLATE_KIOSK  = _load_template('RB_PI4B_Main_WD_template_PC.html')
+TEMPLATE_MOBILE = _load_template('RB_PI4B_Main_WD_template_MB.html')
 
 
 
@@ -890,38 +835,14 @@ def route_movements_calcular():
 
 
 # ===========================================================================
-# ARRANQUE DO BROWSER (RASPBERRY PI / LINUX)
+# ARRANQUE DO BROWSER (WINDOWS — modo de teste, sem kiosk)
 # ===========================================================================
 def open_browser():
-    """Abre a interface local no Raspberry Pi, quando existe ambiente grafico."""
+    """Abre a interface no browser padrão do Windows, sem modo kiosk,
+    para que possas fechar e navegar à vontade durante os testes."""
     time.sleep(1.5)
-    if os.environ.get('PI4B_OPEN_BROWSER', '1') == '0':
-        return
-    if not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')):
-        append_history('[SISTEMA] Sem ambiente grafico; browser local nao foi aberto.')
-        return
-
-    url = f'http://127.0.0.1:{APP_PORT}/'
-    kiosk = os.environ.get('PI4B_KIOSK', '0') == '1'
-    browser_commands = []
-    for executable in ('chromium-browser', 'chromium', 'google-chrome'):
-        if shutil.which(executable):
-            args = [executable]
-            if kiosk:
-                args.extend(['--kiosk', '--disable-restore-session-state'])
-            args.append(url)
-            browser_commands.append(args)
-            break
-    if shutil.which('xdg-open'):
-        browser_commands.append(['xdg-open', url])
-
-    for args in browser_commands:
-        try:
-            subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            return
-        except Exception:
-            continue
-    append_history('[SISTEMA] Nao foi possivel abrir browser local automaticamente.')
+    import webbrowser
+    webbrowser.open(f'http://127.0.0.1:{APP_PORT}/')
 
 
 # ===========================================================================
@@ -935,7 +856,7 @@ if __name__ == '__main__':
     threading.Thread(target=serial_reader, daemon=True, name='serial-reader').start()
     threading.Thread(target=serial_writer, daemon=True, name='serial-writer').start()
 
-    # Abre o browser local quando existir ambiente grafico no Raspberry Pi.
+    # Abre o browser normalmente (sem kiosk — versão de teste Windows)
     threading.Thread(target=open_browser, daemon=True, name='browser').start()
 
     print(f'PI4B: Servidor a arrancar em http://127.0.0.1:{APP_PORT}')

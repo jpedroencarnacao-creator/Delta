@@ -1,14 +1,16 @@
 """
-RB_PI4B_Main_PI.py - Ficheiro principal do PI_4B Control Panel para Raspberry Pi.
+RB_PI4B_Main_PI.py — Ficheiro principal do PI_4B Control Panel para Raspberry Pi.
 
 Arquitetura: Flask (servidor web) + Flask-SocketIO (push em tempo real) +
-threads de comunicacao serie. A interface local pode abrir automaticamente no
-browser do Raspberry Pi, e a interface mobile e servida pelo mesmo servidor
-para acesso via telemovel/tablet na mesma rede.
+threads de comunicação série. A interface local abre em Chromium kiosk
+automaticamente, e a interface mobile é servida pelo mesmo servidor.
 
-Para correr no Raspberry Pi:
-    python3 -m pip install flask flask-socketio pyserial qrcode[pil]
+Para correr:
+    pip3 install flask flask-socketio pyserial --break-system-packages
     python3 RB_PI4B_Main_PI.py
+
+Instalar biblioteca de qr code (opcional):
+    pip3 install qrcode[pil] --break-system-packages
 """
 
 # ===========================================================================
@@ -17,15 +19,13 @@ Para correr no Raspberry Pi:
 import json
 import os
 import queue
-import re
-import shutil
 import socket
 import subprocess
 import threading
 import time
 from pathlib import Path
 
-from flask import Flask, render_template_string, request, jsonify
+from flask import Flask, render_template_string, request, jsonify, Response
 from flask_socketio import SocketIO, emit
 import serial
 
@@ -35,7 +35,6 @@ import serial
 # ===========================================================================
 APP_HOST     = os.environ.get('PI4B_HOST', '0.0.0.0')
 APP_PORT     = int(os.environ.get('PI4B_PORT', '5000'))
-SERIAL_PORT_ENV = os.environ.get('PI4B_SERIAL_PORT')
 SERIAL_BAUD  = 115200
 PASSWORD_DEV = '1234'
 
@@ -75,7 +74,6 @@ serial_status = {
     'stage': 'disconnected',  # disconnected | connecting | connected | error
     'stop_reader': False,
 }
-shutdown_requested = False
 
 
 def get_state():
@@ -143,46 +141,13 @@ _serial_ready  = False
 
 
 def _detect_serial_port():
-    """Tenta encontrar automaticamente a porta serie do ESP32 no Raspberry Pi.
-
-    A ordem favorece portas USB com nomes persistentes em /dev/serial/by-id.
-    Tambem aceita override por variavel de ambiente PI4B_SERIAL_PORT.
-    """
-    if SERIAL_PORT_ENV:
-        return SERIAL_PORT_ENV
-
-    by_id = Path('/dev/serial/by-id')
-    if by_id.exists():
-        candidates = sorted(by_id.iterdir())
-        preferred = ('esp', 'cp210', 'ch340', 'ch341', 'usb', 'uart', 'serial')
-        for path in candidates:
-            name = path.name.lower()
-            if any(key in name for key in preferred):
-                return str(path)
-        if candidates:
-            return str(candidates[0])
-
-    try:
-        import serial.tools.list_ports
-        ports = list(serial.tools.list_ports.comports())
-        # Procura primeiro por descricoes tipicas de ESP32 / CH340 / CP210x.
-        for p in ports:
-            text = ' '.join(str(v or '') for v in (
-                p.device, p.description, p.manufacturer, p.product, p.hwid,
-            )).lower()
-            if any(k in text for k in ('cp210', 'ch340', 'ch341', 'esp', 'usb serial', 'silicon labs')):
-                return p.device
-        if ports:
-            return ports[0].device
-    except Exception:
-        pass
-
-    for pattern in ('/dev/ttyACM*', '/dev/ttyUSB*', '/dev/serial0', '/dev/ttyAMA*'):
-        matches = sorted(Path('/').glob(pattern.lstrip('/')))
-        if matches:
-            device = str(matches[0]).replace('\\', '/')
-            return device if device.startswith('/') else '/' + device
-
+    """Procura automaticamente a porta série do ESP32 no Raspberry Pi.
+    Procura /dev/ttyUSB* e /dev/ttyACM* (USB-série típicos do ESP32).
+    Recua para /dev/serial0 (UART GPIO) se nada for encontrado por USB."""
+    import glob
+    candidates = sorted(glob.glob('/dev/ttyUSB*')) + sorted(glob.glob('/dev/ttyACM*'))
+    if candidates:
+        return candidates[0]
     return '/dev/serial0'
 
 
@@ -190,10 +155,8 @@ SERIAL_PORT = _detect_serial_port()
 
 
 def serial_connect():
-    global SERIAL_PORT
     if serial_status['stage'] in ('connecting', 'connected'):
         return
-    SERIAL_PORT = _detect_serial_port()
     serial_status['stage']       = 'connecting'
     serial_status['stop_reader'] = False
     threading.Thread(target=serial_reader, daemon=True, name='serial-reader').start()
@@ -264,12 +227,6 @@ def serial_reader():
                     push_serial_stage()
                 time.sleep(1)
 
-    except PermissionError as e:
-        serial_status['stage'] = 'error'
-        append_history(f'[SÉRIE] Sem permissao para {SERIAL_PORT}: {e}')
-        append_history('[SÉRIE] No Raspberry Pi, adiciona o utilizador ao grupo dialout e reinicia a sessão:')
-        append_history('[SÉRIE] sudo usermod -a -G dialout $USER')
-        push_serial_stage()
     except Exception as e:
         serial_status['stage'] = 'error'
         append_history(f'[SÉRIE] Falha ao ligar: {e}')
@@ -377,7 +334,7 @@ def generate_qr_base64(data):
         qr.make(fit=True)
         img = qr.make_image(fill_color='black', back_color='white')
         buf = io.BytesIO()
-        img.save(buf, 'PNG')
+        img.save(buf, format='PNG')
         return 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode()
     except Exception:
         return None
@@ -392,103 +349,49 @@ def list_com_ports():
         return [f'Erro: {e}']
 
 
-def _run_cmd(args, timeout=5):
-    """Corre um comando Linux simples e devolve stdout."""
+def _run_nmcli(args, timeout=6):
+    """Corre um comando nmcli (NetworkManager CLI) no Raspberry Pi OS."""
     result = subprocess.run(
-        args,
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-        check=False,
+        ['nmcli'] + args,
+        capture_output=True, text=True, timeout=timeout
     )
     return result.stdout.strip()
 
 
-def _get_default_interface():
-    try:
-        out = _run_cmd(['ip', 'route', 'show', 'default'])
-        match = re.search(r'\bdev\s+(\S+)', out)
-        if match:
-            return match.group(1)
-    except FileNotFoundError:
-        pass
-    return None
-
-
-def _get_wifi_ssid(interface=None):
-    if shutil.which('nmcli'):
-        try:
-            out = _run_cmd(['nmcli', '-t', '-f', 'ACTIVE,SSID', 'dev', 'wifi'])
-            for line in out.splitlines():
-                active, _, ssid = line.partition(':')
-                if active == 'yes' and ssid:
-                    return ssid.replace(r'\:', ':')
-        except Exception:
-            pass
-
-    if shutil.which('iwgetid'):
-        args = ['iwgetid', '-r']
-        if interface:
-            args.insert(1, interface)
-        try:
-            ssid = _run_cmd(args)
-            if ssid:
-                return ssid
-        except Exception:
-            pass
-    return None
-
-
 def get_network_status():
-    """Deteta estado da rede no Raspberry Pi/Linux."""
+    """Deteta estado da rede via nmcli (padrão do Raspberry Pi OS)."""
     try:
-        iface = _get_default_interface()
-        if not iface:
-            return 'Sem ligação de rede ativa.'
-
-        if iface.startswith(('wl', 'wlan')):
-            ssid = _get_wifi_ssid(iface)
-            return f'Wi-Fi ligado: {ssid}' if ssid else f'Wi-Fi ligado ({iface}).'
-        if iface.startswith(('eth', 'en')):
-            return f'Ligado por LAN ({iface}).'
-        return f'Ligado pela interface {iface}.'
+        out = _run_nmcli(['-t', '-f', 'TYPE,STATE,CONNECTION', 'device'])
+        for line in out.splitlines():
+            parts = line.split(':')
+            if len(parts) < 3:
+                continue
+            dev_type, state, connection = parts[0], parts[1], parts[2]
+            if dev_type == 'wifi' and state == 'connected':
+                return f'Wi-Fi ligado: {connection}'
+            if dev_type == 'ethernet' and state == 'connected':
+                return 'Ligado por LAN (cabo de rede).'
+        return 'Sem ligação de rede ativa.'
+    except FileNotFoundError:
+        return 'nmcli não encontrado.'
     except Exception as e:
         return f'Erro ao verificar rede: {e}'
 
 
 def get_available_networks():
-    """Lista redes Wi-Fi disponíveis no Raspberry Pi/Linux."""
-    names = []
-
-    if shutil.which('nmcli'):
-        try:
-            out = _run_cmd(['nmcli', '-t', '-f', 'SSID', 'dev', 'wifi', 'list', '--rescan', 'yes'], timeout=12)
-            for line in out.splitlines():
-                ssid = line.strip().replace(r'\:', ':')
-                if ssid and ssid not in names:
-                    names.append(ssid)
-            if names:
-                return names
-        except Exception:
-            pass
-
-    if shutil.which('iw'):
-        try:
-            interfaces = sorted(Path('/sys/class/net').glob('wl*')) + sorted(Path('/sys/class/net').glob('wlan*'))
-            iface = interfaces[0].name if interfaces else 'wlan0'
-            out = _run_cmd(['iw', 'dev', iface, 'scan'], timeout=12)
-            for match in re.finditer(r'^\s*SSID:\s*(.+)$', out, flags=re.MULTILINE):
-                ssid = match.group(1).strip()
-                if ssid and ssid not in names:
-                    names.append(ssid)
-            if names:
-                return names
-        except PermissionError:
-            return ['Sem permissão para procurar redes Wi-Fi.']
-        except Exception:
-            pass
-
-    return ['Nenhuma rede Wi-Fi encontrada ou ferramenta Wi-Fi indisponível.']
+    """Lista redes Wi-Fi disponíveis via nmcli."""
+    try:
+        subprocess.run(['nmcli', 'device', 'wifi', 'rescan'],
+                       capture_output=True, timeout=6)
+        out = _run_nmcli(['-t', '-f', 'SSID', 'device', 'wifi', 'list'])
+        names = list(dict.fromkeys(
+            l.strip() for l in out.splitlines() if l.strip()
+        ))
+        return names or ['Nenhuma rede Wi-Fi encontrada.']
+    except FileNotFoundError:
+        return ['nmcli não encontrado.']
+    except Exception as e:
+        return [f'Erro: {e}']
 
 
 # ===========================================================================
@@ -702,49 +605,33 @@ def route_serial_reconnect():
     return jsonify({'ok': True})
 
 
-def schedule_app_shutdown(delay=3.0):
-    global shutdown_requested
-    shutdown_requested = True
-
-    def _notify_clients():
-        for _ in range(6):
-            socketio.emit('app_shutdown', {'shutdown': True})
-            time.sleep(0.25)
-
-    socketio.start_background_task(_notify_clients)
-
+@app.route('/desligar', methods=['POST'])
+def route_desligar():
+    """Fecha o Chromium kiosk e encerra o servidor — equivalente a Ctrl+C."""
     def _shutdown():
-        time.sleep(delay)
-        serial_status['stop_reader'] = True
+        time.sleep(0.4)
         try:
-            if _ser and _ser.is_open:
-                _ser.close()
+            subprocess.run(['pkill', '-f', 'chromium'], capture_output=True)
         except Exception:
             pass
         os._exit(0)
-
-    threading.Thread(target=_shutdown, daemon=True, name='app-shutdown').start()
-
-
-@app.route('/desligar', methods=['POST'])
-def route_desligar():
-    """Encerra o programa completo, equivalente a parar com Ctrl+C."""
-    schedule_app_shutdown()
+    threading.Thread(target=_shutdown, daemon=True).start()
     return jsonify({'ok': True})
-
-
-@app.route('/shutdown_status')
-def route_shutdown_status():
-    return jsonify({'shutdown': shutdown_requested})
 
 
 @app.route('/sair', methods=['POST'])
 def route_sair():
-    """Encerra o programa completamente (só modo DEV)."""
+    """Encerra o programa completamente (só modo DEV) — equivalente a Ctrl+C."""
     if state['devmode'] != 1:
         return jsonify({'ok': False, 'error': 'Apenas disponível em modo DEV'}), 403
-
-    schedule_app_shutdown()
+    def _shutdown():
+        time.sleep(0.4)
+        try:
+            subprocess.run(['pkill', '-f', 'chromium'], capture_output=True)
+        except Exception:
+            pass
+        os._exit(0)
+    threading.Thread(target=_shutdown, daemon=True).start()
     return jsonify({'ok': True})
 
 
@@ -862,15 +749,15 @@ def route_movements_calcular():
         resultado = cm.gerar_graficos(params_c1, params_c2, params_c3)
 
         # guarda os pontos calculados nas configurações dos movimentos
-        config['respiracao']['pontos_x'] = resultado['pontos_c1']['x']
-        config['respiracao']['pontos_y'] = resultado['pontos_c1']['y']
-        config['respiracao']['pontos_z'] = resultado['pontos_c1']['z']
-        config['batimento']['pontos_x']  = resultado['pontos_c1']['x']
-        config['batimento']['pontos_y']  = resultado['pontos_c1']['y']
-        config['batimento']['pontos_z']  = resultado['pontos_c1']['z']
-        config['tosse']['pontos_x']      = resultado['pontos_c2']['x']
-        config['tosse']['pontos_y']      = resultado['pontos_c2']['y']
-        config['tosse']['pontos_z']      = resultado['pontos_c2']['z']
+        config['batimento']['pontos_x']      = resultado['pontos_c1']['x']
+        config['batimento']['pontos_y']      = resultado['pontos_c1']['y']
+        config['batimento']['pontos_z']      = resultado['pontos_c1']['z']
+        config['respiracao']['pontos_x']     = resultado['pontos_c2']['x']
+        config['respiracao']['pontos_y']     = resultado['pontos_c2']['y']
+        config['respiracao']['pontos_z']     = resultado['pontos_c2']['z']
+        config['tosse']['pontos_x']          = resultado['pontos_c2']['x']
+        config['tosse']['pontos_y']          = resultado['pontos_c2']['y']
+        config['tosse']['pontos_z']          = resultado['pontos_c2']['z']
         config['vibracao_tosse']['pontos_x'] = resultado['pontos_c3']['x']
         config['vibracao_tosse']['pontos_y'] = resultado['pontos_c3']['y']
         config['vibracao_tosse']['pontos_z'] = resultado['pontos_c3']['z']
@@ -890,38 +777,43 @@ def route_movements_calcular():
 
 
 # ===========================================================================
-# ARRANQUE DO BROWSER (RASPBERRY PI / LINUX)
+# ARRANQUE DO CHROMIUM KIOSK (Raspberry Pi)
 # ===========================================================================
-def open_browser():
-    """Abre a interface local no Raspberry Pi, quando existe ambiente grafico."""
-    time.sleep(1.5)
-    if os.environ.get('PI4B_OPEN_BROWSER', '1') == '0':
-        return
-    if not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')):
-        append_history('[SISTEMA] Sem ambiente grafico; browser local nao foi aberto.')
-        return
+def open_kiosk():
+    """Abre o Chromium em modo kiosk após o servidor Flask estar pronto."""
+    time.sleep(2.0)
+    try:
+        subprocess.run(['pkill', '-f', 'chromium'], capture_output=True)
+        time.sleep(0.5)
+    except Exception:
+        pass
 
-    url = f'http://127.0.0.1:{APP_PORT}/'
-    kiosk = os.environ.get('PI4B_KIOSK', '0') == '1'
-    browser_commands = []
-    for executable in ('chromium-browser', 'chromium', 'google-chrome'):
-        if shutil.which(executable):
-            args = [executable]
-            if kiosk:
-                args.extend(['--kiosk', '--disable-restore-session-state'])
-            args.append(url)
-            browser_commands.append(args)
-            break
-    if shutil.which('xdg-open'):
-        browser_commands.append(['xdg-open', url])
+    url   = f'http://127.0.0.1:{APP_PORT}/'
+    flags = [
+        '--kiosk',
+        '--noerrdialogs',
+        '--disable-infobars',
+        '--disable-session-crashed-bubble',
+        '--disable-translate',
+        '--disable-features=TranslateUI',
+        '--disable-gpu',
+        '--disable-dev-shm-usage',
+        '--no-sandbox',
+        '--disable-extensions',
+        '--check-for-update-interval=31536000',
+        '--overscroll-history-navigation=0',
+        url,
+    ]
 
-    for args in browser_commands:
+    for cmd in ('chromium-browser', 'chromium'):
         try:
-            subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.Popen([cmd] + flags)
+            print(f'PI4B: Chromium kiosk aberto em {url}')
             return
-        except Exception:
+        except FileNotFoundError:
             continue
-    append_history('[SISTEMA] Nao foi possivel abrir browser local automaticamente.')
+
+    print(f'PI4B: Chromium não encontrado. Abre manualmente: {url}')
 
 
 # ===========================================================================
@@ -930,15 +822,13 @@ def open_browser():
 if __name__ == '__main__':
     reset_state()
 
-    # Arranca threads de comunicação série
     serial_status['stage'] = 'connecting'
     threading.Thread(target=serial_reader, daemon=True, name='serial-reader').start()
     threading.Thread(target=serial_writer, daemon=True, name='serial-writer').start()
 
-    # Abre o browser local quando existir ambiente grafico no Raspberry Pi.
-    threading.Thread(target=open_browser, daemon=True, name='browser').start()
+    threading.Thread(target=open_kiosk, daemon=True, name='kiosk').start()
 
-    print(f'PI4B: Servidor a arrancar em http://127.0.0.1:{APP_PORT}')
+    print(f'PI4B: Servidor a arrancar em http://0.0.0.0:{APP_PORT}')
     print(f'PI4B: Interface mobile em http://{get_local_ip()}:{APP_PORT}/mobile')
 
     socketio.run(

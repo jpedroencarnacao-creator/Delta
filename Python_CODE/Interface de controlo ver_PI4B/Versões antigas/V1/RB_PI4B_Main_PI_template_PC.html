@@ -188,7 +188,7 @@ hr { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
         <button class="conn-indicator conn-off" onclick="onConnClick(this)" title="Desligado">🔗</button>
         <div class="conn-menu" id="connMenu">
           <button class="btn-ctrl blue" onclick="sendAction('serial_reconnect'); closeConnMenu();">Tentar reconectar</button>
-          <button class="btn-ctrl danger" onclick="sendAction('serial_disconnect'); closeConnMenu();">Desligar série</button>
+          <button class="btn-ctrl danger" onclick="sendAction('serial_disconnect'); closeConnMenu();">Desligar COM</button>
         </div>
       </div>
     </div>
@@ -210,9 +210,9 @@ hr { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
 
     <!-- Linha do fundo: Desligar + Sair (DEV only) -->
     <div class="bot-row">
-      <button class="btn-ctrl danger" onclick="shutdownApp('desligar')">Desligar</button>
+      <button class="btn-ctrl danger" onclick="sendAction('desligar')">Desligar</button>
       <button class="btn-ctrl dark dev-only" style="display:none"
-              onclick="shutdownApp('sair')">Sair</button>
+              onclick="if(confirm('Encerrar o programa completamente?')) sendAction('sair')">Sair</button>
     </div>
   </div>
 
@@ -254,15 +254,15 @@ hr { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
       <hr>
       <!-- Menu principal das definições -->
       <div id="defMenu">
-        <button class="btn-settings-item" onclick="showSubpanel('comSubpanel')">🔌 Porta série</button>
+        <button class="btn-settings-item" onclick="showSubpanel('comSubpanel')">🔌 Porta COM</button>
         <button class="btn-settings-item" onclick="showSubpanel('redeSubpanel')">📶 Rede</button>
         <button class="btn-settings-item" onclick="showSubpanel('configSubpanel')">⚙ Configurações</button>
       </div>
     </div>
 
-    <!-- Subpainel: Porta série -->
+    <!-- Subpainel: Porta COM -->
     <div id="comSubpanel" class="subpanel hidden">
-      <strong style="font-size:13px">Portas série disponíveis</strong>
+      <strong style="font-size:13px">Portas COM disponíveis</strong>
       <div id="comList" style="margin-top:6px; font-size:12px">A procurar...</div>
     </div>
 
@@ -302,20 +302,6 @@ hr { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
   </div>
 </div>
 
-<!-- MODAL: Confirmar encerramento -->
-<div class="modal-overlay" id="shutdownModal" onclick="if(event.target.id==='shutdownModal') closeShutdownDialog()">
-  <div class="modal-card" style="width:430px; padding:0; display:flow-root">
-    <div style="margin:10px">
-      <h3 style="margin-bottom:12px; text-align:center">Encerrar programa</h3>
-      <p style="text-align:center; white-space:nowrap">Deseja proceguir com o encerramento do programa</p>
-      <div style="display:flex; justify-content:space-between; gap:80px; margin-top:22px">
-        <button class="btn-ctrl dark" style="min-width:130px; padding:12px 26px" onclick="closeShutdownDialog()">Não</button>
-        <button class="btn-ctrl danger" style="min-width:130px; padding:12px 26px" onclick="confirmShutdown()">Sim</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- MODAL: Selecionar Modo -->
 <div class="modal-overlay" id="modeModal" onclick="if(event.target.id==='modeModal') closeModeDialog()">
   <div class="modal-card">
@@ -345,12 +331,7 @@ hr { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script>
-const socket = window.io ? io() : { on: () => {} };
-if (!window.io) {
-    setInterval(() => {
-        fetch('/state').then(r => r.json()).then(applyState).catch(() => {});
-    }, 1000);
-}
+const socket = io();
 
 // recebe atualização completa de estado
 socket.on('state_update', (s) => {
@@ -361,19 +342,6 @@ socket.on('state_update', (s) => {
 socket.on('serial_stage', (data) => {
     applySerialStage(data.stage);
 });
-
-socket.on('app_shutdown', () => {
-    closeWindowAfterShutdown();
-});
-
-setInterval(() => {
-    fetch('/shutdown_status')
-        .then(r => r.json())
-        .then(data => {
-            if (data.shutdown) closeWindowAfterShutdown();
-        })
-        .catch(() => {});
-}, 1000);
 
 function applyState(s) {
     // modo DEV/CLIENTE
@@ -444,43 +412,6 @@ function sendAction(action, body={}) {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(body),
     }).catch(err => console.error('Erro:', err));
-}
-
-let pendingShutdownAction = 'desligar';
-
-function shutdownApp(action='desligar') {
-    pendingShutdownAction = action;
-    document.getElementById('shutdownModal').style.display = 'flex';
-}
-
-function closeShutdownDialog() {
-    document.getElementById('shutdownModal').style.display = 'none';
-}
-
-function confirmShutdown() {
-    const action = pendingShutdownAction || 'desligar';
-    closeShutdownDialog();
-    fetch('/' + action, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: '{}',
-    });
-    closeWindowAfterShutdown();
-}
-
-function closeWindowAfterShutdown() {
-    if (window._closingAfterShutdown) return;
-    window._closingAfterShutdown = true;
-    document.documentElement.innerHTML =
-        '<head><title>Programa encerrado</title></head>' +
-        '<body style="margin:0;background:#f0f0f0;font-family:Arial,sans-serif;"></body>';
-    setTimeout(() => {
-        window.open('', '_self');
-        window.close();
-    }, 150);
-    setTimeout(() => {
-        window.location.replace('about:blank');
-    }, 700);
 }
 
 function onModeBtn() {
@@ -659,14 +590,37 @@ fetch('/state').then(r => r.json()).then(applyState);
     display: flex; flex-direction: column; gap: 14px;
 }
 
-/* Secções de parâmetros */
+/* Secções principais colapsáveis (acordeão) */
+.mov-group {
+    background: white; border-radius: 12px;
+    border: 2px solid #4a7c59; overflow: hidden;
+}
+.mov-group-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; background: #4a7c59; color: white;
+    cursor: pointer; user-select: none;
+}
+.mov-group-header h2 {
+    font-size: 15px; font-weight: bold; margin: 0;
+}
+.mov-group-arrow {
+    font-size: 14px; transition: transform .2s;
+}
+.mov-group-arrow.open { transform: rotate(180deg); }
+.mov-group-body {
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 12px 14px;
+}
+.mov-group-body.collapsed { display: none; }
+
+/* Secções internas (sub-secções dentro de cada grupo) */
 .mov-section {
-    background: white; border-radius: 10px; border: 1px solid #ddd;
-    padding: 12px 16px;
+    background: #f8f8f8; border-radius: 10px; border: 1px solid #ddd;
+    padding: 11px 14px;
 }
 .mov-section h3 {
-    font-size: 14px; font-weight: bold; margin-bottom: 10px;
-    color: #4a7c59; border-bottom: 1px solid #eee; padding-bottom: 6px;
+    font-size: 13px; font-weight: bold; margin-bottom: 8px;
+    color: #4a7c59; border-bottom: 1px solid #eee; padding-bottom: 5px;
 }
 .mov-fields {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -726,108 +680,144 @@ fetch('/state').then(r => r.json()).then(applyState);
 
     <div class="mov-modal-body">
 
-      <!-- COLUNA ESQUERDA: configurações -->
+      <!-- COLUNA ESQUERDA: 3 grupos colapsáveis -->
       <div class="mov-col-left">
 
-        <!-- ── BATIMENTO CARDÍACO (Curva 1 → Elipse) ── -->
-        <div class="mov-section">
-          <h3>Curva 1 — Elipse Rotacionada</h3>
-          <div class="mov-fields">
-            <div class="mov-field"><label>Semi-eixo maior (a)</label><input type="number" step="0.1" id="c1_a"></div>
-            <div class="mov-field"><label>Semi-eixo menor (b)</label><input type="number" step="0.1" id="c1_b"></div>
-            <div class="mov-field"><label>Centro X (xc)</label><input type="number" step="0.1" id="c1_xc"></div>
-            <div class="mov-field"><label>Centro Y (yc)</label><input type="number" step="0.1" id="c1_yc"></div>
-            <div class="mov-field"><label>Rotação α (°)</label><input type="number" step="1" id="c1_alpha_deg"></div>
-            <div class="mov-field"><label>Nº pontos</label><input type="number" step="1" min="2" id="c1_n_pontos"></div>
-            <div class="mov-field"><label>Sentido</label>
-              <select id="c1_sentido">
-                <option value="ccw">CCW (anti-horário)</option>
-                <option value="cw">CW (horário)</option>
-              </select>
+        <!-- ══════════════════════════════════════════ -->
+        <!-- GRUPO 1 — BATIMENTO CARDÍACO               -->
+        <!-- ══════════════════════════════════════════ -->
+        <div class="mov-group" id="group_batimento">
+          <div class="mov-group-header" onclick="toggleGroup('group_batimento')">
+            <h2>💓 Batimento Cardíaco</h2>
+            <span class="mov-group-arrow open">▼</span>
+          </div>
+          <div class="mov-group-body" id="group_batimento_body">
+
+            <div class="mov-section">
+              <h3>Curva 1 — Elipse Rotacionada</h3>
+              <div class="mov-fields">
+                <div class="mov-field"><label>Semi-eixo maior (a)</label><input type="number" step="0.1" id="c1_a"></div>
+                <div class="mov-field"><label>Semi-eixo menor (b)</label><input type="number" step="0.1" id="c1_b"></div>
+                <div class="mov-field"><label>Centro X (xc)</label><input type="number" step="0.1" id="c1_xc"></div>
+                <div class="mov-field"><label>Centro Y (yc)</label><input type="number" step="0.1" id="c1_yc"></div>
+                <div class="mov-field"><label>Rotação α (°)</label><input type="number" step="1" id="c1_alpha_deg"></div>
+                <div class="mov-field"><label>Nº pontos</label><input type="number" step="1" min="2" id="c1_n_pontos"></div>
+                <div class="mov-field"><label>Sentido</label>
+                  <select id="c1_sentido">
+                    <option value="ccw">CCW (anti-horário)</option>
+                    <option value="cw">CW (horário)</option>
+                  </select>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div class="mov-section">
-          <h3>Batimento Cardíaco</h3>
-          <div class="mov-fields">
-            <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="batimento_periodo"></div>
-            <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="batimento_espera_inicio"></div>
-            <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="batimento_espera_fim"></div>
-            <div class="mov-field"><label>Ponto de início</label><input type="number" step="1" min="0" id="batimento_ponto_inicio"></div>
-          </div>
-          <div style="margin-top:6px;font-size:11px;color:#666">Pontos calculados:</div>
-          <div class="mov-points" id="batimento_pts_x"><b>X:</b> —</div>
-          <div class="mov-points" id="batimento_pts_y"><b>Y:</b> —</div>
-          <div class="mov-points" id="batimento_pts_z"><b>Z:</b> —</div>
-        </div>
-
-        <!-- ── RESPIRAÇÃO (Curva 2 → Parábola) ── -->
-        <div class="mov-section">
-          <h3>Curva 2 — Parábola (plano ZX)</h3>
-          <div class="mov-fields">
-            <div class="mov-field"><label>Altura máx. Z</label><input type="number" step="0.5" id="c2_altura"></div>
-            <div class="mov-field"><label>Largura máx. X</label><input type="number" step="0.5" id="c2_largura"></div>
-            <div class="mov-field"><label>Nº pontos</label><input type="number" step="1" min="2" id="c2_n_pontos"></div>
-            <div class="mov-field"><label>Inclinação θ (°)</label><input type="number" step="1" id="c2_theta_deg"></div>
-          </div>
-        </div>
-
-        <div class="mov-section">
-          <h3>Respiração</h3>
-          <div class="mov-fields">
-            <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="respiracao_periodo"></div>
-            <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="respiracao_espera_inicio"></div>
-            <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="respiracao_espera_fim"></div>
-            <div class="mov-field"><label>Ponto de início</label><input type="number" step="1" min="0" id="respiracao_ponto_inicio"></div>
-          </div>
-          <div style="margin-top:6px;font-size:11px;color:#666">Pontos calculados:</div>
-          <div class="mov-points" id="respiracao_pts_x"><b>X:</b> —</div>
-          <div class="mov-points" id="respiracao_pts_y"><b>Y:</b> —</div>
-          <div class="mov-points" id="respiracao_pts_z"><b>Z:</b> —</div>
-        </div>
-
-        <!-- ── TOSSE (Curva 3 → Circunferência + tempos da respiração acelerada) ── -->
-        <div class="mov-section">
-          <h3>Curva 3 — Circunferência (Vibração da Tosse)</h3>
-          <div class="mov-fields">
-            <div class="mov-field"><label>Raio</label><input type="number" step="0.1" min="0.1" id="c3_raio"></div>
-            <div class="mov-field"><label>Nº pontos</label><input type="number" step="1" min="2" id="c3_n_pontos"></div>
-            <div class="mov-field"><label>Sentido</label>
-              <select id="c3_sentido">
-                <option value="ccw">CCW (anti-horário)</option>
-                <option value="cw">CW (horário)</option>
-              </select>
+            <div class="mov-section">
+              <h3>Tempos</h3>
+              <div class="mov-fields">
+                <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="batimento_periodo"></div>
+                <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="batimento_espera_inicio"></div>
+                <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="batimento_espera_fim"></div>
+                <div class="mov-field"><label>Ponto de início</label><input type="number" step="1" min="0" id="batimento_ponto_inicio"></div>
+              </div>
+              <div style="margin-top:6px;font-size:11px;color:#666">Pontos calculados:</div>
+              <div class="mov-points" id="batimento_pts_x"><b>X:</b> —</div>
+              <div class="mov-points" id="batimento_pts_y"><b>Y:</b> —</div>
+              <div class="mov-points" id="batimento_pts_z"><b>Z:</b> —</div>
             </div>
+
           </div>
         </div>
 
-        <div class="mov-section">
-          <h3>Vibração da Tosse</h3>
-          <div class="mov-fields">
-            <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="vibracao_tosse_periodo"></div>
-            <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="vibracao_tosse_espera_inicio"></div>
-            <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="vibracao_tosse_espera_fim"></div>
-            <div class="mov-field"><label>Ponto de início</label><input type="number" step="1" min="0" id="vibracao_tosse_ponto_inicio"></div>
+        <!-- ══════════════════════════════════════════ -->
+        <!-- GRUPO 2 — RESPIRAÇÃO                       -->
+        <!-- ══════════════════════════════════════════ -->
+        <div class="mov-group" id="group_respiracao">
+          <div class="mov-group-header" onclick="toggleGroup('group_respiracao')">
+            <h2>🫁 Respiração</h2>
+            <span class="mov-group-arrow open">▼</span>
           </div>
-          <div style="margin-top:6px;font-size:11px;color:#666">Pontos calculados:</div>
-          <div class="mov-points" id="vibracao_tosse_pts_x"><b>X:</b> —</div>
-          <div class="mov-points" id="vibracao_tosse_pts_y"><b>Y:</b> —</div>
-          <div class="mov-points" id="vibracao_tosse_pts_z"><b>Z:</b> —</div>
+          <div class="mov-group-body" id="group_respiracao_body">
+
+            <div class="mov-section">
+              <h3>Curva 2 — Parábola (plano ZX)</h3>
+              <div class="mov-fields">
+                <div class="mov-field"><label>Altura máx. Z</label><input type="number" step="0.5" id="c2_altura"></div>
+                <div class="mov-field"><label>Largura máx. X</label><input type="number" step="0.5" id="c2_largura"></div>
+                <div class="mov-field"><label>Nº pontos</label><input type="number" step="1" min="2" id="c2_n_pontos"></div>
+                <div class="mov-field"><label>Inclinação θ (°)</label><input type="number" step="1" id="c2_theta_deg"></div>
+              </div>
+            </div>
+
+            <div class="mov-section">
+              <h3>Tempos</h3>
+              <div class="mov-fields">
+                <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="respiracao_periodo"></div>
+                <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="respiracao_espera_inicio"></div>
+                <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="respiracao_espera_fim"></div>
+                <div class="mov-field"><label>Ponto de início</label><input type="number" step="1" min="0" id="respiracao_ponto_inicio"></div>
+              </div>
+              <div style="margin-top:6px;font-size:11px;color:#666">Pontos calculados:</div>
+              <div class="mov-points" id="respiracao_pts_x"><b>X:</b> —</div>
+              <div class="mov-points" id="respiracao_pts_y"><b>Y:</b> —</div>
+              <div class="mov-points" id="respiracao_pts_z"><b>Z:</b> —</div>
+            </div>
+
+          </div>
         </div>
 
-        <div class="mov-section">
-          <h3>Tosse (respiração acelerada)</h3>
-          <div class="mov-fields">
-            <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="tosse_periodo"></div>
-            <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="tosse_espera_inicio"></div>
-            <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="tosse_espera_fim"></div>
-            <div class="mov-field"><label>Ponto de início</label><input type="number" step="1" min="0" id="tosse_ponto_inicio"></div>
+        <!-- ══════════════════════════════════════════ -->
+        <!-- GRUPO 3 — TOSSE                            -->
+        <!-- ══════════════════════════════════════════ -->
+        <div class="mov-group" id="group_tosse">
+          <div class="mov-group-header" onclick="toggleGroup('group_tosse')">
+            <h2>😮‍💨 Tosse</h2>
+            <span class="mov-group-arrow open">▼</span>
           </div>
-          <div style="margin-top:6px;font-size:11px;color:#666">Pontos calculados:</div>
-          <div class="mov-points" id="tosse_pts_x"><b>X:</b> —</div>
-          <div class="mov-points" id="tosse_pts_y"><b>Y:</b> —</div>
-          <div class="mov-points" id="tosse_pts_z"><b>Z:</b> —</div>
+          <div class="mov-group-body" id="group_tosse_body">
+
+            <div class="mov-section">
+              <h3>Curva 3 — Circunferência (Vibração)</h3>
+              <div class="mov-fields">
+                <div class="mov-field"><label>Raio</label><input type="number" step="0.1" min="0.1" id="c3_raio"></div>
+                <div class="mov-field"><label>Nº pontos</label><input type="number" step="1" min="2" id="c3_n_pontos"></div>
+                <div class="mov-field"><label>Sentido</label>
+                  <select id="c3_sentido">
+                    <option value="ccw">CCW (anti-horário)</option>
+                    <option value="cw">CW (horário)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="mov-section">
+              <h3>Vibração da Tosse</h3>
+              <div class="mov-fields">
+                <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="vibracao_tosse_periodo"></div>
+                <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="vibracao_tosse_espera_inicio"></div>
+                <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="vibracao_tosse_espera_fim"></div>
+                <div class="mov-field"><label>Ponto de início</label><input type="number" step="1" min="0" id="vibracao_tosse_ponto_inicio"></div>
+              </div>
+              <div style="margin-top:6px;font-size:11px;color:#666">Pontos calculados:</div>
+              <div class="mov-points" id="vibracao_tosse_pts_x"><b>X:</b> —</div>
+              <div class="mov-points" id="vibracao_tosse_pts_y"><b>Y:</b> —</div>
+              <div class="mov-points" id="vibracao_tosse_pts_z"><b>Z:</b> —</div>
+            </div>
+
+            <div class="mov-section">
+              <h3>Tosse</h3>
+              <div class="mov-fields">
+                <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="tosse_periodo"></div>
+                <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="tosse_espera_inicio"></div>
+                <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="tosse_espera_fim"></div>
+                <div class="mov-field"><label>Ponto de início</label><input type="number" step="1" min="0" id="tosse_ponto_inicio"></div>
+              </div>
+              <div style="margin-top:6px;font-size:11px;color:#666">Pontos calculados:</div>
+              <div class="mov-points" id="tosse_pts_x"><b>X:</b> —</div>
+              <div class="mov-points" id="tosse_pts_y"><b>Y:</b> —</div>
+              <div class="mov-points" id="tosse_pts_z"><b>Z:</b> —</div>
+            </div>
+
+          </div>
         </div>
 
       </div><!-- /col-left -->
@@ -867,6 +857,14 @@ fetch('/state').then(r => r.json()).then(applyState);
 
 <script>
 let _movConfig = {};
+
+function toggleGroup(groupId) {
+    const body  = document.getElementById(groupId + '_body');
+    const arrow = document.querySelector('#' + groupId + ' .mov-group-arrow');
+    if (!body) return;
+    const collapsed = body.classList.toggle('collapsed');
+    if (arrow) arrow.classList.toggle('open', !collapsed);
+}
 
 const MOV_CHAVES = ['respiracao', 'batimento', 'tosse', 'vibracao_tosse'];
 const MOV_LABELS = {

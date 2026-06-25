@@ -188,7 +188,7 @@ hr { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
         <button class="conn-indicator conn-off" onclick="onConnClick(this)" title="Desligado">🔗</button>
         <div class="conn-menu" id="connMenu">
           <button class="btn-ctrl blue" onclick="sendAction('serial_reconnect'); closeConnMenu();">Tentar reconectar</button>
-          <button class="btn-ctrl danger" onclick="sendAction('serial_disconnect'); closeConnMenu();">Desligar série</button>
+          <button class="btn-ctrl danger" onclick="sendAction('serial_disconnect'); closeConnMenu();">Desligar COM</button>
         </div>
       </div>
     </div>
@@ -210,9 +210,9 @@ hr { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
 
     <!-- Linha do fundo: Desligar + Sair (DEV only) -->
     <div class="bot-row">
-      <button class="btn-ctrl danger" onclick="shutdownApp('desligar')">Desligar</button>
+      <button class="btn-ctrl danger" onclick="window.close()">Desligar</button>
       <button class="btn-ctrl dark dev-only" style="display:none"
-              onclick="shutdownApp('sair')">Sair</button>
+              onclick="if(confirm('Encerrar o programa completamente?')) sendAction('sair')">Sair</button>
     </div>
   </div>
 
@@ -254,15 +254,15 @@ hr { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
       <hr>
       <!-- Menu principal das definições -->
       <div id="defMenu">
-        <button class="btn-settings-item" onclick="showSubpanel('comSubpanel')">🔌 Porta série</button>
+        <button class="btn-settings-item" onclick="showSubpanel('comSubpanel')">🔌 Porta COM</button>
         <button class="btn-settings-item" onclick="showSubpanel('redeSubpanel')">📶 Rede</button>
         <button class="btn-settings-item" onclick="showSubpanel('configSubpanel')">⚙ Configurações</button>
       </div>
     </div>
 
-    <!-- Subpainel: Porta série -->
+    <!-- Subpainel: Porta COM -->
     <div id="comSubpanel" class="subpanel hidden">
-      <strong style="font-size:13px">Portas série disponíveis</strong>
+      <strong style="font-size:13px">Portas COM disponíveis</strong>
       <div id="comList" style="margin-top:6px; font-size:12px">A procurar...</div>
     </div>
 
@@ -302,20 +302,6 @@ hr { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
   </div>
 </div>
 
-<!-- MODAL: Confirmar encerramento -->
-<div class="modal-overlay" id="shutdownModal" onclick="if(event.target.id==='shutdownModal') closeShutdownDialog()">
-  <div class="modal-card" style="width:430px; padding:0; display:flow-root">
-    <div style="margin:10px">
-      <h3 style="margin-bottom:12px; text-align:center">Encerrar programa</h3>
-      <p style="text-align:center; white-space:nowrap">Deseja proceguir com o encerramento do programa</p>
-      <div style="display:flex; justify-content:space-between; gap:80px; margin-top:22px">
-        <button class="btn-ctrl dark" style="min-width:130px; padding:12px 26px" onclick="closeShutdownDialog()">Não</button>
-        <button class="btn-ctrl danger" style="min-width:130px; padding:12px 26px" onclick="confirmShutdown()">Sim</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- MODAL: Selecionar Modo -->
 <div class="modal-overlay" id="modeModal" onclick="if(event.target.id==='modeModal') closeModeDialog()">
   <div class="modal-card">
@@ -345,12 +331,7 @@ hr { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script>
-const socket = window.io ? io() : { on: () => {} };
-if (!window.io) {
-    setInterval(() => {
-        fetch('/state').then(r => r.json()).then(applyState).catch(() => {});
-    }, 1000);
-}
+const socket = io();
 
 // recebe atualização completa de estado
 socket.on('state_update', (s) => {
@@ -361,19 +342,6 @@ socket.on('state_update', (s) => {
 socket.on('serial_stage', (data) => {
     applySerialStage(data.stage);
 });
-
-socket.on('app_shutdown', () => {
-    closeWindowAfterShutdown();
-});
-
-setInterval(() => {
-    fetch('/shutdown_status')
-        .then(r => r.json())
-        .then(data => {
-            if (data.shutdown) closeWindowAfterShutdown();
-        })
-        .catch(() => {});
-}, 1000);
 
 function applyState(s) {
     // modo DEV/CLIENTE
@@ -444,43 +412,6 @@ function sendAction(action, body={}) {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(body),
     }).catch(err => console.error('Erro:', err));
-}
-
-let pendingShutdownAction = 'desligar';
-
-function shutdownApp(action='desligar') {
-    pendingShutdownAction = action;
-    document.getElementById('shutdownModal').style.display = 'flex';
-}
-
-function closeShutdownDialog() {
-    document.getElementById('shutdownModal').style.display = 'none';
-}
-
-function confirmShutdown() {
-    const action = pendingShutdownAction || 'desligar';
-    closeShutdownDialog();
-    fetch('/' + action, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: '{}',
-    });
-    closeWindowAfterShutdown();
-}
-
-function closeWindowAfterShutdown() {
-    if (window._closingAfterShutdown) return;
-    window._closingAfterShutdown = true;
-    document.documentElement.innerHTML =
-        '<head><title>Programa encerrado</title></head>' +
-        '<body style="margin:0;background:#f0f0f0;font-family:Arial,sans-serif;"></body>';
-    setTimeout(() => {
-        window.open('', '_self');
-        window.close();
-    }, 150);
-    setTimeout(() => {
-        window.location.replace('about:blank');
-    }, 700);
 }
 
 function onModeBtn() {
@@ -634,30 +565,29 @@ fetch('/state').then(r => r.json()).then(applyState);
 }
 .mov-modal-card {
     background: #f8f8f8; border-radius: 18px;
-    width: 90vw; height: 88vh;
+    width: 82vw; height: 85vh;
     box-shadow: 0 24px 60px rgba(0,0,0,.35);
     display: flex; flex-direction: column; overflow: hidden;
 }
 .mov-modal-header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 20px; background: #4a7c59; color: white;
+    padding: 14px 20px; background: #337ab7; color: white;
     border-radius: 18px 18px 0 0; flex-shrink: 0;
 }
 .mov-modal-header h2 { font-size: 18px; margin: 0; }
-
-/* Corpo dividido ao meio */
 .mov-modal-body {
-    flex: 1; display: flex; overflow: hidden; min-height: 0;
-}
-.mov-col-left {
-    flex: 1; overflow-y: auto; padding: 14px 16px;
-    display: flex; flex-direction: column; gap: 12px;
-    border-right: 2px solid #e0e0e0;
-}
-.mov-col-right {
-    flex: 1; overflow-y: auto; padding: 14px 16px;
+    flex: 1; overflow-y: auto; padding: 16px 20px;
     display: flex; flex-direction: column; gap: 14px;
 }
+
+/* Gráfico */
+#movGraficos {
+    background: white; border-radius: 10px; border: 1px solid #ddd;
+    min-height: 220px; display: flex; align-items: center;
+    justify-content: center; overflow: hidden;
+}
+#movGraficos img { max-width: 100%; border-radius: 8px; }
+#movGraficosMsg { color: #888; font-size: 14px; }
 
 /* Secções de parâmetros */
 .mov-section {
@@ -665,54 +595,42 @@ fetch('/state').then(r => r.json()).then(applyState);
     padding: 12px 16px;
 }
 .mov-section h3 {
-    font-size: 14px; font-weight: bold; margin-bottom: 10px;
-    color: #4a7c59; border-bottom: 1px solid #eee; padding-bottom: 6px;
+    font-size: 15px; font-weight: bold; margin-bottom: 10px;
+    color: #337ab7; border-bottom: 1px solid #eee; padding-bottom: 6px;
 }
 .mov-fields {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 8px;
 }
 .mov-field label {
-    display: block; font-size: 11px; color: #555; margin-bottom: 3px;
+    display: block; font-size: 12px; color: #555; margin-bottom: 3px;
 }
 .mov-field input, .mov-field select {
-    width: 100%; padding: 6px 8px; border: 1px solid #ccc;
-    border-radius: 7px; font-size: 13px;
+    width: 100%; padding: 7px 9px; border: 1px solid #ccc;
+    border-radius: 7px; font-size: 14px;
+    inputmode: decimal;
 }
 .mov-field input:focus, .mov-field select:focus {
-    outline: none; border-color: #4a7c59;
-    box-shadow: 0 0 0 2px rgba(74,124,89,.2);
+    outline: none; border-color: #337ab7; box-shadow: 0 0 0 2px rgba(51,122,183,.25);
 }
 
-/* Gráficos por secção */
-.mov-grafico-pair {
-    background: white; border-radius: 10px; border: 1px solid #ddd;
-    padding: 10px; display: flex; flex-direction: column; gap: 6px;
-}
-.mov-grafico-pair h3 {
-    font-size: 13px; font-weight: bold; color: #4a7c59; margin: 0 0 6px 0;
-}
-.mov-grafico-pair img { width: 100%; border-radius: 6px; }
-.mov-grafico-placeholder {
-    background: #f5f5f5; border-radius: 8px; min-height: 160px;
-    display: flex; align-items: center; justify-content: center;
-    color: #aaa; font-size: 13px;
-}
-
-/* Pontos XYZ */
+/* Pontos XYZ (read-only, mostra resultado do cálculo) */
 .mov-points {
-    font-family: monospace; font-size: 11px; background: #f0f0f0;
-    border-radius: 6px; padding: 6px 8px; word-break: break-all;
-    max-height: 60px; overflow-y: auto; margin-top: 4px;
+    font-family: monospace; font-size: 12px; background: #f0f0f0;
+    border-radius: 7px; padding: 8px 10px; word-break: break-all;
+    max-height: 80px; overflow-y: auto;
 }
 
-/* Footer */
+/* Barra de botões do fundo */
 .mov-modal-footer {
-    display: flex; gap: 10px; padding: 10px 18px;
+    display: flex; gap: 10px; padding: 12px 20px;
     background: #ececec; border-top: 1px solid #ddd;
-    flex-shrink: 0; flex-wrap: wrap; align-items: center;
+    flex-shrink: 0; flex-wrap: wrap;
 }
-.mov-status { flex: 1; font-size: 13px; color: #555; min-width: 100px; }
+.mov-status {
+    flex: 1; font-size: 13px; color: #555; align-self: center;
+    min-width: 120px;
+}
 </style>
 
 <div class="mov-modal-overlay" id="movModal">
@@ -724,133 +642,47 @@ fetch('/state').then(r => r.json()).then(applyState);
               style="background:none;border:none;color:white;font-size:22px;cursor:pointer;">✕</button>
     </div>
 
-    <div class="mov-modal-body">
+    <div class="mov-modal-body" id="movModalBody">
 
-      <!-- COLUNA ESQUERDA: configurações -->
-      <div class="mov-col-left">
+      <!-- Área dos gráficos -->
+      <div id="movGraficos">
+        <span id="movGraficosMsg">A carregar gráficos...</span>
+      </div>
 
-        <!-- ── BATIMENTO CARDÍACO (Curva 1 → Elipse) ── -->
-        <div class="mov-section">
-          <h3>Curva 1 — Elipse Rotacionada</h3>
-          <div class="mov-fields">
-            <div class="mov-field"><label>Semi-eixo maior (a)</label><input type="number" step="0.1" id="c1_a"></div>
-            <div class="mov-field"><label>Semi-eixo menor (b)</label><input type="number" step="0.1" id="c1_b"></div>
-            <div class="mov-field"><label>Centro X (xc)</label><input type="number" step="0.1" id="c1_xc"></div>
-            <div class="mov-field"><label>Centro Y (yc)</label><input type="number" step="0.1" id="c1_yc"></div>
-            <div class="mov-field"><label>Rotação α (°)</label><input type="number" step="1" id="c1_alpha_deg"></div>
-            <div class="mov-field"><label>Nº pontos</label><input type="number" step="1" min="2" id="c1_n_pontos"></div>
-            <div class="mov-field"><label>Sentido</label>
-              <select id="c1_sentido">
-                <option value="ccw">CCW (anti-horário)</option>
-                <option value="cw">CW (horário)</option>
-              </select>
-            </div>
+      <!-- Parâmetros Curva 1 -->
+      <div class="mov-section">
+        <h3>Curva 1 — Elipse Rotacionada</h3>
+        <div class="mov-fields">
+          <div class="mov-field"><label>Semi-eixo maior (a)</label><input type="number" step="0.1" id="c1_a"></div>
+          <div class="mov-field"><label>Semi-eixo menor (b)</label><input type="number" step="0.1" id="c1_b"></div>
+          <div class="mov-field"><label>Centro X (xc)</label><input type="number" step="0.1" id="c1_xc"></div>
+          <div class="mov-field"><label>Centro Y (yc)</label><input type="number" step="0.1" id="c1_yc"></div>
+          <div class="mov-field"><label>Rotação α (graus)</label><input type="number" step="1" id="c1_alpha_deg"></div>
+          <div class="mov-field"><label>Nº pontos passagem</label><input type="number" step="1" min="2" id="c1_n_pontos"></div>
+          <div class="mov-field"><label>Sentido</label>
+            <select id="c1_sentido">
+              <option value="ccw">CCW (anti-horário)</option>
+              <option value="cw">CW (horário)</option>
+            </select>
           </div>
         </div>
+      </div>
 
-        <div class="mov-section">
-          <h3>Batimento Cardíaco</h3>
-          <div class="mov-fields">
-            <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="batimento_periodo"></div>
-            <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="batimento_espera_inicio"></div>
-            <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="batimento_espera_fim"></div>
-            <div class="mov-field"><label>Ponto de início</label><input type="number" step="1" min="0" id="batimento_ponto_inicio"></div>
-          </div>
-          <div style="margin-top:6px;font-size:11px;color:#666">Pontos calculados:</div>
-          <div class="mov-points" id="batimento_pts_x"><b>X:</b> —</div>
-          <div class="mov-points" id="batimento_pts_y"><b>Y:</b> —</div>
-          <div class="mov-points" id="batimento_pts_z"><b>Z:</b> —</div>
+      <!-- Parâmetros Curva 2 -->
+      <div class="mov-section">
+        <h3>Curva 2 — Parábola (plano ZX)</h3>
+        <div class="mov-fields">
+          <div class="mov-field"><label>Altura máx. Z</label><input type="number" step="0.5" id="c2_altura"></div>
+          <div class="mov-field"><label>Largura máx. X</label><input type="number" step="0.5" id="c2_largura"></div>
+          <div class="mov-field"><label>Nº pontos passagem</label><input type="number" step="1" min="2" id="c2_n_pontos"></div>
+          <div class="mov-field"><label>Inclinação θ (graus)</label><input type="number" step="1" id="c2_theta_deg"></div>
         </div>
+      </div>
 
-        <!-- ── RESPIRAÇÃO (Curva 2 → Parábola) ── -->
-        <div class="mov-section">
-          <h3>Curva 2 — Parábola (plano ZX)</h3>
-          <div class="mov-fields">
-            <div class="mov-field"><label>Altura máx. Z</label><input type="number" step="0.5" id="c2_altura"></div>
-            <div class="mov-field"><label>Largura máx. X</label><input type="number" step="0.5" id="c2_largura"></div>
-            <div class="mov-field"><label>Nº pontos</label><input type="number" step="1" min="2" id="c2_n_pontos"></div>
-            <div class="mov-field"><label>Inclinação θ (°)</label><input type="number" step="1" id="c2_theta_deg"></div>
-          </div>
-        </div>
-
-        <div class="mov-section">
-          <h3>Respiração</h3>
-          <div class="mov-fields">
-            <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="respiracao_periodo"></div>
-            <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="respiracao_espera_inicio"></div>
-            <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="respiracao_espera_fim"></div>
-            <div class="mov-field"><label>Ponto de início</label><input type="number" step="1" min="0" id="respiracao_ponto_inicio"></div>
-          </div>
-          <div style="margin-top:6px;font-size:11px;color:#666">Pontos calculados:</div>
-          <div class="mov-points" id="respiracao_pts_x"><b>X:</b> —</div>
-          <div class="mov-points" id="respiracao_pts_y"><b>Y:</b> —</div>
-          <div class="mov-points" id="respiracao_pts_z"><b>Z:</b> —</div>
-        </div>
-
-        <!-- ── TOSSE (Curva 3 → Circunferência + tempos da respiração acelerada) ── -->
-        <div class="mov-section">
-          <h3>Curva 3 — Circunferência (Vibração da Tosse)</h3>
-          <div class="mov-fields">
-            <div class="mov-field"><label>Raio</label><input type="number" step="0.1" min="0.1" id="c3_raio"></div>
-            <div class="mov-field"><label>Nº pontos</label><input type="number" step="1" min="2" id="c3_n_pontos"></div>
-            <div class="mov-field"><label>Sentido</label>
-              <select id="c3_sentido">
-                <option value="ccw">CCW (anti-horário)</option>
-                <option value="cw">CW (horário)</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="mov-section">
-          <h3>Vibração da Tosse</h3>
-          <div class="mov-fields">
-            <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="vibracao_tosse_periodo"></div>
-            <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="vibracao_tosse_espera_inicio"></div>
-            <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="vibracao_tosse_espera_fim"></div>
-            <div class="mov-field"><label>Ponto de início</label><input type="number" step="1" min="0" id="vibracao_tosse_ponto_inicio"></div>
-          </div>
-          <div style="margin-top:6px;font-size:11px;color:#666">Pontos calculados:</div>
-          <div class="mov-points" id="vibracao_tosse_pts_x"><b>X:</b> —</div>
-          <div class="mov-points" id="vibracao_tosse_pts_y"><b>Y:</b> —</div>
-          <div class="mov-points" id="vibracao_tosse_pts_z"><b>Z:</b> —</div>
-        </div>
-
-        <div class="mov-section">
-          <h3>Tosse (respiração acelerada)</h3>
-          <div class="mov-fields">
-            <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="tosse_periodo"></div>
-            <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="tosse_espera_inicio"></div>
-            <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="tosse_espera_fim"></div>
-            <div class="mov-field"><label>Ponto de início</label><input type="number" step="1" min="0" id="tosse_ponto_inicio"></div>
-          </div>
-          <div style="margin-top:6px;font-size:11px;color:#666">Pontos calculados:</div>
-          <div class="mov-points" id="tosse_pts_x"><b>X:</b> —</div>
-          <div class="mov-points" id="tosse_pts_y"><b>Y:</b> —</div>
-          <div class="mov-points" id="tosse_pts_z"><b>Z:</b> —</div>
-        </div>
-
-      </div><!-- /col-left -->
-
-      <!-- COLUNA DIREITA: 3 pares de gráficos — um por curva -->
-      <div class="mov-col-right" id="movColRight">
-
-        <div class="mov-grafico-pair" id="graf_batimento">
-          <h3>Batimento Cardíaco — 2D e 3D (Curva 1)</h3>
-          <div class="mov-grafico-placeholder" id="graf_batimento_ph">A calcular...</div>
-        </div>
-
-        <div class="mov-grafico-pair" id="graf_respiracao">
-          <h3>Respiração — 2D e 3D (Curva 2)</h3>
-          <div class="mov-grafico-placeholder" id="graf_respiracao_ph">A calcular...</div>
-        </div>
-
-        <div class="mov-grafico-pair" id="graf_tosse_vibracao">
-          <h3>Tosse / Vibrações — 2D e 3D (Curva 3)</h3>
-          <div class="mov-grafico-placeholder" id="graf_tosse_vibracao_ph">A calcular...</div>
-        </div>
-
-      </div><!-- /col-right -->
+      <!-- Parâmetros por movimento -->
+      <div id="movParamsSections">
+        <!-- gerado por JS para cada movimento: respiração, batimento, tosse -->
+      </div>
 
     </div><!-- /mov-modal-body -->
 
@@ -866,21 +698,17 @@ fetch('/state').then(r => r.json()).then(applyState);
 </div>
 
 <script>
+// -----------------------------------------------------------------------
+// Configurações Movimentos — lógica do modal
+// -----------------------------------------------------------------------
+
 let _movConfig = {};
 
-const MOV_CHAVES = ['respiracao', 'batimento', 'tosse', 'vibracao_tosse'];
+const MOV_CHAVES = ['respiracao', 'batimento', 'tosse'];
 const MOV_LABELS = {
-    respiracao:     'Respiração',
-    batimento:      'Batimento Cardíaco',
-    tosse:          'Tosse',
-    vibracao_tosse: 'Vibração Tosse',
-};
-
-// mapeamento: qual gráfico (c1 ou c2) corresponde a cada movimento
-const MOV_CURVA = {
-    respiracao: 'c1',
-    batimento:  'c1',
-    tosse:      'c2',
+    respiracao: 'Respiração',
+    batimento:  'Batimento Cardíaco',
+    tosse:      'Tosse',
 };
 
 function openMovementsModal() {
@@ -892,6 +720,7 @@ function closeMovementsModal() {
     document.getElementById('movModal').style.display = 'none';
 }
 
+// fecha ao clicar fora do card
 document.getElementById('movModal').addEventListener('click', function(e) {
     if (e.target === this) closeMovementsModal();
 });
@@ -910,7 +739,7 @@ function movCarregarConfig() {
             _movConfig = config;
             movPreencherCampos(config);
             movCriarSeccoesMovimentos(config);
-            movCalcular();
+            movCalcular();   // gera os gráficos logo ao abrir
             movSetStatus('Configurações carregadas.', '#28a745');
         })
         .catch(() => movSetStatus('Erro ao carregar configurações.', '#d9534f'));
@@ -919,44 +748,48 @@ function movCarregarConfig() {
 function movPreencherCampos(config) {
     const c1 = config.curva1 || {};
     const c2 = config.curva2 || {};
-    const c3 = config.curva3 || {};
-    const set = (id, val) => {
-        const el = document.getElementById(id);
-        if (el && val !== undefined) el.value = val;
-    };
-    // curvas
+    const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; };
     set('c1_a', c1.a); set('c1_b', c1.b); set('c1_xc', c1.xc); set('c1_yc', c1.yc);
-    set('c1_alpha_deg', c1.alpha_deg); set('c1_n_pontos', c1.n_pontos);
-    set('c1_sentido', c1.sentido);
+    set('c1_alpha_deg', c1.alpha_deg); set('c1_n_pontos', c1.n_pontos); set('c1_sentido', c1.sentido);
     set('c2_altura', c2.altura); set('c2_largura', c2.largura);
     set('c2_n_pontos', c2.n_pontos); set('c2_theta_deg', c2.theta_deg);
-    set('c3_raio', c3.raio); set('c3_n_pontos', c3.n_pontos);
-    set('c3_sentido', c3.sentido);
-    // movimentos
-    ['batimento', 'respiracao', 'vibracao_tosse', 'tosse'].forEach(chave => {
-        const m = config[chave] || {};
-        set(`${chave}_periodo`,       m.periodo);
-        set(`${chave}_espera_inicio`, m.espera_inicio);
-        set(`${chave}_espera_fim`,    m.espera_fim);
-        set(`${chave}_ponto_inicio`,  m.ponto_inicio);
-        // pontos calculados guardados
-        const fmt = arr => (arr || []).map(v => (+v).toFixed(3)).join(', ');
-        const upd = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
-        upd(`${chave}_pts_x`, `<b>X:</b> ${fmt(m.pontos_x) || '—'}`);
-        upd(`${chave}_pts_y`, `<b>Y:</b> ${fmt(m.pontos_y) || '—'}`);
-        upd(`${chave}_pts_z`, `<b>Z:</b> ${fmt(m.pontos_z) || '—'}`);
-    });
 }
 
 function movCriarSeccoesMovimentos(config) {
-    // HTML já é estático — só preenche os valores via movPreencherCampos
-    movPreencherCampos(config);
+    const container = document.getElementById('movParamsSections');
+    container.innerHTML = '';
+    MOV_CHAVES.forEach(chave => {
+        const m = config[chave] || {};
+        const label = MOV_LABELS[chave] || chave;
+        const px = (m.pontos_x || []).map(v => v.toFixed(3)).join(', ');
+        const py = (m.pontos_y || []).map(v => v.toFixed(3)).join(', ');
+        const pz = (m.pontos_z || []).map(v => v.toFixed(3)).join(', ');
+        container.innerHTML += `
+        <div class="mov-section">
+          <h3>${label}</h3>
+          <div class="mov-fields">
+            <div class="mov-field"><label>Período (s)</label>
+              <input type="number" step="0.1" min="0" id="${chave}_periodo" value="${m.periodo ?? ''}"></div>
+            <div class="mov-field"><label>Espera início (s)</label>
+              <input type="number" step="0.1" min="0" id="${chave}_espera_inicio" value="${m.espera_inicio ?? ''}"></div>
+            <div class="mov-field"><label>Espera fim (s)</label>
+              <input type="number" step="0.1" min="0" id="${chave}_espera_fim" value="${m.espera_fim ?? ''}"></div>
+            <div class="mov-field"><label>Ponto de início</label>
+              <input type="number" step="1" min="0" id="${chave}_ponto_inicio" value="${m.ponto_inicio ?? 0}"></div>
+          </div>
+          <div style="margin-top:8px; font-size:12px; color:#555">Pontos calculados:</div>
+          <div class="mov-points" id="${chave}_pts_x"><b>X:</b> ${px || '—'}</div>
+          <div class="mov-points" id="${chave}_pts_y"><b>Y:</b> ${py || '—'}</div>
+          <div class="mov-points" id="${chave}_pts_z"><b>Z:</b> ${pz || '—'}</div>
+        </div>`;
+    });
 }
 
 function movLerCampos() {
     const num = id => parseFloat(document.getElementById(id)?.value) || 0;
     const int = id => parseInt(document.getElementById(id)?.value)   || 0;
     const str = id => document.getElementById(id)?.value || '';
+
     const data = {
         curva1: {
             a: num('c1_a'), b: num('c1_b'), xc: num('c1_xc'), yc: num('c1_yc'),
@@ -966,10 +799,6 @@ function movLerCampos() {
         curva2: {
             altura: num('c2_altura'), largura: num('c2_largura'),
             n_pontos: int('c2_n_pontos'), theta_deg: num('c2_theta_deg'),
-        },
-        curva3: {
-            raio: num('c3_raio'), n_pontos: int('c3_n_pontos'),
-            sentido: str('c3_sentido'),
         },
     };
     MOV_CHAVES.forEach(chave => {
@@ -985,14 +814,8 @@ function movLerCampos() {
 
 function movCalcular() {
     movSetStatus('A calcular...', '#b8860b');
-
-    // mostra "a calcular" em todos os placeholders
-    ['batimento', 'respiracao', 'tosse_vibracao'].forEach(id => {
-        const ph = document.getElementById(`graf_${id}_ph`);
-        if (ph) ph.innerHTML = '⏳ A calcular...';
-        const container = document.getElementById(`graf_${id}`);
-        if (container) container.querySelectorAll('img').forEach(i => i.remove());
-    });
+    document.getElementById('movGraficos').innerHTML =
+        '<span id="movGraficosMsg" style="color:#888">A gerar gráficos...</span>';
 
     fetch('/movements/calcular', {
         method: 'POST',
@@ -1001,67 +824,26 @@ function movCalcular() {
     })
     .then(r => r.json())
     .then(res => {
-        if (!res.ok) {
-            movSetStatus('Erro: ' + (res.error || 'desconhecido'), '#d9534f');
-            return;
+        if (res.ok) {
+            document.getElementById('movGraficos').innerHTML =
+                `<img src="${res.img}" alt="Gráficos de movimentos" style="max-width:100%">`;
+            // actualiza pontos nas secções
+            MOV_CHAVES.forEach((chave, i) => {
+                const pts = i === 0 ? res.pontos_c1 : res.pontos_c2;
+                const fmt = arr => arr.map(v => v.toFixed(3)).join(', ');
+                const upd = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val; };
+                upd(`${chave}_pts_x`, `<b>X:</b> ${fmt(pts.x)}`);
+                upd(`${chave}_pts_y`, `<b>Y:</b> ${fmt(pts.y)}`);
+                upd(`${chave}_pts_z`, `<b>Z:</b> ${fmt(pts.z)}`);
+            });
+            movSetStatus('Cálculo concluído.', '#28a745');
+        } else {
+            document.getElementById('movGraficos').innerHTML =
+                `<span style="color:#d9534f; padding:16px">${res.error || 'Erro no cálculo.'}</span>`;
+            movSetStatus('Erro no cálculo.', '#d9534f');
         }
-
-        // cada gráfico devolvido separadamente
-        // 3 pares de gráficos — um por curva
-        const grafMap = res.graficos || {};
-        _movAtualizarGrafico('batimento',      grafMap.c1_2d,             grafMap.c1_3d);
-        _movAtualizarGrafico('respiracao',     grafMap.tosse_2d,          grafMap.tosse_3d);
-        _movAtualizarGrafico('tosse_vibracao', grafMap.vibracao_tosse_2d, grafMap.vibracao_tosse_3d);
-
-        // atualiza pontos nas secções de texto
-        if (res.pontos_c1) _movAtualizarPontos('batimento',      res.pontos_c1);
-        if (res.pontos_c2) _movAtualizarPontos('respiracao',     res.pontos_c2);
-        if (res.pontos_c3) _movAtualizarPontos('vibracao_tosse', res.pontos_c3);
-        if (res.pontos_c2) _movAtualizarPontos('tosse',          res.pontos_c2);
-
-        movSetStatus('Cálculo concluído ✓', '#28a745');
     })
-    .catch(e => movSetStatus('Erro de comunicação: ' + e, '#d9534f'));
-}
-
-function _movAtualizarGrafico(secId, img2d, img3d) {
-    const container = document.getElementById(`graf_${secId}`);
-    const ph        = document.getElementById(`graf_${secId}_ph`);
-    if (!container) return;
-
-    if (img2d || img3d) {
-        if (ph) ph.style.display = 'none';
-        // remove imagens antigas antes de adicionar novas
-        container.querySelectorAll('img').forEach(i => i.remove());
-        const wrapper = document.createElement('div');
-        wrapper.style.cssText = 'display:grid; grid-template-columns:1fr 1fr; gap:6px;';
-        if (img2d) {
-            const i = document.createElement('img');
-            i.src = img2d; i.alt = '2D';
-            i.style.cssText = 'width:100%; border-radius:6px;';
-            wrapper.appendChild(i);
-        }
-        if (img3d) {
-            const i = document.createElement('img');
-            i.src = img3d; i.alt = '3D';
-            i.style.cssText = 'width:100%; border-radius:6px;';
-            wrapper.appendChild(i);
-        }
-        container.appendChild(wrapper);
-    } else {
-        if (ph) ph.innerHTML = '—';
-    }
-}
-
-function _movAtualizarPontos(chave, pts) {
-    const fmt = arr => (arr || []).map(v => (+v).toFixed(3)).join(', ');
-    const upd = (id, html) => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = html;
-    };
-    upd(`${chave}_pts_x`, `<b>X:</b> ${fmt(pts.x)}`);
-    upd(`${chave}_pts_y`, `<b>Y:</b> ${fmt(pts.y)}`);
-    upd(`${chave}_pts_z`, `<b>Z:</b> ${fmt(pts.z)}`);
+    .catch(() => movSetStatus('Erro de comunicação.', '#d9534f'));
 }
 
 function movRecarregarESP() {
@@ -1073,25 +855,23 @@ function movRecarregarESP() {
                 _movConfig = res.config || _movConfig;
                 movPreencherCampos(_movConfig);
                 movCriarSeccoesMovimentos(_movConfig);
-                movSetStatus('Dados do ESP32 carregados ✓', '#28a745');
+                movSetStatus('Dados do ESP32 carregados.', '#28a745');
             } else {
-                movSetStatus('Erro: ' + (res.error || (res.erros || []).join(', ')), '#d9534f');
+                movSetStatus('Erro: ' + (res.error || res.erros?.join(', ')), '#d9534f');
             }
         })
         .catch(() => movSetStatus('Sem resposta do ESP32.', '#d9534f'));
 }
 
 function movGuardar() {
+    const data = movLerCampos();
     fetch('/movements/config', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(movLerCampos()),
+        body: JSON.stringify(data),
     })
     .then(r => r.json())
-    .then(res => movSetStatus(
-        res.ok ? 'Guardado ✓' : 'Erro ao guardar.',
-        res.ok ? '#28a745' : '#d9534f'
-    ))
+    .then(res => movSetStatus(res.ok ? 'Guardado ✓' : 'Erro ao guardar.', res.ok ? '#28a745' : '#d9534f'))
     .catch(() => movSetStatus('Erro ao guardar.', '#d9534f'));
 }
 </script>

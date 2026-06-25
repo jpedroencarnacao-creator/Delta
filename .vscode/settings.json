@@ -1,5 +1,6 @@
 {
-    "python.defaultInterpreterPath": "python",
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "python.defaultInterpreterPath": "C:\\Users\\jpedr\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
     "python.analysis.extraPaths": [
         "${workspaceFolder}/Python_CODE"
     ],
