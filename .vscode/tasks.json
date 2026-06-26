@@ -1,0 +1,28 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Check Codex",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-lc",
+                "cd \"${workspaceFolder}/Agentes/Codex\" && ./start_codex.sh check 2>&1 | tee \"${workspaceFolder}/.vscode/codex.log\""
+            ],
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        }
+    ]
+}

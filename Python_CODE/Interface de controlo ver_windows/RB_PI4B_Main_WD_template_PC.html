@@ -95,6 +95,7 @@ body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text)
                     box-shadow: 0 0 0 2px white, 0 0 0 4px black; }
 .btn-ctrl.gray    { background: var(--gray); }
 .btn-ctrl.blue    { background: var(--accent); }
+.btn-ctrl.green   { background: var(--green-on); }
 .btn-ctrl.scroll-btn { background: #e0e0e0; color: #555; }
 .btn-ctrl.scroll-btn.active { background: var(--accent); color: white; }
 
@@ -104,6 +105,7 @@ body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text)
     background: rgba(0,0,0,.45);
     align-items: center; justify-content: center; z-index: 1000;
 }
+.modal-overlay.keyboard-open { align-items: flex-start; padding-top: 34px; }
 .modal-card {
     background: white; border-radius: 16px; padding: 24px;
     box-shadow: 0 18px 50px rgba(0,0,0,.25);
@@ -113,6 +115,68 @@ body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text)
     width: 100%; padding: 10px; border: 1px solid #ccc;
     border-radius: 8px; font-size: 16px; margin: 10px 0;
 }
+
+/* Teclado numerico */
+.numeric-keypad {
+    display: none; background: #ffffff; border: 1px solid #cfcfcf;
+    border-radius: 12px; box-shadow: 0 14px 40px rgba(0,0,0,.28);
+    padding: 10px; gap: 8px;
+}
+.numeric-keypad.visible { display: flex; flex-direction: column; }
+.numeric-keypad.bottom {
+    position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+    width: min(760px, calc(100vw - 28px)); z-index: 1600;
+}
+.numeric-keypad.side {
+    position: absolute; top: 14px; right: 14px;
+    width: min(280px, calc(100% - 28px)); z-index: 10;
+}
+.numeric-keypad.client-inline {
+    position: fixed; left: 24px; top: 50%; transform: translateY(-50%);
+    width: 300px; max-width: calc(100vw - 48px);
+    border-radius: 12px; z-index: 3600;
+    box-shadow: 0 16px 42px rgba(0,0,0,.28);
+}
+.keypad-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    font-size: 13px; font-weight: bold; color: #4a4a4a;
+}
+.keypad-close {
+    border: none; border-radius: 7px; padding: 7px 10px; cursor: pointer;
+    background: #6c757d; color: white; font-weight: bold;
+}
+.keypad-display {
+    min-height: 34px; padding: 8px 10px; border-radius: 8px;
+    border: 1px solid #ddd; background: #f7f7f7; font-family: monospace;
+    font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    flex: 1;
+}
+.keypad-input-row {
+    display: flex; align-items: stretch; gap: 8px;
+}
+.keypad-cursor {
+    display: inline-block; width: 2px; height: 1.1em; margin-left: 2px;
+    background: #222; vertical-align: -0.15em; animation: keypadBlink 1s steps(1) infinite;
+}
+@keyframes keypadBlink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+}
+.keypad-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px;
+}
+.keypad-grid.full {
+    grid-template-columns: repeat(10, 1fr);
+}
+.keypad-key.wide { grid-column: span 2; }
+.keypad-key.space { grid-column: span 4; }
+.keypad-key {
+    min-height: 44px; border: none; border-radius: 8px; cursor: pointer;
+    font-size: 18px; font-weight: bold; background: #e9ecef; color: #222;
+}
+.keypad-key.action { background: #d7e6f7; color: #225a8a; }
+.keypad-key.ok { background: #28a745; color: white; }
+.keypad-key.danger { background: #d9534f; color: white; }
 
 body { padding: 12px; height: 100vh; overflow: hidden; }
 .layout { display: flex; gap: 12px; height: calc(100vh - 24px); }
@@ -188,7 +252,7 @@ hr { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
         <button class="conn-indicator conn-off" onclick="onConnClick(this)" title="Desligado">🔗</button>
         <div class="conn-menu" id="connMenu">
           <button class="btn-ctrl blue" onclick="sendAction('serial_reconnect'); closeConnMenu();">Tentar reconectar</button>
-          <button class="btn-ctrl danger" onclick="sendAction('serial_disconnect'); closeConnMenu();">Desligar COM</button>
+          <button class="btn-ctrl danger" onclick="sendAction('serial_disconnect'); closeConnMenu();">Desligar série</button>
         </div>
       </div>
     </div>
@@ -254,15 +318,15 @@ hr { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
       <hr>
       <!-- Menu principal das definições -->
       <div id="defMenu">
-        <button class="btn-settings-item" onclick="showSubpanel('comSubpanel')">🔌 Porta COM</button>
+        <button class="btn-settings-item" onclick="showSubpanel('comSubpanel')">🔌 Porta série</button>
         <button class="btn-settings-item" onclick="showSubpanel('redeSubpanel')">📶 Rede</button>
         <button class="btn-settings-item" onclick="showSubpanel('configSubpanel')">⚙ Configurações</button>
       </div>
     </div>
 
-    <!-- Subpainel: Porta COM -->
+    <!-- Subpainel: Porta série -->
     <div id="comSubpanel" class="subpanel hidden">
-      <strong style="font-size:13px">Portas COM disponíveis</strong>
+      <strong style="font-size:13px">Portas série disponíveis</strong>
       <div id="comList" style="margin-top:6px; font-size:12px">A procurar...</div>
     </div>
 
@@ -294,11 +358,67 @@ hr { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
     <h3 style="margin-bottom:8px">Acesso DEV</h3>
     <p>Introduza a password DEV:</p>
     <input id="passwordInput" type="password" placeholder="Password"
-           inputmode="text" autocomplete="current-password">
+           inputmode="none" autocomplete="current-password" readonly>
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px">
-      <button class="btn-ctrl gray" onclick="document.getElementById('passwordModal').style.display='none'">Cancelar</button>
+      <button class="btn-ctrl gray" onclick="document.getElementById('passwordModal').style.display='none'; hideNumericKeypad()">Cancelar</button>
       <button class="btn-ctrl blue" onclick="confirmPassword()">Entrar</button>
     </div>
+  </div>
+</div>
+
+<div class="numeric-keypad bottom" id="passwordKeypad">
+  <div class="keypad-head">
+    <span>Teclado</span>
+    <button class="keypad-close" type="button" onclick="hideNumericKeypad()">Fechar</button>
+  </div>
+  <div class="keypad-input-row">
+    <div class="keypad-display" id="passwordKeypadDisplay"></div>
+    <button class="keypad-key action" type="button" onclick="keypadBackspace()">⌫</button>
+  </div>
+  <div class="keypad-grid full">
+    <button class="keypad-key" type="button" onclick="keypadPress('1')">1</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('2')">2</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('3')">3</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('4')">4</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('5')">5</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('6')">6</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('7')">7</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('8')">8</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('9')">9</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('0')">0</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('q')">q</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('w')">w</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('e')">e</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('r')">r</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('t')">t</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('y')">y</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('u')">u</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('i')">i</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('o')">o</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('p')">p</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('a')">a</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('s')">s</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('d')">d</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('f')">f</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('g')">g</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('h')">h</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('j')">j</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('k')">k</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('l')">l</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('z')">z</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('x')">x</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('c')">c</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('v')">v</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('b')">b</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('n')">n</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('m')">m</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('@')">@</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('_')">_</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('-')">-</button>
+    <button class="keypad-key danger wide" type="button" onclick="keypadClear()">Limpar</button>
+    <button class="keypad-key space" type="button" onclick="keypadPress(' ')">Espaço</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('.')">.</button>
+    <button class="keypad-key ok wide" type="button" onclick="confirmPassword()">OK</button>
   </div>
 </div>
 
@@ -345,7 +465,12 @@ hr { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script>
-const socket = io();
+const socket = window.io ? io() : { on: () => {} };
+if (!window.io) {
+    setInterval(() => {
+        fetch('/state').then(r => r.json()).then(applyState).catch(() => {});
+    }, 1000);
+}
 
 // recebe atualização completa de estado
 socket.on('state_update', (s) => {
@@ -478,6 +603,136 @@ function closeWindowAfterShutdown() {
     }, 700);
 }
 
+let activeKeypadInput = null;
+let activeKeypadKind = null;
+
+function keypadDisplayEl() {
+    if (activeKeypadKind === 'password') return document.getElementById('passwordKeypadDisplay');
+    if (activeKeypadKind === 'movement') return document.getElementById('movementKeypadDisplay');
+    if (activeKeypadKind === 'clientMovement') return document.getElementById('clientMovementKeypadDisplay');
+    return null;
+}
+
+function escapeKeypadText(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function updateKeypadDisplay() {
+    const display = keypadDisplayEl();
+    if (!display || !activeKeypadInput) return;
+    const value = activeKeypadInput.type === 'password'
+        ? '•'.repeat(activeKeypadInput.value.length)
+        : (activeKeypadInput.value || '—');
+    display.innerHTML = `${escapeKeypadText(value)}<span class="keypad-cursor"></span>`;
+}
+
+function showNumericKeypad(input, kind) {
+    activeKeypadInput = input;
+    activeKeypadKind = kind;
+    if (typeof input.focus === 'function') input.focus({preventScroll: true});
+    document.getElementById('passwordKeypad').classList.toggle('visible', kind === 'password');
+    document.getElementById('movementKeypad').classList.toggle('visible', kind === 'movement');
+    document.getElementById('clientMovementKeypad').classList.toggle('visible', kind === 'clientMovement');
+    document.getElementById('passwordModal').classList.toggle('keyboard-open', kind === 'password');
+
+    if (kind === 'movement' || kind === 'clientMovement') {
+        const label = input.closest('.mov-field, .client-mov-field')?.querySelector('label')?.textContent || 'Valor numérico';
+        const titleId = kind === 'clientMovement' ? 'clientMovementKeypadTitle' : 'movementKeypadTitle';
+        document.getElementById(titleId).textContent = label;
+    }
+    updateKeypadDisplay();
+}
+
+function hideNumericKeypad() {
+    document.getElementById('passwordKeypad').classList.remove('visible');
+    document.getElementById('movementKeypad').classList.remove('visible');
+    document.getElementById('clientMovementKeypad').classList.remove('visible');
+    document.getElementById('passwordModal').classList.remove('keyboard-open');
+    activeKeypadInput = null;
+    activeKeypadKind = null;
+}
+
+function keypadPress(value) {
+    if (!activeKeypadInput) return;
+    let current = activeKeypadInput.value || '';
+    if (activeKeypadKind === 'movement' || activeKeypadKind === 'clientMovement') {
+        if (value === '.' && current.includes('.')) return;
+        if (value === '-' && (current.includes('-') || current.length > 0)) return;
+    }
+    activeKeypadInput.value = current + value;
+    activeKeypadInput.dispatchEvent(new Event('input', {bubbles: true}));
+    updateKeypadDisplay();
+}
+
+function keypadCanAccept(value) {
+    if (!activeKeypadInput) return false;
+    if (activeKeypadKind === 'movement' || activeKeypadKind === 'clientMovement') {
+        const current = activeKeypadInput.value || '';
+        if (!/^[0-9.\-]$/.test(value)) return false;
+        if (value === '.' && current.includes('.')) return false;
+        if (value === '-' && (current.includes('-') || current.length > 0)) return false;
+    }
+    return value.length === 1;
+}
+
+function keypadBackspace() {
+    if (!activeKeypadInput) return;
+    activeKeypadInput.value = activeKeypadInput.value.slice(0, -1);
+    activeKeypadInput.dispatchEvent(new Event('input', {bubbles: true}));
+    updateKeypadDisplay();
+}
+
+function keypadClear() {
+    if (!activeKeypadInput) return;
+    activeKeypadInput.value = '';
+    activeKeypadInput.dispatchEvent(new Event('input', {bubbles: true}));
+    updateKeypadDisplay();
+}
+
+document.addEventListener('keydown', function(e) {
+    if (!activeKeypadInput || !activeKeypadKind) return;
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
+
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        hideNumericKeypad();
+        return;
+    }
+    if (e.key === 'Backspace') {
+        e.preventDefault();
+        keypadBackspace();
+        return;
+    }
+    if (e.key === 'Delete') {
+        e.preventDefault();
+        keypadClear();
+        return;
+    }
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        if (activeKeypadKind === 'password') confirmPassword();
+        else hideNumericKeypad();
+        return;
+    }
+    if (keypadCanAccept(e.key)) {
+        e.preventDefault();
+        keypadPress(e.key);
+    }
+});
+
+document.addEventListener('pointerdown', function(e) {
+    if (!activeKeypadKind) return;
+    const visibleKeypad = document.querySelector('.numeric-keypad.visible');
+    if (!visibleKeypad) return;
+    const clickedInput = activeKeypadInput && activeKeypadInput.contains(e.target);
+    if (!visibleKeypad.contains(e.target) && !clickedInput) hideNumericKeypad();
+});
+
 function onModeBtn() {
     const isDev = document.getElementById('modeBtn')
                     .classList.contains('dev');
@@ -486,7 +741,7 @@ function onModeBtn() {
     } else {
         document.getElementById('passwordModal').style.display = 'flex';
         document.getElementById('passwordInput').value = '';
-        document.getElementById('passwordInput').focus();
+        showNumericKeypad(document.getElementById('passwordInput'), 'password');
     }
 }
 
@@ -494,6 +749,7 @@ function confirmPassword() {
     const pw = document.getElementById('passwordInput').value;
     sendAction('toggle_devmode', {password: pw});
     document.getElementById('passwordModal').style.display = 'none';
+    hideNumericKeypad();
 }
 
 function openModeDialog() {
@@ -651,6 +907,7 @@ fetch('/state').then(r => r.json()).then(applyState);
 }
 .mov-col-right {
     flex: 1; overflow-y: auto; padding: 14px 16px;
+    position: relative;
     display: flex; flex-direction: column; gap: 14px;
 }
 
@@ -708,9 +965,118 @@ fetch('/state').then(r => r.json()).then(applyState);
     flex-shrink: 0; flex-wrap: wrap; align-items: center;
 }
 .mov-status { flex: 1; font-size: 13px; color: #555; min-width: 100px; }
+
+.client-mov-modal .mov-modal-card { width: min(820px, 92vw); height: min(620px, 84vh); }
+.client-mov-body { display: grid; grid-template-columns: 190px 1fr; gap: 0; min-height: 0; flex: 1; position: relative; }
+.client-mov-nav {
+    background: #f0f0f0; border-right: 1px solid #ddd; padding: 14px;
+    display: flex; flex-direction: column; gap: 8px; position: relative;
+}
+.client-mov-tab {
+    border: 1px solid #cfcfcf; background: white; border-radius: 8px;
+    padding: 12px 10px; text-align: left; font-weight: bold; color: #333;
+    cursor: pointer; position: relative;
+}
+.client-mov-tab.active { border-color: #4a7c59; background: #e8f3eb; color: #2f5e3d; }
+.client-mov-tab.dirty::after {
+    content: ""; width: 9px; height: 9px; border-radius: 50%;
+    background: #d99a00; position: absolute; right: 10px; top: 13px;
+}
+.client-mov-panel { overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.client-mov-card {
+    background: white; border: 1px solid #ddd; border-radius: 10px;
+    padding: 14px 16px; display: flex; flex-direction: column; gap: 12px;
+}
+.client-mov-card.dirty { border-color: #d99a00; box-shadow: 0 0 0 2px rgba(217,154,0,.12); }
+.client-mov-card.clean { border-color: #cfd8cf; }
+.client-mov-card h3 { margin: 0; color: #4a7c59; font-size: 16px; }
+.client-mov-fields { display: grid; grid-template-columns: repeat(2, minmax(150px, 1fr)); gap: 10px; }
+.client-mov-field {
+    position: relative; border-radius: 9px; padding: 3px;
+}
+.client-mov-field label { display: block; font-size: 12px; color: #555; margin-bottom: 4px; }
+.client-mov-field input {
+    width: 100%; border: 1px solid #ccc; border-radius: 8px;
+    padding: 9px 10px; font-size: 15px; background: white;
+}
+.client-mov-field input.dirty {
+    border-color: #c98200;
+    box-shadow: 0 0 0 3px rgba(217,154,0,.28);
+    background: #fff4d8;
+}
+.client-mov-field.dirty {
+    background: rgba(217,154,0,.10);
+}
+.client-mov-field.dirty label { color: #9b6500; font-weight: bold; }
+.client-mov-hint { font-size: 12px; color: #777; min-height: 18px; }
+.client-mov-hint.dirty { color: #b27600; font-weight: bold; }
+.client-mov-hint.clean { color: #4a7c59; }
 </style>
 
-<div class="mov-modal-overlay" id="movModal">
+<div class="mov-modal-overlay client-mov-modal" id="movClientModal">
+  <div class="mov-modal-card">
+    <div class="mov-modal-header">
+      <h2>⚙ Configurações do Movimento</h2>
+      <button onclick="closeMovementsModal()"
+              style="background:none;border:none;color:white;font-size:22px;cursor:pointer;">✕</button>
+    </div>
+    <div class="client-mov-body">
+      <div class="client-mov-nav">
+        <button class="client-mov-tab active" data-client-mov-tab="batimento" onclick="clientMovSelect('batimento')">Batimento</button>
+        <button class="client-mov-tab" data-client-mov-tab="respiracao" onclick="clientMovSelect('respiracao')">Respiração</button>
+        <button class="client-mov-tab" data-client-mov-tab="tosse" onclick="clientMovSelect('tosse')">Tosse</button>
+      </div>
+      <div class="client-mov-panel">
+        <div class="client-mov-card clean" id="clientMovCard">
+          <h3 id="clientMovTitle">Batimento</h3>
+          <div class="client-mov-fields">
+            <div class="client-mov-field"><label>Tempo do ciclo (s)</label><input type="number" step="0.1" min="0" id="client_periodo"></div>
+            <div class="client-mov-field"><label>Espera inicial (s)</label><input type="number" step="0.1" min="0" id="client_espera_inicio"></div>
+            <div class="client-mov-field"><label>Espera final (s)</label><input type="number" step="0.1" min="0" id="client_espera_fim"></div>
+            <div class="client-mov-field"><label>Amplitude X</label><input type="number" step="0.1" min="0" id="client_amp_x"></div>
+            <div class="client-mov-field"><label>Amplitude Y</label><input type="number" step="0.1" min="0" id="client_amp_y"></div>
+          </div>
+          <div class="client-mov-hint clean" id="clientMovHint">Sem alterações.</div>
+        </div>
+      </div>
+    </div>
+    <div class="mov-modal-footer">
+      <span class="mov-status" id="clientMovStatus">—</span>
+      <button class="btn-ctrl gray" onclick="clientMovRestaurar()">Restaurar</button>
+      <button class="btn-ctrl blue" onclick="clientMovGuardar()">Guardar</button>
+      <button class="btn-ctrl green" onclick="clientMovEnviar()">Enviar</button>
+    </div>
+  </div>
+</div>
+
+<div class="numeric-keypad client-inline" id="clientMovementKeypad">
+  <div class="keypad-head">
+    <span id="clientMovementKeypadTitle">Valor numérico</span>
+    <button class="keypad-close" type="button" onclick="hideNumericKeypad()">Fechar</button>
+  </div>
+  <div class="keypad-input-row">
+    <div class="keypad-display" id="clientMovementKeypadDisplay"></div>
+    <button class="keypad-key action" type="button" onclick="keypadBackspace()">⌫</button>
+  </div>
+  <div class="keypad-grid">
+    <button class="keypad-key" type="button" onclick="keypadPress('1')">1</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('2')">2</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('3')">3</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('4')">4</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('5')">5</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('6')">6</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('7')">7</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('8')">8</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('9')">9</button>
+    <button class="keypad-key action" type="button" onclick="keypadPress('-')">−</button>
+    <button class="keypad-key" type="button" onclick="keypadPress('0')">0</button>
+    <button class="keypad-key action" type="button" onclick="keypadPress('.')">.</button>
+    <button class="keypad-key danger" type="button" onclick="keypadClear()">Limpar</button>
+    <button class="keypad-key ok" type="button" onclick="hideNumericKeypad()">OK</button>
+  </div>
+</div>
+
+<div class="mov-modal-overlay" id="movDevModal">
   <div class="mov-modal-card">
 
     <div class="mov-modal-header">
@@ -830,18 +1196,45 @@ fetch('/state').then(r => r.json()).then(applyState);
       <!-- COLUNA DIREITA: 3 pares de gráficos — um por curva -->
       <div class="mov-col-right" id="movColRight">
 
+        <div class="numeric-keypad side" id="movementKeypad">
+          <div class="keypad-head">
+            <span id="movementKeypadTitle">Valor numérico</span>
+            <button class="keypad-close" type="button" onclick="hideNumericKeypad()">Fechar</button>
+          </div>
+          <div class="keypad-input-row">
+            <div class="keypad-display" id="movementKeypadDisplay"></div>
+            <button class="keypad-key action" type="button" onclick="keypadBackspace()">⌫</button>
+          </div>
+          <div class="keypad-grid">
+            <button class="keypad-key" type="button" onclick="keypadPress('1')">1</button>
+            <button class="keypad-key" type="button" onclick="keypadPress('2')">2</button>
+            <button class="keypad-key" type="button" onclick="keypadPress('3')">3</button>
+            <button class="keypad-key" type="button" onclick="keypadPress('4')">4</button>
+            <button class="keypad-key" type="button" onclick="keypadPress('5')">5</button>
+            <button class="keypad-key" type="button" onclick="keypadPress('6')">6</button>
+            <button class="keypad-key" type="button" onclick="keypadPress('7')">7</button>
+            <button class="keypad-key" type="button" onclick="keypadPress('8')">8</button>
+            <button class="keypad-key" type="button" onclick="keypadPress('9')">9</button>
+            <button class="keypad-key action" type="button" onclick="keypadPress('-')">−</button>
+            <button class="keypad-key" type="button" onclick="keypadPress('0')">0</button>
+            <button class="keypad-key action" type="button" onclick="keypadPress('.')">.</button>
+            <button class="keypad-key danger" type="button" onclick="keypadClear()">Limpar</button>
+            <button class="keypad-key ok" type="button" onclick="hideNumericKeypad()">OK</button>
+          </div>
+        </div>
+
         <div class="mov-grafico-pair" id="graf_batimento">
-          <h3>Batimento Cardíaco — 2D e 3D (Curva 1)</h3>
+          <h3>Batimento Cardíaco — 3D e 2D (Curva 1)</h3>
           <div class="mov-grafico-placeholder" id="graf_batimento_ph">A calcular...</div>
         </div>
 
         <div class="mov-grafico-pair" id="graf_respiracao">
-          <h3>Respiração — 2D e 3D (Curva 2)</h3>
+          <h3>Respiração — 3D e 2D (Curva 2)</h3>
           <div class="mov-grafico-placeholder" id="graf_respiracao_ph">A calcular...</div>
         </div>
 
         <div class="mov-grafico-pair" id="graf_tosse_vibracao">
-          <h3>Tosse / Vibrações — 2D e 3D (Curva 3)</h3>
+          <h3>Tosse / Vibrações — 3D e 2D (Curva 3)</h3>
           <div class="mov-grafico-placeholder" id="graf_tosse_vibracao_ph">A calcular...</div>
         </div>
 
@@ -873,22 +1266,294 @@ const MOV_LABELS = {
 
 // mapeamento: qual gráfico (c1 ou c2) corresponde a cada movimento
 const MOV_CURVA = {
-    respiracao: 'c1',
+    respiracao: 'c2',
     batimento:  'c1',
     tosse:      'c2',
 };
 
 function openMovementsModal() {
-    document.getElementById('movModal').style.display = 'flex';
-    movCarregarConfig();
+    const isDev = document.getElementById('modeBtn').classList.contains('dev');
+    if (isDev) {
+        document.getElementById('movDevModal').style.display = 'flex';
+        movCarregarConfig();
+    } else {
+        document.getElementById('movClientModal').style.display = 'flex';
+        clientMovCarregarConfig();
+    }
 }
 
 function closeMovementsModal() {
-    document.getElementById('movModal').style.display = 'none';
+    document.getElementById('movDevModal').style.display = 'none';
+    document.getElementById('movClientModal').style.display = 'none';
+    hideNumericKeypad();
 }
 
-document.getElementById('movModal').addEventListener('click', function(e) {
+document.getElementById('movDevModal').addEventListener('click', function(e) {
     if (e.target === this) closeMovementsModal();
+});
+document.getElementById('movClientModal').addEventListener('click', function(e) {
+    if (e.target === this) closeMovementsModal();
+});
+
+document.querySelectorAll('#movDevModal input[type="number"]').forEach(input => {
+    input.setAttribute('readonly', 'readonly');
+    input.setAttribute('inputmode', 'none');
+    input.addEventListener('focus', () => showNumericKeypad(input, 'movement'));
+    input.addEventListener('click', () => showNumericKeypad(input, 'movement'));
+});
+
+document.getElementById('passwordInput').addEventListener('click', function() {
+    showNumericKeypad(this, 'password');
+});
+
+const CLIENT_MOVEMENTS = {
+    batimento: {
+        title: 'Batimento Cardíaco',
+        movKey: 'batimento',
+        readAmp: cfg => ({
+            x: cfg.curva1?.a ?? 0,
+            y: cfg.curva1?.b ?? 0,
+        }),
+        writeAmp: (cfg, x, y) => {
+            cfg.curva1 = cfg.curva1 || {};
+            cfg.curva1.a = x;
+            cfg.curva1.b = y;
+        },
+    },
+    respiracao: {
+        title: 'Respiração',
+        movKey: 'respiracao',
+        readAmp: cfg => ({
+            x: cfg.curva2?.largura ?? 0,
+            y: cfg.curva2?.altura ?? 0,
+        }),
+        writeAmp: (cfg, x, y) => {
+            cfg.curva2 = cfg.curva2 || {};
+            cfg.curva2.largura = x;
+            cfg.curva2.altura = y;
+        },
+    },
+    tosse: {
+        title: 'Tosse',
+        movKey: 'tosse',
+        readAmp: cfg => {
+            const raio = cfg.curva3?.raio ?? 0;
+            return {x: raio, y: raio};
+        },
+        writeAmp: (cfg, x, y) => {
+            cfg.curva3 = cfg.curva3 || {};
+            cfg.curva3.raio = Math.max(x, y);
+        },
+    },
+};
+
+let _clientMovConfig = {};
+let _clientMovSaved = {};
+let _clientMovActive = 'batimento';
+let _clientMovDirty = {};
+let _clientMovDraftTimer = null;
+const CLIENT_FIELD_IDS = [
+    'client_periodo',
+    'client_espera_inicio',
+    'client_espera_fim',
+    'client_amp_x',
+    'client_amp_y',
+];
+
+function cloneConfig(obj) {
+    return JSON.parse(JSON.stringify(obj || {}));
+}
+
+function clientMovSetStatus(msg, cor) {
+    const el = document.getElementById('clientMovStatus');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.color = cor || '#555';
+}
+
+function clientMovNum(id) {
+    const el = document.getElementById(id);
+    return el && el.value !== '' ? Number(el.value) : 0;
+}
+
+function clientMovSetVal(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.value = val ?? 0;
+}
+
+function clientMovReadFieldsIntoConfig() {
+    const def = CLIENT_MOVEMENTS[_clientMovActive];
+    if (!def) return;
+    const mov = _clientMovConfig[def.movKey] = _clientMovConfig[def.movKey] || {};
+    mov.periodo = clientMovNum('client_periodo');
+    mov.espera_inicio = clientMovNum('client_espera_inicio');
+    mov.espera_fim = clientMovNum('client_espera_fim');
+    def.writeAmp(_clientMovConfig, clientMovNum('client_amp_x'), clientMovNum('client_amp_y'));
+}
+
+function clientMovSnapshotKey(key, cfg) {
+    const def = CLIENT_MOVEMENTS[key];
+    const mov = (cfg || {})[def.movKey] || {};
+    const amp = def.readAmp(cfg || {});
+    return clientMovSnapshotValues(mov, amp);
+}
+
+function clientMovSnapshotValues(mov, amp) {
+    return JSON.stringify({
+        periodo: Number(mov.periodo || 0),
+        espera_inicio: Number(mov.espera_inicio || 0),
+        espera_fim: Number(mov.espera_fim || 0),
+        amp_x: Number(amp.x || 0),
+        amp_y: Number(amp.y || 0),
+    });
+}
+
+function clientMovRefreshDirty() {
+    clientMovReadFieldsIntoConfig();
+    Object.keys(CLIENT_MOVEMENTS).forEach(key => {
+        _clientMovDirty[key] = clientMovSnapshotKey(key, _clientMovConfig) !== clientMovSnapshotKey(key, _clientMovSaved);
+        const tab = document.querySelector(`[data-client-mov-tab="${key}"]`);
+        if (tab) tab.classList.toggle('dirty', _clientMovDirty[key]);
+    });
+    const dirty = !!_clientMovDirty[_clientMovActive];
+    const card = document.getElementById('clientMovCard');
+    const hint = document.getElementById('clientMovHint');
+    clientMovRefreshDirtyInputs();
+    if (card) {
+        card.classList.toggle('dirty', dirty);
+        card.classList.toggle('clean', !dirty);
+    }
+    if (hint) {
+        hint.textContent = dirty ? 'Alterações ainda não guardadas.' : 'Sem alterações.';
+        hint.className = 'client-mov-hint ' + (dirty ? 'dirty' : 'clean');
+    }
+}
+
+function clientMovScheduleDraftSave() {
+    clearTimeout(_clientMovDraftTimer);
+    _clientMovDraftTimer = setTimeout(clientMovSaveDraftNow, 250);
+}
+
+function clientMovSaveDraftNow() {
+    clientMovReadFieldsIntoConfig();
+    return fetch('/movements/draft', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(_clientMovConfig),
+    }).catch(() => null);
+}
+
+function clientMovRefreshDirtyInputs() {
+    const def = CLIENT_MOVEMENTS[_clientMovActive];
+    const savedMov = (_clientMovSaved || {})[def.movKey] || {};
+    const savedAmp = def.readAmp(_clientMovSaved || {});
+    const savedValues = {
+        client_periodo: Number(savedMov.periodo || 0),
+        client_espera_inicio: Number(savedMov.espera_inicio || 0),
+        client_espera_fim: Number(savedMov.espera_fim || 0),
+        client_amp_x: Number(savedAmp.x || 0),
+        client_amp_y: Number(savedAmp.y || 0),
+    };
+    CLIENT_FIELD_IDS.forEach(id => {
+        const input = document.getElementById(id);
+        if (!input) return;
+        const current = input.value !== '' ? Number(input.value) : 0;
+        const changed = current !== savedValues[id];
+        input.classList.toggle('dirty', changed);
+        input.closest('.client-mov-field')?.classList.toggle('dirty', changed);
+    });
+}
+
+function clientMovRenderActive() {
+    const def = CLIENT_MOVEMENTS[_clientMovActive];
+    const mov = _clientMovConfig[def.movKey] || {};
+    const amp = def.readAmp(_clientMovConfig);
+    document.getElementById('clientMovTitle').textContent = def.title;
+    clientMovSetVal('client_periodo', mov.periodo);
+    clientMovSetVal('client_espera_inicio', mov.espera_inicio);
+    clientMovSetVal('client_espera_fim', mov.espera_fim);
+    clientMovSetVal('client_amp_x', amp.x);
+    clientMovSetVal('client_amp_y', amp.y);
+    document.querySelectorAll('[data-client-mov-tab]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.clientMovTab === _clientMovActive);
+    });
+    clientMovRefreshDirty();
+}
+
+function clientMovSelect(key) {
+    clientMovReadFieldsIntoConfig();
+    clientMovSaveDraftNow();
+    _clientMovActive = key;
+    hideNumericKeypad();
+    clientMovRenderActive();
+}
+
+function clientMovCarregarConfig() {
+    clientMovSetStatus('A carregar...', '#777');
+    fetch('/movements/draft')
+        .then(r => r.json())
+        .then(res => {
+            const cfg = res.config || {};
+            _clientMovConfig = cloneConfig(cfg);
+            _clientMovSaved = cloneConfig(res.saved || cfg);
+            _clientMovDirty = {};
+            clientMovRenderActive();
+            clientMovSetStatus(res.has_draft ? 'Rascunho temporário carregado.' : 'Configurações carregadas.', '#28a745');
+        })
+        .catch(() => clientMovSetStatus('Erro ao carregar configurações.', '#d9534f'));
+}
+
+function clientMovGuardar() {
+    clientMovReadFieldsIntoConfig();
+    clientMovSetStatus('A guardar...', '#b8860b');
+    fetch('/movements/config', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(_clientMovConfig),
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (!res.ok) {
+            clientMovSetStatus('Erro ao guardar.', '#d9534f');
+            return;
+        }
+        _clientMovSaved = cloneConfig(_clientMovConfig);
+        clearTimeout(_clientMovDraftTimer);
+        clientMovRefreshDirty();
+        clientMovSetStatus('Configurações guardadas.', '#28a745');
+    })
+    .catch(() => clientMovSetStatus('Erro ao guardar.', '#d9534f'));
+}
+
+function clientMovRestaurar() {
+    clearTimeout(_clientMovDraftTimer);
+    fetch('/movements/draft', {method: 'DELETE'})
+        .then(r => r.json())
+        .then(res => {
+            _clientMovSaved = cloneConfig(res.config || _clientMovSaved);
+            _clientMovConfig = cloneConfig(_clientMovSaved);
+            clientMovRenderActive();
+            hideNumericKeypad();
+            clientMovSetStatus('Valores restaurados a partir do ficheiro interno.', '#4a7c59');
+        })
+        .catch(() => clientMovSetStatus('Erro ao restaurar.', '#d9534f'));
+}
+
+function clientMovEnviar() {
+    clientMovReadFieldsIntoConfig();
+    clientMovRefreshDirty();
+    clientMovSetStatus('Envio para o ESP32 ainda não está configurado. Usa Guardar para gravar no ficheiro interno.', '#b8860b');
+}
+
+document.querySelectorAll('#movClientModal input[type="number"]').forEach(input => {
+    input.setAttribute('readonly', 'readonly');
+    input.setAttribute('inputmode', 'none');
+    input.addEventListener('focus', () => showNumericKeypad(input, 'clientMovement'));
+    input.addEventListener('click', () => showNumericKeypad(input, 'clientMovement'));
+    input.addEventListener('input', () => {
+        clientMovRefreshDirty();
+        clientMovScheduleDraftSave();
+    });
 });
 
 function movSetStatus(msg, cor) {
@@ -1004,8 +1669,8 @@ function movCalcular() {
         // cada gráfico devolvido separadamente
         // 3 pares de gráficos — um por curva
         const grafMap = res.graficos || {};
-        _movAtualizarGrafico('batimento',      grafMap.c1_2d,             grafMap.c1_3d);
-        _movAtualizarGrafico('respiracao',     grafMap.tosse_2d,          grafMap.tosse_3d);
+        _movAtualizarGrafico('batimento',      grafMap.batimento_2d || grafMap.c1_2d,       grafMap.batimento_3d || grafMap.c1_3d);
+        _movAtualizarGrafico('respiracao',     grafMap.respiracao_2d || grafMap.tosse_2d,   grafMap.respiracao_3d || grafMap.tosse_3d);
         _movAtualizarGrafico('tosse_vibracao', grafMap.vibracao_tosse_2d, grafMap.vibracao_tosse_3d);
 
         // atualiza pontos nas secções de texto
@@ -1029,16 +1694,16 @@ function _movAtualizarGrafico(secId, img2d, img3d) {
         // remove imagens antigas antes de adicionar novas
         container.querySelectorAll('img').forEach(i => i.remove());
         const wrapper = document.createElement('div');
-        wrapper.style.cssText = 'display:grid; grid-template-columns:1fr 1fr; gap:6px;';
-        if (img2d) {
-            const i = document.createElement('img');
-            i.src = img2d; i.alt = '2D';
-            i.style.cssText = 'width:100%; border-radius:6px;';
-            wrapper.appendChild(i);
-        }
+        wrapper.style.cssText = 'display:flex; flex-direction:column; gap:8px;';
         if (img3d) {
             const i = document.createElement('img');
             i.src = img3d; i.alt = '3D';
+            i.style.cssText = 'width:100%; border-radius:6px;';
+            wrapper.appendChild(i);
+        }
+        if (img2d) {
+            const i = document.createElement('img');
+            i.src = img2d; i.alt = '2D';
             i.style.cssText = 'width:100%; border-radius:6px;';
             wrapper.appendChild(i);
         }

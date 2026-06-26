@@ -10,6 +10,14 @@
     "python.analysis.diagnosticSeverityOverrides": {
         "reportMissingTypeStubs": "none"
     },
+    "code-runner.executorMap": {
+        "python": "cd $workspaceRoot && LANG=C.UTF-8 LC_ALL=C.UTF-8 .venv/bin/python -u $fullFileName"
+    },
+    "code-runner.runInTerminal": false,
+    "terminal.integrated.env.linux": {
+        "LANG": "C.UTF-8",
+        "LC_ALL": "C.UTF-8"
+    },
     "files.associations": {
         "*.text": "plaintext"
     }

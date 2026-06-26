@@ -18,10 +18,12 @@ Instalar biblioteca de qr code (opcional, para o QR code na aba de definições)
 # IMPORTS
 # ===========================================================================
 import json
+import importlib.util
 import os
 import queue
 import socket
 import subprocess
+import sys
 import threading
 import time
 from pathlib import Path
@@ -34,6 +36,11 @@ import serial
 # ===========================================================================
 # CONFIGURAÇÃO
 # ===========================================================================
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+os.environ.setdefault('MPLCONFIGDIR', str(SCRIPT_DIR / '.matplotlib-cache'))
+
 APP_HOST     = os.environ.get('PI4B_HOST', '0.0.0.0')
 APP_PORT     = int(os.environ.get('PI4B_PORT', '5000'))
 SERIAL_BAUD  = 115200
@@ -440,7 +447,9 @@ def get_available_networks():
 # ARMAZENAMENTO PERSISTENTE DE CONFIGURAÇÕES DE MOVIMENTOS (JSON)
 # Ficheiro salvo na mesma pasta que o script, sobrevive a reinícios.
 # ===========================================================================
-MOVEMENTS_FILE = Path(__file__).parent / 'movements_config.json'
+MOVEMENTS_FILE = SCRIPT_DIR / 'movements_config.json'
+_movements_draft_lock = threading.RLock()
+_movements_draft = None
 
 MOVEMENTS_DEFAULTS = {
     'curva1': {
@@ -489,6 +498,50 @@ def save_movements(data):
     """Guarda as configurações no ficheiro JSON."""
     MOVEMENTS_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False),
                               encoding='utf-8')
+
+
+def clone_movements(data):
+    """Copia profunda simples para configs JSON."""
+    return json.loads(json.dumps(data))
+
+
+def load_movements_draft():
+    """Devolve o rascunho temporário atual, se existir."""
+    with _movements_draft_lock:
+        return clone_movements(_movements_draft) if _movements_draft is not None else None
+
+
+def save_movements_draft(data):
+    """Guarda alterações temporárias em memória até o programa reiniciar."""
+    global _movements_draft
+    with _movements_draft_lock:
+        existing = load_movements_draft() or load_movements()
+        existing.update(data or {})
+        _movements_draft = clone_movements(existing)
+        return clone_movements(_movements_draft)
+
+
+def clear_movements_draft():
+    """Apaga o rascunho temporário sem tocar no ficheiro permanente."""
+    global _movements_draft
+    with _movements_draft_lock:
+        _movements_draft = None
+
+
+def load_calculo_movimentos_module():
+    """Carrega calculo_movimentos.py a partir da pasta deste script."""
+    module_path = SCRIPT_DIR / 'calculo_movimentos.py'
+    if not module_path.exists():
+        raise FileNotFoundError(f'{module_path}')
+
+    spec = importlib.util.spec_from_file_location('calculo_movimentos', module_path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f'Não foi possível preparar import de {module_path}')
+
+    module = importlib.util.module_from_spec(spec)
+    sys.modules['calculo_movimentos'] = module
+    spec.loader.exec_module(module)
+    return module
 
 
 # Fila e lock para leitura sequencial do ESP32
@@ -540,7 +593,7 @@ def _send_and_wait(command, timeout=6.0):
 # ===========================================================================
 def _load_template(filename):
     """Lê o ficheiro HTML template na mesma pasta que este script."""
-    path = Path(__file__).parent / filename
+    path = SCRIPT_DIR / filename
     try:
         return path.read_text(encoding='utf-8')
     except FileNotFoundError:
@@ -715,7 +768,36 @@ def route_movements_save():
     existing = load_movements()
     existing.update(data)
     save_movements(existing)
+    clear_movements_draft()
     return jsonify({'ok': True})
+
+
+@app.route('/movements/draft', methods=['GET'])
+def route_movements_draft_get():
+    """Devolve o rascunho temporário, sem alterar o ficheiro permanente."""
+    saved = load_movements()
+    draft = load_movements_draft()
+    return jsonify({
+        'ok': True,
+        'has_draft': draft is not None,
+        'saved': saved,
+        'config': draft or saved,
+    })
+
+
+@app.route('/movements/draft', methods=['POST'])
+def route_movements_draft_save():
+    """Guarda temporariamente as alterações em memória."""
+    data = request.get_json(force=True, silent=True) or {}
+    draft = save_movements_draft(data)
+    return jsonify({'ok': True, 'config': draft})
+
+
+@app.route('/movements/draft', methods=['DELETE'])
+def route_movements_draft_clear():
+    """Descarta o rascunho temporário."""
+    clear_movements_draft()
+    return jsonify({'ok': True, 'config': load_movements()})
 
 
 @app.route('/movements/reload_from_esp', methods=['POST'])
@@ -784,6 +866,7 @@ def route_movements_reload():
             erros.append(f'Resposta de {cmd} não reconhecida')
 
     save_movements(config)
+    clear_movements_draft()
     return jsonify({
         'ok': len(erros) == 0,
         'config': config,
@@ -796,7 +879,7 @@ def route_movements_calcular():
     """Executa o calculo_movimentos.py com os parâmetros atuais e
     devolve os gráficos como base64 e os pontos calculados."""
     try:
-        import calculo_movimentos as cm
+        cm = load_calculo_movimentos_module()
         data    = request.get_json(force=True, silent=True) or {}
         config  = load_movements()
 
@@ -807,9 +890,9 @@ def route_movements_calcular():
         resultado = cm.gerar_graficos(params_c1, params_c2, params_c3)
 
         # guarda os pontos calculados nas configurações dos movimentos
-        config['respiracao']['pontos_x'] = resultado['pontos_c1']['x']
-        config['respiracao']['pontos_y'] = resultado['pontos_c1']['y']
-        config['respiracao']['pontos_z'] = resultado['pontos_c1']['z']
+        config['respiracao']['pontos_x'] = resultado['pontos_c2']['x']
+        config['respiracao']['pontos_y'] = resultado['pontos_c2']['y']
+        config['respiracao']['pontos_z'] = resultado['pontos_c2']['z']
         config['batimento']['pontos_x']  = resultado['pontos_c1']['x']
         config['batimento']['pontos_y']  = resultado['pontos_c1']['y']
         config['batimento']['pontos_z']  = resultado['pontos_c1']['z']
@@ -820,6 +903,7 @@ def route_movements_calcular():
         config['vibracao_tosse']['pontos_y'] = resultado['pontos_c3']['y']
         config['vibracao_tosse']['pontos_z'] = resultado['pontos_c3']['z']
         save_movements(config)
+        clear_movements_draft()
 
         return jsonify({'ok': True,
                         'graficos':  resultado['graficos'],
@@ -827,9 +911,12 @@ def route_movements_calcular():
                         'pontos_c2': resultado['pontos_c2'],
                         'pontos_c3': resultado['pontos_c3']})
 
-    except ImportError:
+    except FileNotFoundError as e:
         return jsonify({'ok': False,
-                        'error': 'calculo_movimentos.py não encontrado na mesma pasta.'}), 500
+                        'error': f'calculo_movimentos.py não encontrado: {e}'}), 500
+    except ImportError as e:
+        return jsonify({'ok': False,
+                        'error': f'Erro ao importar calculo_movimentos.py: {e}'}), 500
     except Exception as e:
         return jsonify({'ok': False, 'error': str(e)}), 500
 

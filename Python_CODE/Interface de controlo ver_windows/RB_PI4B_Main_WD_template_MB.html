@@ -95,6 +95,7 @@ body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text)
                     box-shadow: 0 0 0 2px white, 0 0 0 4px black; }
 .btn-ctrl.gray    { background: var(--gray); }
 .btn-ctrl.blue    { background: var(--accent); }
+.btn-ctrl.green   { background: #28a745; }
 .btn-ctrl.scroll-btn { background: #e0e0e0; color: #555; }
 .btn-ctrl.scroll-btn.active { background: var(--accent); color: white; }
 
@@ -112,6 +113,76 @@ body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text)
 .modal-card input {
     width: 100%; padding: 10px; border: 1px solid #ccc;
     border-radius: 8px; font-size: 16px; margin: 10px 0;
+}
+
+/* Modal de configurações de movimentos no mobile */
+.mov-frame-overlay {
+    display: none; position: fixed; inset: 0; z-index: 1800;
+    background: rgba(0,0,0,.55); padding: 10px;
+}
+.mov-frame-card {
+    width: 100%; height: 100%; border-radius: 18px; overflow: hidden;
+    background: #f0f0f0; display: flex; flex-direction: column;
+    box-shadow: 0 18px 50px rgba(0,0,0,.32);
+}
+.mov-frame-header {
+    flex-shrink: 0; background: #4a7c59; color: white;
+    padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.mov-frame-header h2 { font-size: 16px; margin: 0; }
+.mov-frame {
+    flex: 1; width: 100%; border: none; background: #f0f0f0;
+}
+.client-mov-overlay {
+    display: none; position: fixed; inset: 0; z-index: 1800;
+    background: rgba(0,0,0,.55); padding: 10px;
+}
+.client-mov-card {
+    width: 100%; height: 100%; border-radius: 18px; overflow: hidden;
+    background: #f0f0f0; display: flex; flex-direction: column;
+    box-shadow: 0 18px 50px rgba(0,0,0,.32);
+}
+.client-mov-header {
+    flex-shrink: 0; background: #4a7c59; color: white;
+    padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.client-mov-header h2 { font-size: 16px; margin: 0; }
+.client-mov-tabs {
+    flex-shrink: 0; display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 6px; padding: 10px; background: #e9e9e9; border-bottom: 1px solid #d2d2d2;
+}
+.client-mov-tab {
+    border: 1px solid #cfcfcf; background: white; border-radius: 8px;
+    padding: 10px 6px; font-weight: bold; color: #333; position: relative;
+}
+.client-mov-tab.active { border-color: #4a7c59; background: #e8f3eb; color: #2f5e3d; }
+.client-mov-tab.dirty::after {
+    content: ""; width: 8px; height: 8px; border-radius: 50%;
+    background: #d99a00; position: absolute; right: 7px; top: 7px;
+}
+.client-mov-panel { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+.client-mov-section {
+    background: white; border: 1px solid #ddd; border-radius: 12px;
+    padding: 12px; display: grid; gap: 10px;
+}
+.client-mov-section.dirty { border-color: #d99a00; box-shadow: 0 0 0 2px rgba(217,154,0,.12); }
+.client-mov-section h3 { margin: 0; font-size: 16px; color: #4a7c59; }
+.client-mov-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.client-mov-field label { display: block; font-size: 11px; color: #555; margin-bottom: 4px; }
+.client-mov-field input {
+    width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 9px;
+    font-size: 16px; background: white;
+}
+.client-mov-field input.dirty {
+    border-color: #d99a00;
+    box-shadow: 0 0 0 2px rgba(217,154,0,.16);
+    background: #fffaf0;
+}
+.client-mov-field.dirty label { color: #b27600; font-weight: bold; }
+.client-mov-status { padding: 10px 12px; font-size: 13px; color: #555; background: #fff; border-top: 1px solid #ddd; }
+.client-mov-actions { flex-shrink: 0; padding: 10px; background: #ececec; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+@media (max-width: 380px) {
+    .client-mov-fields { grid-template-columns: 1fr; }
 }
 
 body { padding: 16px; }
@@ -173,16 +244,16 @@ body { padding: 16px; }
         <div class="conn-menu" id="connMenu">
           <button class="btn-ctrl blue" onclick="sendAction('serial_reconnect'); closeConnMenu();">Tentar reconectar</button>
           <button class="btn-ctrl danger dev-only" style="display:none"
-                  onclick="sendAction('serial_disconnect'); closeConnMenu();">Desligar COM</button>
+                  onclick="sendAction('serial_disconnect'); closeConnMenu();">Desligar série</button>
         </div>
       </div>
     </div>
     <div style="margin-top: 10px;">
-      <a href="/configuracoes_movimentos" target="_blank"
+      <button onclick="openMovementsModal()"
          style="display:inline-block; padding:10px 16px; background:#337ab7; color:white;
-                border-radius:8px; font-weight:bold; font-size:14px; text-decoration:none; width:100%; text-align:center;">
+                border-radius:8px; font-weight:bold; font-size:14px; border:none; width:100%; text-align:center;">
         ⚙ Configurações Movimentos
-      </a>
+      </button>
     </div>
   </section>
 
@@ -224,6 +295,51 @@ body { padding: 16px; }
   </section>
 
 </main>
+
+<!-- MODAL: Configurações Movimentos Cliente -->
+<div class="client-mov-overlay" id="clientMovModal">
+  <div class="client-mov-card">
+    <div class="client-mov-header">
+      <h2>⚙ Configurações</h2>
+      <button class="btn-ctrl gray" onclick="closeMovementsModal()">Fechar</button>
+    </div>
+    <div class="client-mov-tabs">
+      <button class="client-mov-tab active" data-client-mov-tab="batimento" onclick="clientMovSelect('batimento')">Batimento</button>
+      <button class="client-mov-tab" data-client-mov-tab="respiracao" onclick="clientMovSelect('respiracao')">Respiração</button>
+      <button class="client-mov-tab" data-client-mov-tab="tosse" onclick="clientMovSelect('tosse')">Tosse</button>
+    </div>
+    <div class="client-mov-panel">
+      <section class="client-mov-section" id="clientMovSection">
+        <h3 id="clientMovTitle">Batimento</h3>
+        <div class="client-mov-fields">
+          <div class="client-mov-field"><label>Tempo do ciclo (s)</label><input type="number" step="0.1" min="0" id="client_periodo"></div>
+          <div class="client-mov-field"><label>Espera inicial (s)</label><input type="number" step="0.1" min="0" id="client_espera_inicio"></div>
+          <div class="client-mov-field"><label>Espera final (s)</label><input type="number" step="0.1" min="0" id="client_espera_fim"></div>
+          <div class="client-mov-field"><label>Amplitude X</label><input type="number" step="0.1" min="0" id="client_amp_x"></div>
+          <div class="client-mov-field"><label>Amplitude Y</label><input type="number" step="0.1" min="0" id="client_amp_y"></div>
+        </div>
+        <div class="client-mov-status" id="clientMovHint">Sem alterações.</div>
+      </section>
+    </div>
+    <div class="client-mov-status" id="clientMovStatus">—</div>
+    <div class="client-mov-actions">
+      <button class="btn-ctrl gray" onclick="clientMovRestaurar()">Restaurar</button>
+      <button class="btn-ctrl blue" onclick="clientMovGuardar()">Guardar</button>
+      <button class="btn-ctrl green" onclick="clientMovEnviar()">Enviar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Configurações Movimentos Mobile -->
+<div class="mov-frame-overlay" id="movModal">
+  <div class="mov-frame-card">
+    <div class="mov-frame-header">
+      <h2>⚙ Configurações Movimentos</h2>
+      <button class="btn-ctrl gray" onclick="closeMovementsModal()">Fechar</button>
+    </div>
+    <iframe class="mov-frame" id="movFrame" title="Configurações Movimentos"></iframe>
+  </div>
+</div>
 
 <!-- MODAL: Password DEV -->
 <div class="modal-overlay" id="passwordModal">
@@ -276,7 +392,12 @@ body { padding: 16px; }
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script>
-const socket = io();
+const socket = window.io ? io() : { on: () => {} };
+if (!window.io) {
+    setInterval(() => {
+        fetch('/state').then(r => r.json()).then(applyState).catch(() => {});
+    }, 1000);
+}
 
 // recebe atualização completa de estado
 socket.on('state_update', (s) => {
@@ -490,6 +611,267 @@ function sendManual() {
     input.value = '';
 }
 
+function openMovementsModal() {
+    const isDev = document.getElementById('modeBtn').classList.contains('dev');
+    if (!isDev) {
+        document.getElementById('clientMovModal').style.display = 'block';
+        clientMovCarregarConfig();
+        return;
+    }
+    const modal = document.getElementById('movModal');
+    const frame = document.getElementById('movFrame');
+    const template = document.getElementById('movementsMobileTemplate');
+    modal.style.display = 'block';
+    if (!frame.dataset.loaded) {
+        const doc = frame.contentWindow.document;
+        const html = template.innerHTML.replace(
+            '<head>',
+            '<head><base href="' + window.location.origin + '/">'
+        );
+        doc.open();
+        doc.write(html);
+        doc.close();
+        frame.dataset.loaded = '1';
+    }
+}
+
+function closeMovementsModal() {
+    document.getElementById('movModal').style.display = 'none';
+    document.getElementById('clientMovModal').style.display = 'none';
+}
+
+const CLIENT_MOVEMENTS = {
+    batimento: {
+        title: 'Batimento Cardíaco',
+        movKey: 'batimento',
+        readAmp: cfg => ({x: cfg.curva1?.a ?? 0, y: cfg.curva1?.b ?? 0}),
+        writeAmp: (cfg, x, y) => {
+            cfg.curva1 = cfg.curva1 || {};
+            cfg.curva1.a = x;
+            cfg.curva1.b = y;
+        },
+    },
+    respiracao: {
+        title: 'Respiração',
+        movKey: 'respiracao',
+        readAmp: cfg => ({x: cfg.curva2?.largura ?? 0, y: cfg.curva2?.altura ?? 0}),
+        writeAmp: (cfg, x, y) => {
+            cfg.curva2 = cfg.curva2 || {};
+            cfg.curva2.largura = x;
+            cfg.curva2.altura = y;
+        },
+    },
+    tosse: {
+        title: 'Tosse',
+        movKey: 'tosse',
+        readAmp: cfg => {
+            const raio = cfg.curva3?.raio ?? 0;
+            return {x: raio, y: raio};
+        },
+        writeAmp: (cfg, x, y) => {
+            cfg.curva3 = cfg.curva3 || {};
+            cfg.curva3.raio = Math.max(x, y);
+        },
+    },
+};
+
+let _clientMovConfig = {};
+let _clientMovSaved = {};
+let _clientMovActive = 'batimento';
+let _clientMovDirty = {};
+let _clientMovDraftTimer = null;
+const CLIENT_FIELD_IDS = [
+    'client_periodo',
+    'client_espera_inicio',
+    'client_espera_fim',
+    'client_amp_x',
+    'client_amp_y',
+];
+
+function cloneConfig(obj) {
+    return JSON.parse(JSON.stringify(obj || {}));
+}
+
+function clientMovSetStatus(msg, cor) {
+    const el = document.getElementById('clientMovStatus');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.color = cor || '#555';
+}
+
+function clientMovNum(id) {
+    const el = document.getElementById(id);
+    return el && el.value !== '' ? Number(el.value) : 0;
+}
+
+function clientMovSetVal(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.value = val ?? 0;
+}
+
+function clientMovReadFieldsIntoConfig() {
+    const def = CLIENT_MOVEMENTS[_clientMovActive];
+    if (!def) return;
+    const mov = _clientMovConfig[def.movKey] = _clientMovConfig[def.movKey] || {};
+    mov.periodo = clientMovNum('client_periodo');
+    mov.espera_inicio = clientMovNum('client_espera_inicio');
+    mov.espera_fim = clientMovNum('client_espera_fim');
+    def.writeAmp(_clientMovConfig, clientMovNum('client_amp_x'), clientMovNum('client_amp_y'));
+}
+
+function clientMovSnapshotKey(key, cfg) {
+    const def = CLIENT_MOVEMENTS[key];
+    const mov = (cfg || {})[def.movKey] || {};
+    const amp = def.readAmp(cfg || {});
+    return JSON.stringify({
+        periodo: Number(mov.periodo || 0),
+        espera_inicio: Number(mov.espera_inicio || 0),
+        espera_fim: Number(mov.espera_fim || 0),
+        amp_x: Number(amp.x || 0),
+        amp_y: Number(amp.y || 0),
+    });
+}
+
+function clientMovRefreshDirty() {
+    clientMovReadFieldsIntoConfig();
+    Object.keys(CLIENT_MOVEMENTS).forEach(key => {
+        _clientMovDirty[key] = clientMovSnapshotKey(key, _clientMovConfig) !== clientMovSnapshotKey(key, _clientMovSaved);
+        const tab = document.querySelector(`[data-client-mov-tab="${key}"]`);
+        if (tab) tab.classList.toggle('dirty', _clientMovDirty[key]);
+    });
+    const dirty = !!_clientMovDirty[_clientMovActive];
+    const section = document.getElementById('clientMovSection');
+    const hint = document.getElementById('clientMovHint');
+    clientMovRefreshDirtyInputs();
+    if (section) section.classList.toggle('dirty', dirty);
+    if (hint) {
+        hint.textContent = dirty ? 'Alterações ainda não guardadas.' : 'Sem alterações.';
+        hint.style.color = dirty ? '#b27600' : '#4a7c59';
+        hint.style.fontWeight = dirty ? 'bold' : 'normal';
+    }
+}
+
+function clientMovScheduleDraftSave() {
+    clearTimeout(_clientMovDraftTimer);
+    _clientMovDraftTimer = setTimeout(clientMovSaveDraftNow, 250);
+}
+
+function clientMovSaveDraftNow() {
+    clientMovReadFieldsIntoConfig();
+    return fetch('/movements/draft', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(_clientMovConfig),
+    }).catch(() => null);
+}
+
+function clientMovRefreshDirtyInputs() {
+    const def = CLIENT_MOVEMENTS[_clientMovActive];
+    const savedMov = (_clientMovSaved || {})[def.movKey] || {};
+    const savedAmp = def.readAmp(_clientMovSaved || {});
+    const savedValues = {
+        client_periodo: Number(savedMov.periodo || 0),
+        client_espera_inicio: Number(savedMov.espera_inicio || 0),
+        client_espera_fim: Number(savedMov.espera_fim || 0),
+        client_amp_x: Number(savedAmp.x || 0),
+        client_amp_y: Number(savedAmp.y || 0),
+    };
+    CLIENT_FIELD_IDS.forEach(id => {
+        const input = document.getElementById(id);
+        if (!input) return;
+        const current = input.value !== '' ? Number(input.value) : 0;
+        const changed = current !== savedValues[id];
+        input.classList.toggle('dirty', changed);
+        input.closest('.client-mov-field')?.classList.toggle('dirty', changed);
+    });
+}
+
+function clientMovRenderActive() {
+    const def = CLIENT_MOVEMENTS[_clientMovActive];
+    const mov = _clientMovConfig[def.movKey] || {};
+    const amp = def.readAmp(_clientMovConfig);
+    document.getElementById('clientMovTitle').textContent = def.title;
+    clientMovSetVal('client_periodo', mov.periodo);
+    clientMovSetVal('client_espera_inicio', mov.espera_inicio);
+    clientMovSetVal('client_espera_fim', mov.espera_fim);
+    clientMovSetVal('client_amp_x', amp.x);
+    clientMovSetVal('client_amp_y', amp.y);
+    document.querySelectorAll('[data-client-mov-tab]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.clientMovTab === _clientMovActive);
+    });
+    clientMovRefreshDirty();
+}
+
+function clientMovSelect(key) {
+    clientMovReadFieldsIntoConfig();
+    clientMovSaveDraftNow();
+    _clientMovActive = key;
+    clientMovRenderActive();
+}
+
+function clientMovCarregarConfig() {
+    clientMovSetStatus('A carregar...', '#777');
+    fetch('/movements/draft')
+      .then(r => r.json())
+      .then(res => {
+        const cfg = res.config || {};
+        _clientMovConfig = cloneConfig(cfg);
+        _clientMovSaved = cloneConfig(res.saved || cfg);
+        _clientMovDirty = {};
+        clientMovRenderActive();
+        clientMovSetStatus(res.has_draft ? 'Rascunho temporário carregado.' : 'Configurações carregadas.', '#28a745');
+      })
+      .catch(() => clientMovSetStatus('Erro ao carregar configurações.', '#d9534f'));
+}
+
+function clientMovGuardar() {
+    clientMovReadFieldsIntoConfig();
+    clientMovSetStatus('A guardar...', '#b8860b');
+    fetch('/movements/config', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(_clientMovConfig),
+    })
+    .then(r => r.json())
+    .then(res => {
+      if (!res.ok) {
+        clientMovSetStatus('Erro ao guardar.', '#d9534f');
+        return;
+      }
+      _clientMovSaved = cloneConfig(_clientMovConfig);
+      clearTimeout(_clientMovDraftTimer);
+      clientMovRefreshDirty();
+      clientMovSetStatus('Configurações guardadas.', '#28a745');
+    })
+    .catch(() => clientMovSetStatus('Erro ao guardar.', '#d9534f'));
+}
+
+function clientMovRestaurar() {
+    clearTimeout(_clientMovDraftTimer);
+    fetch('/movements/draft', {method:'DELETE'})
+      .then(r => r.json())
+      .then(res => {
+        _clientMovSaved = cloneConfig(res.config || _clientMovSaved);
+        _clientMovConfig = cloneConfig(_clientMovSaved);
+        clientMovRenderActive();
+        clientMovSetStatus('Valores restaurados a partir do ficheiro interno.', '#4a7c59');
+      })
+      .catch(() => clientMovSetStatus('Erro ao restaurar.', '#d9534f'));
+}
+
+function clientMovEnviar() {
+    clientMovReadFieldsIntoConfig();
+    clientMovRefreshDirty();
+    clientMovSetStatus('Envio para o ESP32 ainda não está configurado. Usa Guardar para gravar no ficheiro interno.', '#b8860b');
+}
+
+document.querySelectorAll('#clientMovModal input[type="number"]').forEach(input => {
+    input.addEventListener('input', () => {
+      clientMovRefreshDirty();
+      clientMovScheduleDraftSave();
+    });
+});
+
 // redirect automático para desktop se não for mobile em portrait
 function checkDevice() {
     const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
@@ -501,5 +883,468 @@ window.addEventListener('resize', checkDevice);
 
 fetch('/state').then(r => r.json()).then(applyState);
 </script>
+
+<template id="movementsMobileTemplate">
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Configurações Movimentos — Mobile</title>
+<style>
+:root {
+    --bg: #f0f0f0;
+    --panel: #ffffff;
+    --border: #d6d6d6;
+    --text: #333333;
+    --accent: #337ab7;
+    --green: #28a745;
+    --red: #d9534f;
+    --gray: #6c757d;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: Arial, sans-serif; background: var(--bg); color: var(--text);
+    padding: 12px; padding-bottom: 90px;
+}
+body.embedded { padding: 8px; padding-bottom: 90px; }
+body.embedded .header { display: none; }
+.app { max-width: 520px; margin: 0 auto; display: grid; gap: 12px; }
+.topbar {
+    position: sticky; top: 0; z-index: 20;
+    background: var(--bg); padding-bottom: 8px;
+}
+.header {
+    background: #4a7c59; color: white; border-radius: 14px;
+    padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.header h1 { font-size: 17px; }
+.btn {
+    border: none; border-radius: 9px; padding: 10px 12px;
+    color: white; font-weight: bold; font-size: 13px; cursor: pointer;
+}
+.btn.blue { background: var(--accent); }
+.btn.gray { background: var(--gray); }
+.btn.green { background: var(--green); }
+.btn.red { background: var(--red); }
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.status {
+    margin-top: 8px; min-height: 28px; padding: 7px 10px; border-radius: 8px;
+    background: white; border: 1px solid var(--border); color: #555; font-size: 13px;
+}
+.section {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px; display: grid; gap: 10px;
+}
+.section h2 {
+    font-size: 15px; color: #4a7c59; padding-bottom: 7px; border-bottom: 1px solid #eeeeee;
+}
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.field label { display: block; font-size: 11px; color: #555; margin-bottom: 4px; }
+.field input, .field select {
+    width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 9px;
+    font-size: 16px; background: white;
+}
+.points {
+    font-family: monospace; font-size: 11px; line-height: 1.35;
+    background: #f2f2f2; border-radius: 8px; padding: 7px 8px;
+    max-height: 62px; overflow: auto; word-break: break-all;
+}
+.graph-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 10px; display: grid; gap: 8px;
+}
+.graph-card h2 { font-size: 14px; color: #4a7c59; }
+.graph-card img { width: 100%; border-radius: 8px; display: block; }
+.placeholder {
+    min-height: 140px; border-radius: 9px; background: #f5f5f5;
+    display: flex; align-items: center; justify-content: center;
+    color: #aaa; font-size: 13px;
+}
+.keypad {
+    display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+    background: white; border-top: 1px solid #ccc; box-shadow: 0 -8px 28px rgba(0,0,0,.22);
+    padding: 10px; gap: 8px;
+}
+.keypad.visible { display: grid; }
+.keypad-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.keypad-title { font-size: 13px; font-weight: bold; color: #555; }
+.keypad-display {
+    padding: 8px 10px; border-radius: 8px; background: #f7f7f7; border: 1px solid #ddd;
+    font-family: monospace; font-size: 16px;
+}
+.keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.key {
+    min-height: 46px; border: none; border-radius: 9px; background: #e9ecef;
+    font-size: 18px; font-weight: bold; color: #222;
+}
+.key.action { background: #d7e6f7; color: #225a8a; }
+.key.ok { background: var(--green); color: white; }
+.key.red { background: var(--red); color: white; }
+@media (max-width: 380px) {
+    .fields { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <div class="topbar">
+    <div class="header">
+      <h1>Configurações Movimentos</h1>
+      <button class="btn gray" onclick="window.close(); history.back();">Voltar</button>
+    </div>
+    <div class="actions">
+      <button class="btn blue" onclick="movCalcular()">Calcular</button>
+      <button class="btn green" onclick="movGuardar()">Guardar</button>
+      <button class="btn blue" onclick="movRecarregarESP()">Recarregar ESP32</button>
+      <button class="btn gray" onclick="movCarregarConfig()">Atualizar</button>
+    </div>
+    <div class="status" id="movStatus">A carregar...</div>
+  </div>
+
+  <section class="section">
+    <h2>Curva 1 — Elipse</h2>
+    <div class="fields">
+      <div class="field"><label>Semi-eixo maior (a)</label><input type="number" step="0.1" id="c1_a"></div>
+      <div class="field"><label>Semi-eixo menor (b)</label><input type="number" step="0.1" id="c1_b"></div>
+      <div class="field"><label>Centro X (xc)</label><input type="number" step="0.1" id="c1_xc"></div>
+      <div class="field"><label>Centro Y (yc)</label><input type="number" step="0.1" id="c1_yc"></div>
+      <div class="field"><label>Rotação α (°)</label><input type="number" step="1" id="c1_alpha_deg"></div>
+      <div class="field"><label>Nº pontos</label><input type="number" step="1" min="2" id="c1_n_pontos"></div>
+      <div class="field"><label>Sentido</label><select id="c1_sentido"><option value="ccw">CCW</option><option value="cw">CW</option></select></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Batimento Cardíaco</h2>
+    <div class="fields">
+      <div class="field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="batimento_periodo"></div>
+      <div class="field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="batimento_espera_inicio"></div>
+      <div class="field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="batimento_espera_fim"></div>
+      <div class="field"><label>Ponto de início</label><input type="number" step="1" min="0" id="batimento_ponto_inicio"></div>
+    </div>
+    <div class="points" id="batimento_pts_x"><b>X:</b> —</div>
+    <div class="points" id="batimento_pts_y"><b>Y:</b> —</div>
+    <div class="points" id="batimento_pts_z"><b>Z:</b> —</div>
+  </section>
+
+  <section class="graph-card" id="graf_batimento">
+    <h2>Batimento — 3D e 2D</h2>
+    <div class="placeholder" id="graf_batimento_ph">A calcular...</div>
+  </section>
+
+  <section class="section">
+    <h2>Curva 2 — Parábola</h2>
+    <div class="fields">
+      <div class="field"><label>Altura máx. Z</label><input type="number" step="0.5" id="c2_altura"></div>
+      <div class="field"><label>Largura máx. X</label><input type="number" step="0.5" id="c2_largura"></div>
+      <div class="field"><label>Nº pontos</label><input type="number" step="1" min="2" id="c2_n_pontos"></div>
+      <div class="field"><label>Inclinação θ (°)</label><input type="number" step="1" id="c2_theta_deg"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Respiração</h2>
+    <div class="fields">
+      <div class="field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="respiracao_periodo"></div>
+      <div class="field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="respiracao_espera_inicio"></div>
+      <div class="field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="respiracao_espera_fim"></div>
+      <div class="field"><label>Ponto de início</label><input type="number" step="1" min="0" id="respiracao_ponto_inicio"></div>
+    </div>
+    <div class="points" id="respiracao_pts_x"><b>X:</b> —</div>
+    <div class="points" id="respiracao_pts_y"><b>Y:</b> —</div>
+    <div class="points" id="respiracao_pts_z"><b>Z:</b> —</div>
+  </section>
+
+  <section class="graph-card" id="graf_respiracao">
+    <h2>Respiração — 3D e 2D</h2>
+    <div class="placeholder" id="graf_respiracao_ph">A calcular...</div>
+  </section>
+
+  <section class="section">
+    <h2>Curva 3 — Circunferência</h2>
+    <div class="fields">
+      <div class="field"><label>Raio</label><input type="number" step="0.1" min="0.1" id="c3_raio"></div>
+      <div class="field"><label>Nº pontos</label><input type="number" step="1" min="2" id="c3_n_pontos"></div>
+      <div class="field"><label>Sentido</label><select id="c3_sentido"><option value="ccw">CCW</option><option value="cw">CW</option></select></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Vibração da Tosse</h2>
+    <div class="fields">
+      <div class="field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="vibracao_tosse_periodo"></div>
+      <div class="field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="vibracao_tosse_espera_inicio"></div>
+      <div class="field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="vibracao_tosse_espera_fim"></div>
+      <div class="field"><label>Ponto de início</label><input type="number" step="1" min="0" id="vibracao_tosse_ponto_inicio"></div>
+    </div>
+    <div class="points" id="vibracao_tosse_pts_x"><b>X:</b> —</div>
+    <div class="points" id="vibracao_tosse_pts_y"><b>Y:</b> —</div>
+    <div class="points" id="vibracao_tosse_pts_z"><b>Z:</b> —</div>
+  </section>
+
+  <section class="section">
+    <h2>Tosse</h2>
+    <div class="fields">
+      <div class="field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="tosse_periodo"></div>
+      <div class="field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="tosse_espera_inicio"></div>
+      <div class="field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="tosse_espera_fim"></div>
+      <div class="field"><label>Ponto de início</label><input type="number" step="1" min="0" id="tosse_ponto_inicio"></div>
+    </div>
+    <div class="points" id="tosse_pts_x"><b>X:</b> —</div>
+    <div class="points" id="tosse_pts_y"><b>Y:</b> —</div>
+    <div class="points" id="tosse_pts_z"><b>Z:</b> —</div>
+  </section>
+
+  <section class="graph-card" id="graf_tosse_vibracao">
+    <h2>Tosse / Vibrações — 3D e 2D</h2>
+    <div class="placeholder" id="graf_tosse_vibracao_ph">A calcular...</div>
+  </section>
+</main>
+
+<div class="keypad" id="numKeypad">
+  <div class="keypad-head">
+    <span class="keypad-title" id="keypadTitle">Valor</span>
+    <button class="btn gray" onclick="hideKeypad()">Fechar</button>
+  </div>
+  <div class="keypad-display" id="keypadDisplay">—</div>
+  <div class="keypad-grid">
+    <button class="key" onclick="keypadPress('1')">1</button>
+    <button class="key" onclick="keypadPress('2')">2</button>
+    <button class="key" onclick="keypadPress('3')">3</button>
+    <button class="key" onclick="keypadPress('4')">4</button>
+    <button class="key" onclick="keypadPress('5')">5</button>
+    <button class="key" onclick="keypadPress('6')">6</button>
+    <button class="key" onclick="keypadPress('7')">7</button>
+    <button class="key" onclick="keypadPress('8')">8</button>
+    <button class="key" onclick="keypadPress('9')">9</button>
+    <button class="key action" onclick="keypadPress('-')">−</button>
+    <button class="key" onclick="keypadPress('0')">0</button>
+    <button class="key action" onclick="keypadPress('.')">.</button>
+    <button class="key action" onclick="keypadBackspace()">⌫</button>
+    <button class="key red" onclick="keypadClear()">Limpar</button>
+    <button class="key ok" onclick="hideKeypad()">OK</button>
+  </div>
+</div>
+
+<script>
+let _movConfig = {};
+let activeInput = null;
+
+if (window.parent !== window || new URLSearchParams(window.location.search).get('embedded') === '1') {
+    document.body.classList.add('embedded');
+}
+
+function movSetStatus(msg, cor) {
+    const el = document.getElementById('movStatus');
+    el.textContent = msg;
+    if (cor) el.style.color = cor;
+}
+
+function setVal(id, val) {
+    const el = document.getElementById(id);
+    if (el && val !== undefined && val !== null) el.value = val;
+}
+
+function num(id) {
+    const el = document.getElementById(id);
+    return el && el.value !== '' ? Number(el.value) : 0;
+}
+
+function int(id) {
+    return Math.round(num(id));
+}
+
+function movCarregarConfig() {
+    movSetStatus('A carregar...', '#555');
+    fetch('/movements/config')
+      .then(r => r.json())
+      .then(cfg => {
+        _movConfig = cfg || {};
+        const c1 = cfg.curva1 || {};
+        setVal('c1_a', c1.a); setVal('c1_b', c1.b); setVal('c1_xc', c1.xc); setVal('c1_yc', c1.yc);
+        setVal('c1_alpha_deg', c1.alpha_deg); setVal('c1_n_pontos', c1.n_pontos); setVal('c1_sentido', c1.sentido || 'ccw');
+        const c2 = cfg.curva2 || {};
+        setVal('c2_altura', c2.altura); setVal('c2_largura', c2.largura); setVal('c2_n_pontos', c2.n_pontos); setVal('c2_theta_deg', c2.theta_deg);
+        const c3 = cfg.curva3 || {};
+        setVal('c3_raio', c3.raio); setVal('c3_n_pontos', c3.n_pontos); setVal('c3_sentido', c3.sentido || 'ccw');
+        ['respiracao', 'batimento', 'tosse', 'vibracao_tosse'].forEach(chave => {
+          const m = cfg[chave] || {};
+          setVal(`${chave}_periodo`, m.periodo);
+          setVal(`${chave}_espera_inicio`, m.espera_inicio);
+          setVal(`${chave}_espera_fim`, m.espera_fim);
+          setVal(`${chave}_ponto_inicio`, m.ponto_inicio);
+          movAtualizarPontos(chave, {x:m.pontos_x, y:m.pontos_y, z:m.pontos_z});
+        });
+        movCalcular();
+        movSetStatus('Configurações carregadas.', '#28a745');
+      })
+      .catch(e => movSetStatus('Erro ao carregar: ' + e, '#d9534f'));
+}
+
+function movLerCampos() {
+    return {
+      curva1: {a:num('c1_a'), b:num('c1_b'), xc:num('c1_xc'), yc:num('c1_yc'), alpha_deg:num('c1_alpha_deg'), n_pontos:int('c1_n_pontos'), sentido:document.getElementById('c1_sentido').value},
+      curva2: {altura:num('c2_altura'), largura:num('c2_largura'), n_pontos:int('c2_n_pontos'), theta_deg:num('c2_theta_deg')},
+      curva3: {raio:num('c3_raio'), n_pontos:int('c3_n_pontos'), sentido:document.getElementById('c3_sentido').value},
+      respiracao: movLerMov('respiracao'),
+      batimento: movLerMov('batimento'),
+      tosse: movLerMov('tosse'),
+      vibracao_tosse: movLerMov('vibracao_tosse'),
+    };
+}
+
+function movLerMov(chave) {
+    return {
+      periodo: num(`${chave}_periodo`),
+      espera_inicio: num(`${chave}_espera_inicio`),
+      espera_fim: num(`${chave}_espera_fim`),
+      ponto_inicio: int(`${chave}_ponto_inicio`),
+    };
+}
+
+function movCalcular() {
+    movSetStatus('A calcular...', '#b8860b');
+    ['batimento', 'respiracao', 'tosse_vibracao'].forEach(id => {
+      const ph = document.getElementById(`graf_${id}_ph`);
+      const container = document.getElementById(`graf_${id}`);
+      if (ph) { ph.style.display = 'flex'; ph.textContent = 'A calcular...'; }
+      if (container) container.querySelectorAll('img').forEach(i => i.remove());
+    });
+    fetch('/movements/calcular', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(movLerCampos()),
+    })
+    .then(r => r.json())
+    .then(res => {
+      if (!res.ok) {
+        movSetStatus('Erro: ' + (res.error || 'desconhecido'), '#d9534f');
+        return;
+      }
+      const g = res.graficos || {};
+      movAtualizarGrafico('batimento', g.batimento_2d || g.c1_2d, g.batimento_3d || g.c1_3d);
+      movAtualizarGrafico('respiracao', g.respiracao_2d || g.tosse_2d, g.respiracao_3d || g.tosse_3d);
+      movAtualizarGrafico('tosse_vibracao', g.vibracao_tosse_2d, g.vibracao_tosse_3d);
+      if (res.pontos_c1) movAtualizarPontos('batimento', res.pontos_c1);
+      if (res.pontos_c2) movAtualizarPontos('respiracao', res.pontos_c2);
+      if (res.pontos_c3) movAtualizarPontos('vibracao_tosse', res.pontos_c3);
+      if (res.pontos_c2) movAtualizarPontos('tosse', res.pontos_c2);
+      movSetStatus('Cálculo concluído.', '#28a745');
+    })
+    .catch(e => movSetStatus('Erro de comunicação: ' + e, '#d9534f'));
+}
+
+function movAtualizarGrafico(secId, img2d, img3d) {
+    const container = document.getElementById(`graf_${secId}`);
+    const ph = document.getElementById(`graf_${secId}_ph`);
+    if (!container) return;
+    container.querySelectorAll('img').forEach(i => i.remove());
+    if (!img2d && !img3d) {
+      if (ph) {
+        ph.style.display = 'flex';
+        ph.textContent = 'Sem gráfico recebido.';
+      }
+      return;
+    }
+    if (ph) ph.style.display = 'none';
+    [img3d, img2d].forEach((src, idx) => {
+      if (!src) return;
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = idx === 0 ? '3D' : '2D';
+      container.appendChild(img);
+    });
+}
+
+function movAtualizarPontos(chave, pts) {
+    const fmt = arr => (arr || []).map(v => (+v).toFixed(3)).join(', ');
+    const upd = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+    upd(`${chave}_pts_x`, '<b>X:</b> ' + fmt(pts.x));
+    upd(`${chave}_pts_y`, '<b>Y:</b> ' + fmt(pts.y));
+    upd(`${chave}_pts_z`, '<b>Z:</b> ' + fmt(pts.z));
+}
+
+function movGuardar() {
+    movSetStatus('A guardar...', '#b8860b');
+    fetch('/movements/config', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(movLerCampos()),
+    })
+    .then(r => r.json())
+    .then(res => movSetStatus(res.ok ? 'Guardado.' : 'Erro ao guardar.', res.ok ? '#28a745' : '#d9534f'))
+    .catch(e => movSetStatus('Erro ao guardar: ' + e, '#d9534f'));
+}
+
+function movRecarregarESP() {
+    movSetStatus('A ler ESP32...', '#b8860b');
+    fetch('/movements/reload_from_esp', {method:'POST'})
+      .then(r => r.json())
+      .then(res => {
+        if (!res.ok) {
+          movSetStatus('Erro: ' + (res.error || (res.erros || []).join('; ')), '#d9534f');
+          return;
+        }
+        movCarregarConfig();
+      })
+      .catch(e => movSetStatus('Erro: ' + e, '#d9534f'));
+}
+
+function showKeypad(input) {
+    activeInput = input;
+    const label = input.closest('.field')?.querySelector('label')?.textContent || 'Valor';
+    document.getElementById('keypadTitle').textContent = label;
+    document.getElementById('numKeypad').classList.add('visible');
+    updateKeypad();
+    setTimeout(() => input.scrollIntoView({block:'center', behavior:'smooth'}), 50);
+}
+
+function hideKeypad() {
+    document.getElementById('numKeypad').classList.remove('visible');
+    activeInput = null;
+}
+
+function updateKeypad() {
+    document.getElementById('keypadDisplay').textContent = activeInput && activeInput.value ? activeInput.value : '—';
+}
+
+function keypadPress(value) {
+    if (!activeInput) return;
+    let current = activeInput.value || '';
+    if (value === '.' && current.includes('.')) return;
+    if (value === '-' && (current.includes('-') || current.length > 0)) return;
+    activeInput.value = current + value;
+    activeInput.dispatchEvent(new Event('input', {bubbles:true}));
+    updateKeypad();
+}
+
+function keypadBackspace() {
+    if (!activeInput) return;
+    activeInput.value = activeInput.value.slice(0, -1);
+    activeInput.dispatchEvent(new Event('input', {bubbles:true}));
+    updateKeypad();
+}
+
+function keypadClear() {
+    if (!activeInput) return;
+    activeInput.value = '';
+    activeInput.dispatchEvent(new Event('input', {bubbles:true}));
+    updateKeypad();
+}
+
+document.querySelectorAll('input[type="number"]').forEach(input => {
+    input.setAttribute('readonly', 'readonly');
+    input.setAttribute('inputmode', 'none');
+    input.addEventListener('focus', () => showKeypad(input));
+    input.addEventListener('click', () => showKeypad(input));
+});
+
+movCarregarConfig();
+</script>
+</body>
+</html>
+
+</template>
 </body>
 </html>

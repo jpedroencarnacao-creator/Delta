@@ -1,7 +1,7 @@
 """
 calculo_movimentos.py — Cálculo e geração de pontos de movimento para o ESP32.
 
-Ficheiro separado do RB_PI4B_Main_WD.py, chamado quando o utilizador
+Ficheiro separado do RB_PI4B_Main_PI.py, chamado quando o utilizador
 clica em "Calcular" dentro da aba "Configurações Movimentos".
 
 Não faz plt.show() — devolve as figuras como imagens base64 para serem
@@ -192,7 +192,7 @@ def _eixos_3d(ax, lim):
 
 
 # ===========================================================================
-# FUNÇÃO PRINCIPAL — chamada pelo RB_PI4B_Main_WD.py
+# FUNÇÃO PRINCIPAL — chamada pelo RB_PI4B_Main_PI.py
 # ===========================================================================
 
 def gerar_graficos(params_c1=None, params_c2=None, params_c3=None):
@@ -201,7 +201,7 @@ def gerar_graficos(params_c1=None, params_c2=None, params_c3=None):
     Devolve um dicionário com:
       'graficos'  — dict com imagens base64 por gráfico:
                     c1_2d, c1_3d                      (Curva 1 — Elipse)
-                    respiracao_2d, respiracao_3d       (usa Curva 1)
+                    respiracao_2d, respiracao_3d       (usa Curva 2)
                     batimento_2d,  batimento_3d        (usa Curva 1)
                     tosse_2d,      tosse_3d            (usa Curva 2)
                     vibracao_tosse_2d, vibracao_tosse_3d (usa Curva 3)
@@ -253,9 +253,7 @@ def gerar_graficos(params_c1=None, params_c2=None, params_c3=None):
 
     graficos['c1_3d'] = _fig_3d(_plot_c1_3d, 'Curva 1 — 3D')
 
-    # Respiração e Batimento partilham a Curva 1
-    graficos['respiracao_2d'] = graficos['c1_2d']
-    graficos['respiracao_3d'] = graficos['c1_3d']
+    # Batimento usa a Curva 1
     graficos['batimento_2d']  = graficos['c1_2d']
     graficos['batimento_3d']  = graficos['c1_3d']
 
@@ -289,6 +287,8 @@ def gerar_graficos(params_c1=None, params_c2=None, params_c3=None):
         ax.legend(fontsize=8); ax.view_init(elev=10, azim=-85)
 
     graficos['tosse_3d'] = _fig_3d(_plot_c2_3d, f'Curva 2 — 3D (θ={p2["theta_deg"]}°)')
+    graficos['respiracao_2d'] = graficos['tosse_2d']
+    graficos['respiracao_3d'] = graficos['tosse_3d']
 
     # -----------------------------------------------------------------------
     # Curva 3 — 2D  (Vibração Tosse — circunferência)
