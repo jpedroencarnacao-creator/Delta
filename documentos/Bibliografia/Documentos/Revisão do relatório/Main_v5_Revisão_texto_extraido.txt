@@ -1,0 +1,1327 @@
+       Projeto Final de Licenciatura
+
+
+Modelo Articulado de uma Árvore
+           Brônquica
+
+             Nome do Autor
+
+
+
+
+                 Instituição
+                   Curso
+             29 de junho de 2026
+Resumo
+
+Este relatório descreve o desenvolvimento de um modelo articulado de uma árvore brôn-
+
+quica para simulação de videobroncobroscopia. O trabalho enquadra-se na necessidade
+
+de criar plataformas de treino acessíveis, realistas e repetíveis para procedimentos bron-
+
+coscópicos, integrando impressão 3D, atuação mecânica, controlo eletrónico e software
+
+embarcado.
+
+
+
+
+                                            i
+Abstract
+
+This report describes the development of an articulated bronchial tree model for exible
+
+bronchoscopy simulation.   The project addresses the need for accessible, realistic and
+
+repeatable training platforms by combining 3D printing, mechanical actuation, electronic
+
+control and embedded software.
+
+
+
+
+                                           ii
+Índice
+
+Resumo                                                                                           i
+Abstract                                                                                        ii
+1 Introdução                                                                                    1
+  1.1   Enquadramento . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .          1
+
+  1.2   Motivação . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       1
+
+  1.3   Objetivos   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      2
+
+  1.4   Metodologia . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        2
+
+  1.5   Organização do relatório . . . . . . . . . . . . . . . . . . . . . . . . . . . .         2
+
+
+2 Estado da Arte                                                                                3
+  2.1   Broncoscopia e treino por simulação . . . . . . . . . . . . . . . . . . . . . .          3
+
+  2.2   Fidelidade dos simuladores . . . . . . . . . . . . . . . . . . . . . . . . . . .         3
+
+  2.3   Simuladores de broncoscopia . . . . . . . . . . . . . . . . . . . . . . . . . .          3
+
+  2.4   Impressão 3D aplicada à simulação médica . . . . . . . . . . . . . . . . . .            3
+
+  2.5   Movimento da árvore brônquica . . . . . . . . . . . . . . . . . . . . . . . .            4
+
+  2.6   Síntese crítica . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      4
+
+
+3 Desenvolvimento do Hardware                                                                   5
+  3.1   Requisitos do sistema . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        5
+
+  3.2   Modelo sico da arvore bronquica . . . . . . . . . . . . . . . . . . . . . . .           5
+
+  3.3   Selecao do sistema de atuacao . . . . . . . . . . . . . . . . . . . . . . . . .          6
+
+  3.4   Movimentos a reproduzir . . . . . . . . . . . . . . . . . . . . . . . . . . . .          6
+
+  3.5   Eletronica de controlo e alimentacao        . . . . . . . . . . . . . . . . . . . . .    7
+
+  3.6   Integracao mecanica e seguranca . . . . . . . . . . . . . . . . . . . . . . . .          7
+
+
+4 Desenvolvimentos do Software e Conguracoes                                                   9
+  4.1   Arquitetura geral do software     . . . . . . . . . . . . . . . . . . . . . . . . .      9
+
+  4.2   Ambiente de desenvolvimento       . . . . . . . . . . . . . . . . . . . . . . . . .      9
+
+  4.3   Estruturas de dados . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       10
+
+  4.4   Pers de movimento      . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     10
+
+
+
+                                              iii
+  4.5   Maquina de estados de movimento            . . . . . . . . . . . . . . . . . . . . . .   10
+
+  4.6   Cinematica inversa do manipulador delta . . . . . . . . . . . . . . . . . . .            11
+
+  4.7   Comunicacao serie e comandos . . . . . . . . . . . . . . . . . . . . . . . . .           11
+
+  4.8   Preparacao e sincronizacao da tosse . . . . . . . . . . . . . . . . . . . . . .          11
+
+  4.9   Depuracao e validacao interna . . . . . . . . . . . . . . . . . . . . . . . . .          12
+
+
+5 Teste e Analises de Resultados                                                                 13
+  5.1   Plano de testes   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      13
+
+  5.2   Testes do modelo sico . . . . . . . . . . . . . . . . . . . . . . . . . . . . .         13
+
+  5.3   Testes dos atuadores e da estrutura delta . . . . . . . . . . . . . . . . . . .          14
+
+  5.4   Testes de alimentacao . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        14
+
+  5.5   Testes de software . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       14
+
+  5.6   Testes de comunicacao serie      . . . . . . . . . . . . . . . . . . . . . . . . . .     15
+
+  5.7   Testes de integracao dos movimentos          . . . . . . . . . . . . . . . . . . . . .   15
+
+  5.8   Criterios de aceitacao . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       15
+
+  5.9   Discussao preliminar     . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     16
+
+
+6 Conclusao                                                                                      17
+  6.1   Sintese do trabalho . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        17
+
+  6.2   Principais contributos     . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     17
+
+  6.3   Limitacoes . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       18
+
+  6.4   Trabalho futuro . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        18
+
+
+Bibliograa                                                                                      19
+A Anexos                                                                                         22
+  A.1   Anexo A: Desenhos técnicos e modelo 3D . . . . . . . . . . . . . . . . . . .             22
+
+  A.2   Anexo B: Lista de materiais      . . . . . . . . . . . . . . . . . . . . . . . . . .     22
+
+  A.3   Anexo C: Datasheets . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .          22
+
+  A.4   Anexo D: Código e congurações         . . . . . . . . . . . . . . . . . . . . . . .     22
+
+  A.5   Anexo E: Protocolos de teste . . . . . . . . . . . . . . . . . . . . . . . . . .         22
+
+
+
+
+                                              iv
+Lista de Figuras
+
+
+
+
+                   v
+Lista de Tabelas
+
+ 3.1   Movimentos considerados para o prototipo. . . . . . . . . . . . . . . . . . .     7
+
+ 3.2   Componentes principais previstos para o sistema.    . . . . . . . . . . . . . .   8
+
+
+
+
+                                          vi
+Capítulo 1
+Introdução
+
+1.1 Enquadramento
+A broncoscopia exível é um procedimento essencial em Pneumologia, Anestesiologia,
+
+Medicina Intensiva e Cirurgia Torácica. A sua execução exige coordenação psicomotora,
+
+reconhecimento anatómico, capacidade de navegação endoscópica e tomada de decisão
+
+em ambiente clínico variável. Por esse motivo, a simulação tem sido proposta como uma
+
+etapa relevante para reduzir a curva de aprendizagem e aumentar a segurança do treino
+
+antes da prática em doentes reais [15].
+
+   O projeto apresentado neste relatório tem como objetivo desenvolver um modelo ar-
+
+ticulado de uma árvore brônquica capaz de reproduzir, de forma controlada, movimentos
+
+associados à respiração, à inuência cardíaca, à tosse e à interação mecânica com o bron-
+
+coscópio.   A proposta parte de modelos impressos em 3D já descritos na literatura e
+
+acrescenta uma componente dinâmica, procurando aproximar a experiência de treino das
+
+condições observadas durante uma broncoscopia real [68].
+
+
+
+
+1.2 Motivação
+Os simuladores comerciais de broncoscopia podem apresentar custos elevados, enquanto
+
+soluções impressas em 3D permitem criar modelos anatómicos acessíveis, personalizáveis
+
+e adaptáveis a diferentes níveis de diculdade [6, 7, 9]. Contudo, muitos modelos físicos
+
+permanecem estáticos, limitando a reprodução de fenómenos siológicos como a altera-
+
+ção do calibre brônquico, o deslocamento respiratório das vias aéreas e a instabilidade
+
+provocada pela tosse ou pelo contacto do instrumento [1013].
+
+
+
+
+                                           1
+1.3 Objetivos
+O objetivo geral deste projeto é conceber, construir e validar um protótipo articulado de
+
+uma árvore brônquica para treino de videobroncobroscopia.
+
+   Os objetivos especícos são:
+
+
+    estudar requisitos anatómicos, mecânicos e pedagógicos de simuladores de broncos-
+     copia;
+
+
+    desenvolver uma estrutura física compatível com impressão 3D e atuação mecânica;
+
+    integrar sensores, atuadores, eletrónica de controlo e alimentação;
+
+    implementar rmware e congurações de controlo para diferentes pers de movi-
+     mento;
+
+
+    testar o protótipo quanto a amplitude, repetibilidade, robustez e usabilidade;
+
+    documentar limitações e melhorias futuras.
+
+
+1.4 Metodologia
+A metodologia do trabalho combina revisão bibliográca, denição de requisitos, desen-
+
+volvimento iterativo de hardware, desenvolvimento de software embarcado e realização de
+
+testes funcionais. A revisão bibliográca orienta os parâmetros de movimento e realismo
+
+do modelo; o desenvolvimento técnico traduz esses requisitos em mecanismos, eletrónica
+
+e código; e os testes vericam o comportamento do sistema face aos objetivos denidos.
+
+
+
+
+1.5 Organização do relatório
+O relatório está organizado em seis capítulos.   O primeiro apresenta o enquadramento,
+
+a motivação e os objetivos.   O segundo revê o estado da arte.     O terceiro descreve o
+
+desenvolvimento do hardware.      O quarto apresenta o software e as congurações.     O
+
+quinto reúne testes e análise de resultados. O sexto sintetiza as conclusões e identica
+
+trabalho futuro.
+
+
+
+
+                                            2
+Capítulo 2
+Estado da Arte
+
+2.1 Broncoscopia e treino por simulação
+O treino por simulação permite repetir procedimentos, observar erros, desenvolver destreza
+
+técnica e preparar o operador para cenários clínicos sem expor doentes a risco desneces-
+
+sário. A literatura descreve benefícios tanto na aquisição de competências básicas como
+
+na avaliação objetiva de desempenho em broncoscopia [1, 2, 4, 14, 15].
+
+
+
+
+2.2 Fidelidade dos simuladores
+A delidade de um simulador não se limita ao aspeto anatómico. Inclui resposta mecâ-
+
+nica, ergonomia, diculdade progressiva, feedback e transferência das competências para
+
+o contexto clínico. Estudos sobre treino psicomotor e modelos de bancada mostram que
+
+simuladores de baixa delidade podem ser úteis quando bem alinhados com os objetivos
+
+pedagógicos [1620].
+
+
+
+
+2.3 Simuladores de broncoscopia
+Os simuladores de broncoscopia incluem soluções virtuais, manequins comerciais, modelos
+
+de baixa delidade e modelos impressos em 3D. Revisões sistemáticas e estudos de treino
+
+indicam que a simulação pode melhorar o desempenho técnico, mas também salientam a
+
+necessidade de métricas de avaliação e validação adequadas [3, 5, 14, 15].
+
+
+
+
+2.4 Impressão 3D aplicada à simulação médica
+A impressão 3D permite produzir modelos anatómicos a partir de dados de imagem
+
+médica, com custo reduzido e possibilidade de personalização.     Em broncoscopia, esta
+
+
+
+
+                                            3
+abordagem tem sido explorada para representar a árvore traqueobrônquica e para criar
+
+simuladores especícos do doente ou do procedimento [6, 7, 9, 21].
+
+
+
+
+2.5 Movimento da árvore brônquica
+A árvore brônquica é dinâmica. A respiração altera a posição, a orientação e o calibre das
+
+vias aéreas; o movimento cardíaco introduz pequenas oscilações; e a tosse ou o contacto
+
+com o broncoscópio podem provocar deslocamentos transitórios e irregulares.      Estudos
+
+históricos e recentes sobre variação de calibre, movimento respiratório e simulação com-
+
+putacional de uxo suportam a importância destes fenómenos [8, 1013].
+
+
+
+
+2.6 Síntese crítica
+A revisão aponta para uma oportunidade de desenvolvimento: criar um modelo físico de
+
+baixo custo, baseado em impressão 3D, mas com movimento controlado. Esta combina-
+
+ção pretende preservar a acessibilidade dos modelos físicos e acrescentar uma dimensão
+
+dinâmica relevante para o treino realista de videobroncobroscopia.
+
+
+
+
+                                            4
+Capítulo 3
+Desenvolvimento do Hardware
+
+3.1 Requisitos do sistema
+O prototipo deve permitir o treino de videobroncobroscopia com um modelo sico de
+
+baixo custo, robusto, lavavel e facil de montar. A partir dos documentos de trabalho anali-
+
+sados, os requisitos principais podem ser agrupados em quatro eixos: realismo anatomico,
+
+facilidade de utilizacao, movimento siologico controlado e possibilidade de evolucao fu-
+
+tura [8, 21, 22].
+
+   No plano anatomico, o modelo deve representar a arvore bronquica com dimensoes,
+
+angulos de ramicacao e caracteristicas compativeis com dados obtidos por tomograa
+
+computorizada. No plano mecanico, deve permitir a introducao de movimentos de respi-
+
+racao, batimento cardiaco e tosse sem comprometer a estabilidade do conjunto. No plano
+
+pedagogico, deve permitir repeticao de exercicios e adaptacao da diculdade. No plano
+
+tecnico, deve manter a solucao acessivel, evitando materiais, atuadores ou processos de
+
+fabrico que tornem o sistema demasiado caro para o objetivo do projeto.
+
+
+
+
+3.2 Modelo sico da arvore bronquica
+O ponto de partida do projeto e um modelo tridimensional da arvore bronquica obtido
+
+a partir de dados de imagem medica.     As notas do projeto referem que os cheiros re-
+
+cebidos descreviam essencialmente a supercie interna da arvore bronquial, ou seja, a
+
+casca do volume. Por esse motivo, foi necessario atribuir espessura ao modelo antes da
+
+impressao 3D. Numa fase inicial, essa operacao foi feita de forma expedita no Tinkercad,
+
+com o objetivo de realizar um teste rapido em PLA e validar a viabilidade geometrica da
+
+impressao.
+
+   A selecao de materiais foi considerada uma decisao critica.     Foram identicados -
+
+lamentos exiveis como PEBA, TPU, TPE, TPC e PP, bem como diferentes durezas
+
+comerciais, por exemplo 95A, 85A e 70A. Contudo, os documentos analisados salientam
+
+
+
+
+                                            5
+que a reproducao integral do tato anatomico realista exigiria materiais e equipamentos
+
+mais caros. Assim, nesta fase, o realismo material foi limitado principalmente a aspetos
+
+visuais e mecanicos basicos, como exibilidade, cor, textura e resistencia, mantendo o
+
+objetivo de baixo custo.
+
+
+
+
+3.3 Selecao do sistema de atuacao
+Foram consideradas duas abordagens para gerar movimento no modelo. A primeira con-
+
+sistia em distribuir varios atuadores ao longo da arvore bronquica, cada um com um
+
+movimento independente.     Esta solucao seria relativamente simples de programar para
+
+movimentos locais, mas tornaria o sistema mais dicil de gerir mecanicamente, aumenta-
+
+ria a quantidade de motores e exigiria uma estrutura de suporte complexa acoplada ao
+
+modelo.
+
+   A segunda abordagem, aprovada para o desenvolvimento, consiste na utilizacao de
+
+manipuladores roboticos do tipo delta. Esta opcao permite controlar pontos da estrutura
+
+nos tres eixos cartesianos, concentrando a complexidade mecanica em unidades de atuacao
+
+repetiveis.   Embora introduza maior complexidade matematica, devido ao calculo da
+
+cinematica inversa, permite reproduzir varios movimentos com menos alteracoes sicas
+
+ao hardware.
+
+   Foram analisados dois tipos de manipuladores delta. O primeiro utiliza tres atuadores
+
+e permite controlar a posicao de um corpo em tres eixos, X , Y e Z . O segundo utiliza
+
+seis motores, permitindo tambem controlar orientacoes adicionais. Para esta versao do
+
+projeto, foi considerado suciente o controlo em tres eixos, uma vez que os movimentos
+
+inicialmente acordados foram respiracao, batimento cardiaco e tosse. Movimentos como
+
+deformacao do lumen, estenose localizada e resistencia ao contacto com a sonda caram
+                                                 Acredito que seja também interessante colocar uma
+previstos como trabalho futuro.
+                                                 descrição de todos os movimentos visiveis na
+                                                 broncoscopia no estado de artes,
+                                                 e aqui neste capitulo descrever novamente apenas os
+3.4 Movimentos a reproduzir                      movimentos apenas a serem representados de uma
+                                                 forma mais objetiva.
+A denicao dos movimentos foi baseada nos documentos medicos e nas notas manuscritas
+
+do projeto [8, 22]. A respiracao foi caracterizada como movimento ciclico, com frequencia
+
+aproximada de 12 a 20 ciclos por minuto e deslocamento predominantemente craniocaudal.
+
+As amplitudes consideradas situam-se na ordem de 5 a 10 mm para a traqueia, podendo
+
+atingir valores superiores em zonas mais perifericas.
+
+   O batimento cardiaco foi associado principalmente ao bronquio principal esquerdo,
+
+devido a proximidade anatomica do coracao. O movimento previsto e de baixa amplitude,
+
+cerca de 1 a 3 mm, com frequencia aproximada de 60 a 120 batimentos por minuto. A
+
+tosse foi caracterizada como movimento abrupto, irregular e de maior amplitude relativa,
+
+com duracao inferior a um segundo e possibilidade de varios impulsos consecutivos.
+
+
+                                            6
+                 Tabela 3.1: Movimentos considerados para o prototipo.
+
+
+   Movimento            Frequencia         Amplitude    pre-   Observacoes
+                                           vista
+
+   Respiracao           1220 ciclos/min   510 mm             Ciclico,   com    pequenas
+                                                               irregularidades
+   Batimento     car-   60120 bpm         13 mm              Mais relevante no lado
+   diaco                                                       esquerdo
+   Tosse                Evento curto       525 mm             Abrupto, nao linear e ir-
+                                                               regular
+   Contacto/estenose Futuro                Variavel            Maior complexidade me-
+                                                               canica
+
+
+
+
+3.5 Eletronica de controlo e alimentacao
+A arquitetura prevista separa a interface de utilizador e o calculo de alto nivel do controlo
+
+direto dos atuadores. O Raspberry Pi 4B ca responsavel pela interface, monitorizacao
+
+e envio de comandos/posicoes. O ESP32-S3 atua como microcontrolador de tempo real,
+
+recebendo dados por comunicacao serie e convertendo-os em comandos para os servos.
+
+   O sistema de alimentacao foi denido considerando pelo menos dois niveis: 5 V para o
+
+Raspberry Pi 4B e o ESP32-S3, e 5 V a 6 V para os servos. Nas notas de projeto tambem
+
+foi considerada a possibilidade de utilizar steppers, que exigiriam tensoes superiores, por
+
+exemplo 8 V a 12 V. Para os servos, foram estimados consumos nominais de cerca de 150
+
+a 250 mA por unidade, com valores superiores em bloqueio.
+
+   Foi considerada a utilizacao de uma UPS/HAT para o Raspberry Pi, permitindo ali-
+
+mentacao pelos pinos de 5 V e transicao para bateria em caso de falha. A opcao analisada
+
+foi um HAT de gestao de energia do tipo Suptronics X1209, por combinar alimenta-
+
+cao, bateria e gestao de entrada no mesmo modulo. O ESP32 pode ser alimentado pelo
+
+Raspberry Pi atraves de USB-C, mantendo simultaneamente a ligacao serie necessaria a
+
+comunicacao.
+
+
+
+
+3.6 Integracao mecanica e seguranca
+A integracao mecanica deve garantir que o movimento e transmitido a arvore bronquica
+
+sem esforcos excessivos, folgas signicativas ou interferencia com a passagem do broncos-
+
+copio. A estrutura deve ainda permitir acesso para manutencao, limpeza e substituicao
+
+de pecas. Do ponto de vista de seguranca, os limites de curso do manipulador e os limites
+
+angulares dos servos devem ser denidos no rmware, evitando posicoes impossiveis ou
+
+capazes de danicar o modelo.
+
+   Como melhoria futura, a estrutura podera incluir sensores de m de curso, detecao de
+
+contacto ou medicao de corrente dos atuadores. Estes elementos permitiriam aumentar
+
+
+
+                                             7
+             Tabela 3.2: Componentes principais previstos para o sistema.
+
+
+       Componente          Funcao                  Observacoes
+
+       Raspberry Pi 4B     Interface e coordena-   Envia     comandos/posicoes
+                           cao                     para o ESP32
+       ESP32-S3            Controlo dos atuado-    Executa FSMs e gera coman-
+                           res                     dos para servos
+       Servos              Atuacao mecanica        Movem     os   manipuladores
+                                                   delta
+       UPS/HAT             Gestao de energia       Alimentacao    do   Raspberry
+                                                   Pi e transicao para bateria
+       Fonte 56 V         Alimentacao dos ser-    Dimensionada para corrente
+                           vos                     de pico
+       Estrutura delta     Conversao mecanica      Movimento em X , Y e Z
+
+
+
+
+a seguranca e abrir caminho para simulacao de resistencia ao avanco do broncoscopio ou
+
+contacto com as paredes internas.
+
+
+
+
+                                          8
+Capítulo 4
+Desenvolvimentos do Software e
+Conguracoes
+
+4.1 Arquitetura geral do software
+O software foi organizado para separar a denicao dos movimentos, o estado de execucao,
+
+a comunicacao serie, a cinematica inversa e o acionamento dos servos.   Esta separacao
+
+permite que os mesmos mecanismos de execucao sejam usados para diferentes fenomenos
+
+siologicos, como respiracao, batimento cardiaco e tosse [22, 23].
+
+   A arquitetura pode ser entendida em quatro camadas. A primeira contem os dados de
+
+conguracao do manipulador, incluindo comprimentos dos bracos, osets geometricos e
+
+limites de pulso PWM dos servos. A segunda contem as trajetorias, guardadas em estru-
+
+turas de movimento. A terceira contem as instancias de execucao, que registam indices,
+
+tempos, direcao e estado atual.   A quarta contem as maquinas de estados responsaveis
+
+por comandos, movimentos e eventos siologicos.
+
+
+
+
+4.2 Ambiente de desenvolvimento
+O rmware foi desenvolvido em C++ para a plataforma ESP32, usando o ecossistema
+
+Arduino/PlatformIO. Para controlo dos servos foi usada a biblioteca ESP32Servo. Para
+
+indicacao visual de estados por LED RGB foi referida a biblioteca Adafruit_NeoPixel.
+
+   O ESP32 comunica com o computador ou com o Raspberry Pi 4B por porta serie
+
+a 115200 baud. Durante o desenvolvimento, foram tambem usados scripts Python para
+
+leitura da porta serie, depuracao de mensagens e validacao de comandos enviados pelo
+
+microcontrolador.
+
+
+
+
+                                            9
+4.3 Estruturas de dados
+A estrutura Manipulador_Config concentra os parametros geometricos e de calibracao.
+
+Entre os parametros principais encontram-se os comprimentos L1, L2 e L3, os osets do
+
+servo nos eixos X e Z , os limites angulares e os valores minimos e maximos de pulso para
+
+cada servo. Esta estrutura impede que a cinematica inversa dependa de valores espalhados
+
+pelo codigo.
+
+   A estrutura MotionStorage guarda a denicao de uma trajetoria. Cada movimento
+
+possui arrays de pontos X , Y e Z , o numero de pontos, o periodo total, os tempos de
+
+pausa no inicio e no m, o indice inicial e a informacao sobre se o movimento e bidirecio-
+
+nal. Funcoes auxiliares convertem periodos e pausas para milissegundos, preenchendo os
+
+intervalos usados pela FSM.
+
+   A estrutura MotionInstance representa o estado dinamico de uma trajetoria em
+execucao. Contem um ponteiro para o respetivo MotionStorage, ags como active,
+
+Executing e Individual_start_comand, indices internos, tempos decorridos, direcao e
+estado da maquina. No caso da respiracao, foi tambem introduzido um multiplicador de
+
+amplitude em Z , usado para aumentar temporariamente a amplitude durante a tosse.
+
+
+                                                 Falta colocar os esquemas das estruturas, e
+4.4 Pers de movimento                           da arquitetura global
+
+Foram denidos tres pers principais. O perl de respiracao utiliza uma trajetoria ciclica
+
+e bidirecional, com periodo relativamente longo e possibilidade de pausas.    O perl de
+
+batimento cardiaco utiliza movimentos de menor amplitude e maior frequencia. O perl
+
+de tosse utiliza uma sequencia curta, abrupta e nao necessariamente bidirecional, podendo
+
+ser sobreposta a respiracao.
+
+   Cada perl e iniciado por uma funcao propria, por exemplo Iniciate_Resp_Move(),
+
+Iniciate_Bat_Move() e Iniciate_Tosse_Move(). Estas funcoes copiam os pontos das
+trajetorias para a estrutura MotionStorage, denem periodo, pausas, indice inicial e
+
+bidirecionalidade, e por m atualizam os tempos derivados.
+
+
+
+
+4.5 Maquina de estados de movimento
+A funcao generica de atualizacao de movimento percorre qualquer trajetoria associada a
+
+uma MotionInstance. No desenvolvimento, esta rotina foi referida como FSM_Motion_Update.
+
+A funcao recebe o comando de arranque, a instancia e o tempo atual em milissegundos.
+
+Internamente, usa um switch sobre o estado da instancia.
+
+   O estado 0 representa paragem/reset; limpa indices e mantem o movimento inativo
+
+enquanto o sistema global ou o comando individual estiverem desligados. O estado 1 valida
+
+a trajetoria e prepara a direcao inicial. O estado 2 inicia o movimento, selecionando o
+
+
+
+                                           10
+ponto atual e o ponto seguinte.    O estado 3 mede o tempo decorrido no segmento.        O
+
+estado 4 avanca os indices.     Estados posteriores tratam m de percurso, inversao de
+
+direcao, pausas e reinicio do ciclo.
+
+   A posicao instantanea e obtida por interpolacao linear entre dois pontos consecutivos:
+                                                           poem esta função dentro de um sistema e
+                                  P (t) = Pi + (Pj − Pi )α depois descreve os limites dentro do limite,
+                                                           e como é calculado alpha,
+                                                           utiliza mais formulas
+em que α e calculado pela razao entre o tempo decorrido e o tempo previsto para o
+segmento. O valor de α e limitado ao intervalo [0, 1], garantindo que a posicao interpolada
+
+permanece entre o ponto atual e o ponto seguinte.
+                                                                               Utiliza imagens para
+                                                                               explicar a cinematica
+4.6 Cinematica inversa do manipulador delta                                    inversa, e formulas
+                                                                               matematicas
+A cinematica inversa converte a posicao desejada (X, Y, Z) em angulos ou pulsos para
+
+os servos.   O desenvolvimento parte da geometria do manipulador delta de tres eixos.
+
+O calculo retira osets da base e dos servos, calcula projecoes no plano, verica se a
+
+articulacao respeita limites geometricos e aplica relacoes trigonometricas para obter os
+
+angulos.
+
+   Entre as validacoes consideradas estao a projecao de L2, o limite angular associado
+
+a essa projecao e a vericacao da possibilidade geometrica do triangulo formado pelos
+
+segmentos do manipulador. Quando a posicao solicitada nao e atingivel, a funcao deve
+
+devolver falha ou impedir o envio de comandos para os servos, evitando esforcos indevidos.
+
+
+
+
+4.7 Comunicacao serie e comandos
+A comunicacao serie e organizada por maquinas de estados. O leitor serie recebe caracteres
+
+e construi linhas ou comandos. O interpretador de comandos decide que modo deve car
+
+ativo e que parametros devem ser atualizados. Os desenhos analisados incluem estados
+
+para modo Single e Multiple, acumulacao de comandos, copia de buers, leitura de
+
+parametros numericos com atoi/atof e ativacao de modos.
+
+   Os modos principais incluem respiracao, batimento, modo combinado e comandos
+
+especicos para tosse. O modo combinado permite que varias MotionInstance estejam
+
+ativas em simultaneo. A indicacao visual por LED e usada para depuracao e feedback do
+
+estado.
+
+
+
+
+4.8 Preparacao e sincronizacao da tosse
+A funcao de preparacao da tosse e responsavel por transformar um pedido de tosse
+
+num evento siologico sobreposto a respiracao.     Quando o sinal de tosse e ativado, a
+
+
+
+                                            11
+rotina guarda os parametros normais da respiracao, reduz temporariamente o periodo,
+
+ajusta as pausas e aumenta a amplitude em Z . Em paralelo, ativa a instancia de vibra-
+
+cao/perturbacao da tosse.
+
+   Quando o ciclo respiratorio atinge o estado apropriado para terminar o evento, a rotina
+
+repoe o periodo original, as pausas e o multiplicador de amplitude. Esta estrategia permite
+
+que a tosse nao seja apenas uma trajetoria independente, mas uma alteracao temporaria
+
+do comportamento respiratorio, mais coerente com o fenomeno siologico que se pretende
+
+simular.
+
+
+
+
+4.9 Depuracao e validacao interna
+Durante o desenvolvimento foram usadas funcoes de depuracao para imprimir a congu-
+
+racao dos movimentos, os pontos carregados, os indices atuais, o estado das instancias e
+
+os ponteiros para as estruturas de denicao. Foram tambem realizados testes especicos
+
+aos servos e ao LED RGB para separar problemas de hardware de problemas logicos no
+
+rmware.
+
+   Um ponto identicado durante os testes foi o comportamento da porta serie ao abrir
+
+scripts Python ou o monitor serie. A abertura da porta pode provocar reset no ESP32
+
+devido aos sinais DTR/RTS, levando a nova execucao do setup() e a reposicionamento
+
+dos servos. Este comportamento deve ser considerado nos testes e documentado no pro-
+
+cedimento de operacao.
+
+
+
+
+                                            12
+                            O capitulo 5 têm que ser todo alterado!
+                            eu sei que ainda falta informações, por isso mete
+Capítulo 5                  uma nota neste capitulo a dizer, falta de
+                            informações
+
+
+Teste e Analises de Resultados
+
+5.1 Plano de testes
+O plano de testes foi denido para validar separadamente o modelo mecanico, a eletro-
+
+nica, o rmware e a integracao completa. A estrategia consiste em testar primeiro cada
+
+subsistema de forma isolada e, depois, combinar progressivamente respiracao, batimento
+
+cardiaco e tosse.
+
+   Para cada ensaio devem ser registados: conguracao usada, periodo, amplitude, nu-
+
+mero de pontos da trajetoria, modo de operacao, comportamento observado e eventuais
+
+falhas.   A comparacao deve ser feita com os valores-alvo denidos nos documentos de
+
+movimento:     respiracao lenta e ciclica, batimento de baixa amplitude e tosse rapida e
+
+irregular [8, 22].
+
+
+
+
+5.2 Testes do modelo sico
+Os primeiros testes devem conrmar se o modelo impresso mantem a geometria pretendida
+
+e se permite passagem adequada do broncoscopio. O modelo deve ser observado quanto a
+
+deformacoes, zonas frageis, arestas, diculdade de limpeza e resistencia ao manuseamento.
+
+No caso de materiais exiveis, deve ser avaliada a relacao entre exibilidade e estabilidade
+
+dimensional.
+
+   O teste inicial em PLA serve como prova de conceito da geometria e da montagem.
+
+Contudo, por ser um material rigido, nao representa a solucao nal para realismo meca-
+
+nico. Ensaios posteriores com TPU, TPE ou outros lamentos exiveis devem comparar
+
+facilidade de impressao, acabamento, deformacao elastica e resistencia a repeticao dos
+
+movimentos.
+
+
+
+
+                                            13
+5.3 Testes dos atuadores e da estrutura delta
+Os servos devem ser testados antes da integracao com a arvore bronquica. O teste inclui
+
+vericacao de resposta angular, limites de curso, sentido de rotacao, ruido, aquecimento
+
+e repetibilidade. A seguir, deve ser testado o manipulador delta sem carga, conrmando
+
+se a cinematica inversa produz movimentos coerentes nos eixos X , Y e Z .
+
+   Depois da montagem com o modelo, os ensaios devem vericar se os movimentos
+
+esperados sao obtidos sem folgas excessivas nem bloqueios. As amplitudes de referencia
+
+sao 5 a 10 mm para respiracao ao nivel da traqueia, 1 a 3 mm para batimento cardiaco
+
+e valores superiores, de curta duracao, para tosse. Se o deslocamento real for inferior ao
+
+pretendido, deve ser ajustada a amplitude dos pontos da trajetoria ou a geometria de
+
+ligacao.
+
+
+
+
+5.4 Testes de alimentacao
+A alimentacao deve ser validada em tres condicoes: repouso, movimento nominal e situ-
+
+acao de maior esforco. Para os servos, as notas do projeto indicam consumos nominais
+
+de cerca de 150 a 250 mA por unidade e correntes superiores em bloqueio. Assim, a fonte
+
+dos servos deve ser dimensionada para picos e nao apenas para consumo medio.
+
+   O Raspberry Pi 4B e o ESP32-S3 devem manter alimentacao estavel durante a comu-
+
+nicacao e durante o acionamento dos motores. A utilizacao de UPS/HAT deve ser testada
+
+abrindo e fechando a alimentacao principal, conrmando se o sistema tem tempo para
+
+guardar estado, alertar ou encerrar de forma controlada.
+
+
+
+
+5.5 Testes de software
+Os testes de software devem comecar pela inicializacao das estruturas MotionStorage e
+
+MotionInstance. As funcoes de debug devem conrmar o numero de pontos, periodo,
+pausas, indices e ponteiros.   Em seguida, a FSM de movimento deve ser testada com
+
+trajetorias simples, vericando se os estados evoluem de forma esperada e se a interpolacao
+
+entre pontos e continua.
+
+   A FSM de comandos deve ser testada com entradas serie conhecidas. Cada comando
+
+deve produzir apenas a alteracao prevista:    ativar respiracao, ativar batimento, ativar
+
+modo combinado, disparar tosse ou alterar parametros.      Os comandos com parametros
+
+numericos devem ser testados com valores validos, valores limite e entradas incompletas.
+
+
+
+
+                                            14
+5.6 Testes de comunicacao serie
+Durante o desenvolvimento foi identicado que a abertura da porta serie por Python ou
+
+pelo monitor serie pode provocar reset do ESP32. Este efeito deve ser controlado durante
+
+os ensaios. Um teste simples consiste em imprimir um contador no setup() e observar
+
+se este e reiniciado quando a porta e aberta. Esta vericacao permite distinguir falhas de
+
+rmware de resets causados pela interface USB/serial.
+
+   No lado Python, a leitura deve remover caracteres de m de linha com strip() e
+
+evitar imprimir mensagens vazias.    A comunicacao deve ser validada em dois sentidos:
+
+mensagens enviadas pelo ESP32 para monitorizacao e comandos enviados pelo computa-
+
+dor/Raspberry Pi para selecionar modos.
+
+
+
+
+5.7 Testes de integracao dos movimentos
+A integracao deve ser feita por etapas. Primeiro executa-se apenas respiracao, vericando
+
+periodicidade, amplitude e suavidade. Depois adiciona-se o batimento cardiaco, que deve
+
+aparecer como pequena oscilacao sobreposta. Por m, testa-se a tosse, que deve alterar
+
+temporariamente o comportamento da respiracao e ativar vibracao/perturbacao curta.
+
+   O modo combinado e o mais importante para avaliar o realismo, pois aproxima o com-
+
+portamento de um ambiente endoscopico dinamico. Neste modo, devem ser observados
+
+conitos entre movimentos, saturacao dos servos, perda de suavidade e eventuais posicoes
+
+impossiveis da cinematica inversa.
+
+
+
+
+5.8 Criterios de aceitacao
+Para esta fase do projeto, os criterios de aceitacao podem ser denidos de forma funcional:
+
+
+    o sistema arranca sem movimentos inesperados perigosos;
+
+    os servos respondem dentro dos limites denidos;
+
+    a respiracao apresenta movimento ciclico, suave e repetivel;
+
+    o batimento acrescenta uma oscilacao de pequena amplitude;
+
+    a tosse produz um evento curto, abrupto e recupera para o estado normal;
+
+    os comandos serie selecionam os modos sem bloquear o rmware;
+
+    a alimentacao mantem tensao estavel durante os movimentos.
+
+
+
+
+                                            15
+5.9 Discussao preliminar
+A analise dos documentos mostra que a principal contribuicao do prototipo esta na pas-
+
+sagem de um modelo sico estatico para um modelo dinamico. A impressao 3D resolve a
+
+acessibilidade e personalizacao anatomica, mas o movimento acrescenta uma camada de
+
+realismo que os modelos estaticos nao conseguem reproduzir [7, 8].
+
+   As principais limitacoes atuais encontram-se na simplicacao dos fenomenos siologi-
+
+cos. Nesta versao, o projeto concentra-se em respiracao, batimento e tosse, deixando para
+
+fases futuras a deformacao ativa do lumen, a simulacao de estenoses e a interacao meca-
+
+nica detalhada com o broncoscopio. Esta decisao reduz a complexidade inicial e permite
+
+validar primeiro a arquitetura de hardware e software.
+
+
+
+
+                                           16
+Capítulo 6
+Conclusao
+
+6.1 Sintese do trabalho
+Este projeto tem como objetivo desenvolver um modelo articulado de uma arvore bron-
+
+quica para treino de videobroncobroscopia. A solucao proposta combina impressao 3D,
+
+atuacao mecanica, controlo por ESP32, comunicacao com Raspberry Pi 4B e pers de
+
+movimento inspirados em fenomenos siologicos.
+
+   A analise dos documentos de trabalho permitiu consolidar os requisitos do sistema.
+
+O modelo deve ser acessivel, modular, facil de montar e capaz de reproduzir movimen-
+
+tos relevantes durante uma broncoscopia exivel.   Para esta versao, foram priorizados
+
+tres fenomenos: respiracao, batimento cardiaco e tosse. Outros efeitos, como deformacao
+
+localizada do lumen, estenose e resistencia ao contacto com o broncoscopio, foram iden-
+
+ticados como importantes, mas caram reservados para trabalho futuro devido a maior
+
+complexidade mecanica.
+
+
+
+
+6.2 Principais contributos
+Os principais contributos do trabalho sao:
+
+
+    denicao de requisitos para um simulador dinamico de arvore bronquica;
+
+    identicacao dos movimentos siologicos mais relevantes para uma primeira versao
+     funcional;
+
+
+    escolha de uma arquitetura mecanica baseada em manipuladores delta;
+
+    denicao da arquitetura eletronica com Raspberry Pi 4B, ESP32-S3, servos e sistema
+     de alimentacao;
+
+
+    desenvolvimento de uma arquitetura de rmware baseada em estruturas de trajeto-
+     ria, instancias de execucao e maquinas de estados;
+
+
+                                             17
+    integracao logica da tosse como evento temporario sobreposto ao movimento respi-
+     ratorio.
+
+
+
+
+6.3 Limitacoes
+O prototipo ainda apresenta limitacoes importantes. O realismo material e limitado pelos
+
+processos de impressao disponiveis e pelos lamentos acessiveis. A solucao de movimento
+
+em tres eixos simplica a dinamica real da arvore traqueobronquica, que inclui deforma-
+
+coes locais, variacoes de calibre e interacao com o broncoscopio. A validacao quantitativa
+
+dos movimentos tambem depende de medicoes experimentais futuras, nomeadamente am-
+
+plitudes reais, repetibilidade, ruido, aquecimento e estabilidade da alimentacao.
+
+   Outra limitacao e a ausencia, nesta fase, de feedback sensorial.      Sem sensores de
+
+contacto, forca ou posicao externa, o sistema depende essencialmente do comando aberto
+
+dos servos e das validacoes geometricas implementadas no rmware.         Isto e aceitavel
+
+para uma primeira prova de conceito, mas limita a simulacao de resistencia ao avanco do
+
+broncoscopio.
+
+
+
+
+6.4 Trabalho futuro
+Como trabalho futuro, devem ser realizados testes quantitativos do manipulador e da
+
+arvore bronquica em movimento. A selecao de materiais exiveis deve ser aprofundada,
+
+comparando TPU, TPE e outros lamentos quanto a impressao, elasticidade e durabili-
+
+dade. A interface graca no Raspberry Pi deve evoluir para permitir conguracao simples
+
+de pers, escolha de cenarios e monitorizacao do estado do sistema.
+
+   Tambem se recomenda explorar sensores de contacto, medicao de corrente dos servos,
+
+m de curso e possivel feedback de posicao.     Estes elementos permitiriam aumentar a
+
+seguranca e introduzir novas funcionalidades, como resistencia ao avanco, deteccao de
+
+contacto com paredes internas e simulacao de patologias especicas. Por m, a validacao
+
+com prossionais de saude sera essencial para avaliar o realismo, a utilidade pedagogica
+
+e o impacto do modelo no treino de videobroncobroscopia.
+
+
+
+
+                                           18
+Bibliograa
+
+[1]   Henri G. Colt, Stephen W. Crawford e Oliver Galbraith. Virtual Reality Bronchos-
+
+      copy Simulation. Em:     Chest 120.4 (2001), pp. 13331339. doi: 10.1378/chest.
+      120.4.1333. url: https://doi.org/10.1378/chest.120.4.1333.
+[2]   David Ost et al. Assessment of a Bronchoscopy Simulator. Em:      American Journal
+      of Respiratory and Critical Care Medicine 164.12 (2001), pp. 22482255. doi: 10.
+      1164/ajrccm.164.12.2102087. url: https://doi.org/10.1164/ajrccm.164.
+      12.2102087.
+[3]   Mohsen Davoudi e Henri G. Colt. Bronchoscopy simulation: a brief review. Em:
+
+      Advances in Health Sciences Education 14.2 (2008), pp. 287296. doi: 10.1007/
+      s10459-007-9095-x. url: https://doi.org/10.1007/s10459-007-9095-x.
+[4]   David I. Fielding, Fabien Maldonado e Septimiu Murgu. Achieving competency in
+
+      bronchoscopy: Challenges and opportunities. Em:     Respirology 19.4 (2014), pp. 472
+      482.   doi: 10.1111/resp.12279. url: https://doi.org/10.1111/resp.12279.
+[5]   Philip Mørkeberg Nilsson et al. Simulation in bronchoscopy: current and future
+
+      perspectives. Em:   Advances in Medical Education and Practice 8 (2017), pp. 755
+      760.   doi: 10 . 2147 / AMEP . S139929. url: https : / / doi . org / 10 . 2147 / AMEP .
+      S139929.
+[6]   T. H. Pedersen et al. A randomised, controlled trial evaluating a low cost, 3D-
+
+      printed bronchoscopy simulator. Em:     Anaesthesia 72.8 (2017), pp. 10051009. doi:
+      10.1111/anae.13951. url: https://doi.org/10.1111/anae.13951.
+[7]   Rao Fu et al. Dynamic three-dimensional printing: The future of bronchoscopic
+
+      simulation training? Em:     Anaesthesia and Intensive Care 51.4 (2023), pp. 274
+      280.   doi: 10 . 1177 / 0310057X231154015. url: https : / / doi . org / 10 . 1177 /
+      0310057X231154015.
+[8]   Bruno Santos. Simulação dinâmica da videobroncobroscopia em modelo impresso
+
+      3D. Documento de trabalho local na pasta Bibliograa. 2026.
+
+[9]   I. Chao et al. The application of three-dimensional printing technology in ana-
+
+      esthesia: a systematic review. Em:     Anaesthesia 72.5 (2017), pp. 641650. doi:
+      10.1111/anae.13812. url: https://doi.org/10.1111/anae.13812.
+
+                                              19
+[10]   Peter Heinbecker. A method for the demonstration of calibre changes in the bronchi
+
+       in normal respiration. Em:   Journal of Clinical Investigation 4.4 (1927), pp. 459
+       469.   doi: 10.1172/JCI100133. url: https://doi.org/10.1172/JCI100133.
+[11]   Maxwell Ellis. The mechanism of the rhythmic changes in the calibre of the bronchi
+
+       during respiration. Em:   The Journal of Physiology 87.3 (1936), pp. 298309. doi:
+       10.1113/jphysiol.1936.sp003408. url: https://doi.org/10.1113/jphysiol.
+       1936.sp003408.
+[12]   Alexander Chen et al. The Eect of Respiratory Motion on Pulmonary Nodule Lo-
+
+       cation During Electromagnetic Navigation Bronchoscopy. Em:     Chest 147.5 (2015),
+       pp. 12751281.   doi: 10.1378/chest.14-1425. url: https://doi.org/10.1378/
+       chest.14-1425.
+[13]   Chamindu C. Gunatilaka et al. The eect of airway motion and breathing phase du-
+
+       ring imaging on CFD simulations of respiratory airow. Em:   Computers in Biology
+       and Medicine 127 (2020), p. 104099. doi: 10.1016/j.compbiomed.2020.104099.
+       url: https://doi.org/10.1016/j.compbiomed.2020.104099.
+[14]   Cassie C. Kennedy, Fabien Maldonado e David A. Cook. Simulation-Based Bron-
+
+       choscopy Training. Systematic Review and Meta-analysis. Em:    Chest 144.1 (2013),
+       pp. 183192.   doi: 10.1378/chest.12-1786. url: https://doi.org/10.1378/
+       chest.12-1786.
+[15]   Mallika Gopal et al. Bronchoscopy Simulation Training as a Tool in Medical School
+
+       Education. Em:   The Annals of Thoracic Surgery 106.1 (2018), pp. 280286. doi:
+       10.1016/j.athoracsur.2018.02.011. url: https://doi.org/10.1016/j.
+       athoracsur.2018.02.011.
+[16]   Dimitri J. Anastakis et al. Assessment of technical skills transfer from the bench
+
+       training model to the human model. Em:     The American Journal of Surgery 177.2
+       (1999), pp. 167170.   doi: 10.1016/S0002-9610(98)00327-4. url: https://doi.
+       org/10.1016/S0002-9610(98)00327-4.
+[17]   Edward D. Matsumoto et al. The eect of bench model delity on endourologi-
+
+       cal skills: a randomized controlled study. Em:   Journal of Urology 167.3 (2002),
+       pp. 12431247.   doi: 10.1016/S0022-5347(05)65274-3. url: https://doi.org/
+       10.1016/S0022-5347(05)65274-3.
+[18]   Ethan D. Grober et al. The Educational Impact of Bench Model Fidelity on the Ac-
+
+       quisition of Technical Skill: The Use of Clinically Relevant Outcome Measures. Em:
+
+       Annals of Surgery 240.2 (2004), pp. 374381. doi: 10.1097/01.sla.0000133346.
+       07434.30. url: https://doi.org/10.1097/01.sla.0000133346.07434.30.
+
+
+
+
+                                             20
+[19]   Deven B. Chandra et al. Fiberoptic Oral Intubation: The Eect of Model Fide-
+
+       lity on Training for Transfer to Patient Care. Em:       Anesthesiology 109.6 (2008),
+       pp. 10071013.    doi: 10.1097/ALN.0b013e31818d6c3c. url: https://doi.org/
+       10.1097/ALN.0b013e31818d6c3c.
+[20]   Delwyn Nicholls et al. Teaching psychomotor skills in the twenty-rst century:
+
+       Revisiting and reviewing instructional approaches through the lens of contempo-
+
+       rary literature. Em:   Medical Teacher 38.10 (2016), pp. 10561063. doi: 10.3109/
+       0142159X.2016.1150984. url: https://doi.org/10.3109/0142159X.2016.
+       1150984.
+[21]   Pedro Barros, Bruno Santos e Ulisses Brito. Projeto para desenvolvimento de mo-
+
+       delo de simulação de árvore brônquica, com impressão 3D. Documento de trabalho
+
+       local na pasta Bibliograa. 2023.
+
+[22]   Joao Pedro Barros. Notas manuscritas do projeto nal de curso: Arvore bron-
+
+       quica. Transcricao interpretativa local das paginas 17 e 1948 do documento ma-
+
+       nuscrito. 2026.
+
+[23]   Joao Pedro Barros. Mini-relatorio de desenvolvimento ESP32Delta. Resumo cro-
+
+       nologico local do desenvolvimento de rmware, estruturas de dados, maquinas de
+
+       estados e integracao da tosse. 2026.
+
+[24]   Viren N. Naik e Susan E. Brien. Review article: Simulation: a means to address and
+
+       improve patient safety. Em:    Canadian Journal of Anesthesia 60.2 (2012), pp. 192
+       200.   doi: 10 . 1007 / s12630 - 012 - 9860 - z. url: https : / / doi . org / 10 . 1007 /
+       s12630-012-9860-z.
+[25]   Mohsen Davoudi et al. Comparative Eectiveness of Low- and High-Fidelity Bron-
+
+       choscopy Simulation for Training in Conventional Transbronchial Needle Aspiration
+
+       and User Preferences. Em:      Respiration 80.4 (2010), pp. 327334. doi: 10.1159/
+       000318674. url: https://doi.org/10.1159/000318674.
+[26]   Vídeo de apoio sobre broncoscopia. Ligação recolhida em links.txt; conrmar título
+       e autoria antes da versão nal.      url: https : / / www . youtube . com / watch ? v =
+       yQJ8RxFrNUA (acedido em 12/06/2026).
+[27]   Vídeo de apoio sobre broncoscopia. Ligação recolhida em links.txt; conrmar título
+       e autoria antes da versão nal.     url: https : / / www . youtube . com / watch ? v= -
+       jjwi5gk_4c (acedido em 12/06/2026).
+
+
+
+
+                                                21
+Apêndice A
+Anexos
+
+A.1 Anexo A: Desenhos técnicos e modelo 3D
+Incluir vistas do modelo, cheiros CAD relevantes, parâmetros de impressão 3D e notas
+
+de montagem.
+
+
+
+
+A.2 Anexo B: Lista de materiais
+Incluir lista completa de peças, fornecedores, referências, quantidades e custos.
+
+
+
+
+A.3 Anexo C: Datasheets
+Incluir datasheets dos principais componentes eletrónicos, atuadores, drivers e fonte de
+
+alimentação.
+
+
+
+
+A.4 Anexo D: Código e congurações
+Incluir excertos relevantes de rmware, cheiros de conguração, mapas de pinos e ins-
+
+truções de carregamento.
+
+
+
+
+A.5 Anexo E: Protocolos de teste
+Incluir grelhas de teste, formulários de avaliação, tabelas de resultados brutos e notas de
+
+calibração.
+
+
+
+
+                                            22
+
