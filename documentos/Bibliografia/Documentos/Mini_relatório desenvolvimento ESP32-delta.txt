@@ -1,0 +1,1434 @@
+Resumo cronológico:
+
+1. Contexto inicial do projeto
+Estás a desenvolver um manipulador/broncoscópio robótico com três servos (L1, L2, L3), controlado por uma ESP32, com movimentos pré-definidos para respiração, batimento e tosse.
+
+O código está em C++ para Arduino/ESP32, usando bibliotecas como Adafruit_NeoPixel para LED e ESP32Servo para os servos.
+
+A arquitetura base usa duas estruturas principais:
+
+MotionStorage (ou equivalente): guarda trajetórias em arrays X, Y, Z, além de parâmetros como n_Points, period, T_pause_Ini, T_pause_End, etc.
+
+MotionInstance: guarda o estado de execução em tempo real (índices, tempos, direção, estado da FSM).
+
+O objetivo geral foi: ter uma FSM de movimentos genérica que sabe percorrer qualquer trajetória, e em cima disso montar “modos fisiológicos” (respiração normal, batimento, tosse, respiração acelerada com vibração, etc.).
+
+2. Definição e calibração dos movimentos base
+2.1 Respiração
+Definiste arrays de pontos para respiração (algo como X_test2, Y_test2, Z_test2), representando a trajetória cíclica de inspiração/expiração.
+
+Criaste a função Iniciate_Resp_Move() para copiar esses arrays para um objeto Resp_move do tipo MotionStorage:
+
+Resp_move.n_Points recebe N_test2.
+
+Resp_move.period recebe T_period2.
+
+Resp_move.T_pause_Ini e Resp_move.T_pause_End recebem os tempos de pausa.
+
+Há um loop que copia cada ponto X_test2[i], Y_test2[i] (com sinal invertido em Y) e Z_test2[i] para Resp_move.
+
+Resp_move.start_Index é definido para começar o ciclo a partir de um índice específico (ex.: 5), e Resp_move.bidirectional = true.
+
+No final são chamadas Resp_move.updateDtMs() e Resp_move.updateDt_PauseMs() para converter segundos em milissegundos e preencher dtMs e pausas internas.
+
+2.2 Batimento
+De forma semelhante, definiste trajetórias para o batimento (por exemplo X_Bat, Y_Bat, Z_Bat) e a função Iniciate_Bat_Move() (ou equivalente) que preenche Bat_move com os pontos e tempos corretos.
+
+O objetivo é que Batimento seja um movimento cíclico mais rápido, normalmente associado a um modo específico (modo BAT ou ALL).
+
+3. Estruturas de runtime (MotionInstance)
+3.1 Inicialização das instâncias
+Para cada movimento, criaste uma função de inicialização de instância:
+
+Iniciate_Bat_Instance():
+
+Liga Bat_inst.def = &Bat_move.
+
+Zera índices (currentIndex, I_Index, iIndex, jIndex).
+
+Zera tempos (segmentStartMs, elapsed_1, elapsed_2, elapsed_3).
+
+Define Bat_inst.active = false, Bat_inst.Individual_start_comand = 1 (no início), Bat_inst.Executing = 0 ou false.
+
+Inicializa Bat_inst.Direction = 1, Bat_inst.Dt_pause = 0, Bat_inst.End_Point = 0, Bat_inst.Situacion = 'F'.
+
+Iniciate_Resp_Instance():
+
+Liga Resp_inst.def = &Resp_move.
+
+Zera índices e tempos como acima.
+
+Resp_inst.active = false, Resp_inst.Individual_start_comand = 1, Resp_inst.Executing = false.
+
+Inicializa direção, pausas, End_Point e Situacion, e um parâmetro novo Resp_inst.Z_amp_mult = 1.0f para controlar amplitude em Z (importante para tosse).
+
+Iniciate_Tosse_Instance():
+
+Liga Tosse_inst.def = &Tosse_move.
+
+Zera índices, tempos, active, Individual_start_comand, Executing, estado, direção, pausas, etc., tal como nas outras instâncias.
+
+Inicialmente Tosse_inst.Individual_start_comand = 0 para que a vibração só arranque quando mandado.
+
+Com estas funções garantiste que, no setup(), todas as instâncias estão num estado conhecido e pronto para serem usadas pela FSM de movimento.
+
+4. FSM de movimento genérica
+Foi definido um motor de movimento genérico (por exemplo, FSM_Motion_Update(start_comand, MotionInstance& inst, unsigned long nowMs)), responsável por:
+
+Ver se inst.active e inst.def (ponteiro para MotionStorage) estão válidos.
+
+Ler inst.Individual_start_comand para decidir quando começar/parar o movimento.
+
+Atualizar inst.state (por exemplo: 0 = em pausa, 1 = entre segmentos, 2 = em segmento, etc.).
+
+Interpolar entre pontos da trajetória usando dtMs e o tempo absoluto (nowMs/millis()), avançando currentIndex e controlando bidirecionalidade.
+
+Aplicar a posição resultante (X, Y, Z) à cinemática inversa, gerando pulsos para os servos.
+
+Em modos como ALL, o loop() chama essa FSM três vezes, uma para cada instância: Bat_inst, Resp_inst e Tosse_inst.
+
+5. FSM de comandos (Serial / modo de operação)
+Implementaste uma FSM para comandos vindos da Serial (por exemplo, FSM_Serial_Command()), onde cada comando numérico muda o modo:
+
+Comandos típicos:
+
+1: Modo RESP (apenas respiração).
+
+2: Modo BAT (apenas batimento).
+
+3: Modo ALL (respiração + batimento + eventualmente tosse).
+
+9: Comando L3 (tosse específica).
+
+Para cada modo, a FSM é responsável por:
+
+Definir quais instâncias estão active = true.
+
+Ajustar start_comand global.
+
+Lançar ou parar movimentos específicos.
+
+Em particular, para L3 (tosse), definiste que o comando deve:
+
+Forçar sinal_tossir = true (variável global de “pedido de tosse”).
+
+Deixar a respiração ativa, para que haja respiração sobre a qual a tosse altera parâmetros (período, pausa e amplitude Z).
+
+6. Tosse: movimento de vibração e integração com respiração
+6.1 Definição do movimento de vibração da tosse
+Criaste arrays X_tosse_vibracao, Y_tosse_vibracao, Z_tosse_vibracao e um número de pontos N_tosse_vibracao, representando pequenas oscilações rápidas (vibração) durante a tosse.
+
+Implementaste Iniciate_Tosse_Move() com a mesma lógica das outras funções:
+
+Tosse_move.n_Points = N_tosse_vibracao.
+
+Tosse_move.period = T_period_tosse_vibracao.
+
+Tosse_move.T_pause_Ini e Tosse_move.T_pause_End baseados em T_pausedt_tosse_vibracao_Ini/End.
+
+Loop que copia X_tosse_vibracao[i], -Y_tosse_vibracao[i] e Z_tosse_vibracao[i] para Tosse_move.
+
+Tosse_move.start_Index = 0.
+
+Tosse_move.bidirectional = false (vibração num único sentido ou ciclo).
+
+Chamadas a Tosse_move.updateDtMs() e Tosse_move.updateDt_PauseMs().
+
+6.2 Preparação da tosse (função Preparacao_Tosse())
+A função Preparacao_Tosse() foi uma parte crítica do projeto. Ela controla:
+
+Situação em que o sistema não está em execução (start_comand == 0):
+
+Se Tosse_em_preparacao estava true (tosse em curso anteriormente), repõe:
+
+Resp_move.period para Resp_period_padrao.
+
+Resp_move.T_pause_Ini para Resp_T_pause_Ini_padrao.
+
+Recalcula dtMs e pausas.
+
+Repõe Resp_inst.Z_amp_mult = 1.0f.
+
+Zera sinal_tossir, Tosse_em_preparacao, Tosse_signal.
+
+Desliga vibração (Tosse_inst.Individual_start_comand = 0; Tosse_inst.active = false;).
+
+Faz return.
+
+Situação em que o sistema está a correr (start_comand == 1):
+
+Lê estadoResp = Resp_inst.state.
+
+Se sinal_tossir && !Tosse_em_preparacao:
+
+Se Resp_inst.active for false ou Resp_inst.def == nullptr, descarta tosse (sinal_tossir = false) e sai.
+
+Caso contrário:
+
+Tosse_inst.Individual_start_comand = 1; (arranca vibração).
+
+Guarda valores padrão:
+
+Resp_period_padrao = Resp_move.period;
+
+Resp_T_pause_Ini_padrao = Resp_move.T_pause_Ini;
+
+Ajusta para tosse:
+
+Resp_move.period = 0.50f;
+
+Resp_move.T_pause_Ini = 0.1f;
+
+Resp_inst.Z_amp_mult = 1.50f; (aumenta amplitude em Z).
+
+Atualiza Resp_move (updateDtMs e updateDt_PauseMs).
+
+Seta Tosse_signal = 1; e Tosse_em_preparacao = true;.
+
+Faz return.
+
+Se Tosse_em_preparacao && estadoResp == 1 (fim do ciclo de respiração durante a tosse):
+
+Tosse_inst.Individual_start_comand = 0; (desliga vibração).
+
+Restaura o período, pausa e amplitude Z:
+
+Resp_move.period = Resp_period_padrao;
+
+Resp_move.T_pause_Ini = Resp_T_pause_Ini_padrao;
+
+Resp_inst.Z_amp_mult = 1.0f;.
+
+Atualiza Resp_move novamente.
+
+Limpa Tosse_signal, Tosse_em_preparacao, sinal_tossir.
+
+Desta forma, a tosse passa a ser um evento sobreposto à respiração:
+
+Quando sinalizada (sinal_tossir = true), acelera respiração e aumenta amplitude em Z, enquanto ativa vibração em Tosse_inst.
+
+Quando a respiração volta ao estado 1, os parâmetros são restaurados.
+
+7. Problemas com tosse e depuração
+Em determinado momento, a tosse deixou de funcionar — não vias vibração nem alteração de respiração.
+
+A análise concentrou-se nos pontos possíveis de falha:
+
+sinal_tossir não estava a ser setado em L3 (ou foi renomeado).
+
+Resp_inst.active podia estar a false no modo em que testavas.
+
+Tosse_inst podia não estar a ser passado para a FSM de movimento no loop().
+
+Resp_inst.state podia nunca ficar 1, impedindo o bloco de fim da tosse.
+
+Foi sugerido adicionar Serial.println simples em Preparacao_Tosse() e no comando L3 para ver:
+
+Se L3 realmente dispara sinal_tossir.
+
+Se Preparacao_Tosse() entra no bloco de “gatilho de tosse”.
+
+Se entra no bloco de “reset” quando o estado da respiração é 1.
+
+A intenção foi tornar visível o fluxo lógico: comando → sinal → alteração de parâmetros → vibração → fim.
+
+8. Funções de depuração e testes
+Foram criadas funções de debug para inspecionar os movimentos e instâncias:
+
+debugPrintMove(const MotionStorage& move, const char* name):
+
+Imprime n_Points, period, dtMs, pausas e todos os pontos X, Y, Z para verificar se a trajetória foi carregada corretamente.
+
+debugPrintInstance(const MotionInstance& inst, const char* name):
+
+Imprime active, currentIndex, segmentStartMs e o endereço do ponteiro def.
+
+Usada para ver se, por exemplo, Resp_inst.def está nulo, ou se o currentIndex não avança.
+
+Também há funções como LED_LOOP() e Servo_test() para testar hardware:
+
+LED_LOOP() alterna cores no NeoPixel e imprime mensagens (verde, Desligado, Amarelo, etc.) para validar funcionamento do LED.
+
+Servo_test() move servos entre ângulos para garantir calibração e resposta física antes de integrar na FSM.
+
+9. Integração geral e modos fisiológicos
+No fim destas iterações, a arquitetura fica grosso modo assim:
+
+Estrato 1 (dados):
+
+Estruturas de parâmetros (Manipulador_Config).
+
+Estruturas de movimento (MotionStorage) para respiração, batimento, tosse.
+
+Arrays de trajetórias X/Y/Z para cada modo.
+
+Estrato 2 (runtime):
+
+MotionInstance para cada movimento (Bat_inst, Resp_inst, Tosse_inst), com estado, índices, tempos e flags (active, Individual_start_comand, Executing, Direction, etc.).
+
+Estrato 3 (FSM movimento):
+
+Função única que percorre qualquer MotionInstance com o respectivo MotionStorage.
+
+Estrato 4 (FSM comando / fisiologia):
+
+Comandos da Serial: selecionam sequer quais instâncias estão ativas e que tipo de comportamento está em curso (RESP, BAT, ALL, L3…).
+
+Funções específicas como Preparacao_Tosse() que implementam lógica fisiológica: por exemplo, sobrepor vibração e alteração de parâmetros ao movimento de respiração durante tosse.
+
+
+
+
+Resumo por módulos:
+
+
+
+
+Módulo 1 – Estruturas de dados principais (Manipulador, MotionStorage, MotionInstance)
+Este módulo é a base de tudo: sem ele o resto dos modos (RESP, BAT, TOSSE, etc.) não faz sentido.
+
+1.1 Manipulador_Config
+Serve para guardar toda a configuração geométrica e de calibração dos servos.
+
+Principais campos:
+
+Geometria:
+
+L1, L2, L3: comprimentos dos segmentos do braço/manipulador, usados na cinemática inversa.
+
+servoOffsetX, servoOffsetZ: deslocamentos (offsets) entre o sistema de coordenadas do modelo e a posição física dos servos, para alinhar o zero do modelo com o zero mecânico.
+
+angleMin, angleMax: limites seguros de ângulo, provavelmente usados para proteger os servos (evitar ultrapassar o intervalo físico).
+
+rotationOffsetZ: offset global de rotação da base, ajustando o zero da rotação em torno do eixo Z.
+
+Calibração PWM:
+
+servo1MinPulse, servo1MaxPulse, e iguais para servo2, servo3: mapeamento entre ângulos e pulsos PWM específicos para cada servo (valores de microsegundos que o ESP32Servo usa).
+
+theta1MinPulse, theta1MaxPulse, etc.: provavelmente um segundo mapeamento para outro conjunto de ângulos (dependendo de como a IK é implementada).
+
+Estado atual:
+
+servo1Pulse, servo2Pulse, servo3Pulse: armazenam o último valor de pulso gerado pela IK, para permitir transições suaves e saber qual é a posição atual ao atualizar.
+
+Ideia importante: este struct separa “configuração/calibração” da lógica de movimento. A FSM de movimento não precisa saber como o servo está calibrado; ela só precisa que a IK use esses parâmetros para converter X/Y/Z em pulsos corretos.
+
+1.2 MotionStorage
+(Os detalhes exatos não aparecem no excerto, mas dá para inferir do uso.)
+
+Guarda uma trajetória inteira em arrays:
+
+X[i], Y[i], Z[i]: coordenadas do ponto i ao longo da trajetória (respiração, batimento, tosse, etc.).
+
+n_Points: número de pontos válidos na trajetória.
+
+period: período total do movimento em segundos (tempo para percorrer todos os pontos).
+
+T_pause_Ini, T_pause_End: pausas em segundos no início e no fim do ciclo, úteis para respiração (pausa entre ciclos, por exemplo).
+
+Parâmetros derivados:
+
+dtMs: passo de tempo em milissegundos entre pontos.
+
+dt_PauseMs: tempos de pausa em milissegundos.
+
+Outros:
+
+start_Index: índice a partir do qual começa o ciclo (por exemplo, respiração pode começar a partir de um ponto específico da curva).
+
+bidirectional: se true, o movimento faz vai-e-vem (ida e volta na trajetória); se false, percorre só num sentido (como vibração da tosse).
+
+Funções associadas (importantes para o relatório):
+
+updateDtMs(): calcula dtMs com base em period e n_Points (conversão segundos → milissegundos).
+
+updateDt_PauseMs(): converte T_pause_Ini e T_pause_End para milissegundos, preenchendo campos internos usados pela FSM.
+
+1.3 MotionInstance
+De novo, não aparece completo, mas o uso em Iniciate_Bat_Instance, Iniciate_Resp_Instance e Iniciate_Tosse_Instance mostra os campos:
+
+Ponteiro para definição:
+
+def: ponteiro para um MotionStorage (por exemplo &Resp_move, &Bat_move, &Tosse_move).
+
+Estado de execução:
+
+currentIndex: índice atual do ponto da trajetória a ser executado.
+
+segmentStartMs: marca o tempo (millis) em que começou o segmento atual (entre dois pontos).
+
+state: código inteiro que representa o estado da FSM de movimento: por exemplo 0 = parado, 1 = pausa, 2 = a mover, etc.
+
+Flags de controlo:
+
+active: se true, a FSM considera este movimento; se false, ignora.
+
+Individual_start_comand: indica se este movimento deve começar/continuar (independente do modo global), usado em tosse para arrancar vibração.
+
+Executing: indica se está em execução ativa (a percorrer segmentos) ou em pausa/espera.
+
+Índices internos:
+
+I_Index, iIndex, jIndex: usados internamente pela FSM para navegar na trajetória, tratar bidirecionalidade e controlar subestados.
+
+Direção e fim:
+
+Direction: +1 ou -1, indicando se vai para frente ou para trás na trajetória.
+
+Dt_pause: tempo de pausa atual em milissegundos.
+
+End_Point: marca um ponto final específico ou condição de saída.
+
+Situacion: um char que codifica situações ou modos (por exemplo 'F' para “fim” ou “free”).
+
+Parâmetros específicos (no caso de respiração):
+
+Z_amp_mult: multiplicador da amplitude em Z, usado para aumentar a amplitude quando há tosse (1.0f normalmente, 1.5f durante tosse).
+
+Estas três estruturas juntas são o “coração de dados” do teu sistema: tudo o que diz respeito a “como é o braço”, “que trajetória seguir” e “em que ponto do movimento estou” vive aqui.
+
+Módulo 2 – FSM de Movimento (FSM_Motion_Update)
+Esta função é o motor que percorre qualquer trajetória armazenada em MotionStorage usando o estado de MotionInstance.
+
+2.1 Estrutura geral da função
+Assinatura:
+void FSM_Motion_Update(boolean start, MotionInstance& inst, unsigned long nowMs)
+
+Parâmetros:
+
+start: reflete se o sistema está em execução (por exemplo, modo ativo) ou parado.
+
+inst: instância de movimento a ser atualizada (pode ser Resp_inst, Bat_inst ou Tosse_inst).
+
+nowMs: tempo atual em milissegundos (millis()), usado para medir intervalos.
+
+Internamente:
+
+Faz referência ao MotionStorage associado: MotionStorage& m = *(inst.def);.
+
+Usa um switch (inst.state) para controlar a evolução da máquina de estados.
+
+2.2 Estados principais e funções de cada um
+Vou descrever o fluxo com base nos casos da FSM:
+
+Estado 0 – Parado / Reset
+Ações:
+
+inst.Executing = 0;
+
+inst.I_Index = 0;
+
+inst.iIndex = 0;
+
+inst.jIndex = 0;
+
+inst.Situacion = 'F'; (marca situação como “fim”/idle).
+
+Condições:
+
+Se start == 0 ou inst.Individual_start_comand == 0, permanece em 0.
+
+Se !inst.active ou inst.def == nullptr, também permanece em 0.
+
+Se start == 1, inst.Individual_start_comand == 1, inst.active == true e inst.def != nullptr, transita para estado 1.
+
+Interpretação: este estado é o “ponto de partida” e de retorno quando o movimento não deve correr. Qualquer problema (ponteiro nulo, movimento inativo, sinal individual desligado) mantém o movimento parado.
+
+Estado 1 – Preparação / Checagem
+Ações:
+
+inst.I_Index = 0;
+
+inst.Situacion = 'P'; (provavelmente “preparação”).
+
+inst.Direction = 1; (por padrão, começa para frente).
+
+Condições:
+
+Se m.n_Points <= 1 ou m.period <= 0.0f, fica em 1 (trajetória inválida).
+
+Se inst.Direction == 1, start == 1 e inst.Individual_start_comand == 1, passa para estado 2.
+
+Se start == 0 ou inst.Individual_start_comand == 0, volta para 0.
+
+Interpretação: este estado valida se há uma trajetória útil e prepara a direção inicial. Só avança se há pontos suficientes e período válido.
+
+Estado 2 – Início do movimento
+Ações:
+
+inst.Executing = 1;
+
+inst.Situacion = 'M'; (provavelmente “moving”).
+
+inst.segmentStartMs = nowMs; (marca início do primeiro segmento).
+
+inst.iIndex = m.start_Index; (começa no índice de arranque definido na trajetória).
+
+inst.End_Point = m.n_Points - 1; (define ponto final para direção positiva).
+
+inst.jIndex = (inst.iIndex + inst.Direction) % m.n_Points; (próximo ponto a seguir na trajetória).
+
+Condições:
+
+Passa diretamente para estado 3.
+
+Interpretação: aqui o movimento entra efetivamente em execução. O par (iIndex, jIndex) define o segmento atual entre dois pontos na trajetória.
+
+Estado 3 – Aguardando fim do segmento
+Ações:
+
+inst.elapsed_1 = nowMs - inst.segmentStartMs; (tempo decorrido no segmento atual).
+
+Condições:
+
+Se inst.elapsed_1 >= m.dtMs, transita para estado 4.
+
+Interpretação: este estado apenas espera o tempo necessário para percorrer o segmento; a interpolação da posição atual geralmente acontece fora ou paralelamente, baseada em elapsed_1 / dtMs.
+
+Estado 4 – Avanço de índices
+Ações:
+
+inst.I_Index++; (índice global de segmentos percorridos).
+
+inst.iIndex = inst.iIndex + inst.Direction; (ponto atual avança na direção).
+
+inst.jIndex = inst.iIndex + inst.Direction; (próximo ponto).
+
+inst.elapsed_1 = 0;
+
+inst.segmentStartMs = nowMs; (reinicia tempo para o novo segmento).
+
+Condições:
+
+Se ainda não chegou ao End_Point:
+
+(inst.iIndex < inst.End_Point && inst.Direction == 1) ou
+
+(inst.iIndex > inst.End_Point && inst.Direction == -1)
+então volta para estado 3 (continua percorrendo segmentos).
+
+Se chegou ao End_Point:
+
+(inst.iIndex >= inst.End_Point && inst.Direction == 1) ou
+
+(inst.iIndex <= inst.End_Point && inst.Direction == -1)
+então vai para estado 5 (fim do percurso principal).
+
+Se m.bidirectional == true e inst.iIndex == m.start_Index && inst.jIndex == m.start_Index + 1, volta a 1 (reset para novo ciclo bidirecional).
+
+Se Tosse_signal == 1 e m.bidirectional == true, vai para estado 14 (estado especial para tosse).
+
+Interpretação: este é o estado que controla o avanço ao longo da trajetória, define quando o movimento chegou ao fim e decide se vai haver reciclagem, pausa ou comportamento especial (tosse).
+
+Estado 5 – Fim da trajetória, preparação para pausa / reciclagem
+Ações:
+
+inst.segmentStartMs = nowMs;
+
+inst.jIndex = inst.iIndex; (fim do movimento, jIndex coincide com iIndex).
+
+Condições:
+
+Se inst.Direction == -1 e m.Dt_pauseMs_Ini != 0, vai para estado 7 (pausa inicial).
+
+Se inst.Direction == 1 e m.Dt_pauseMs_End != 0, vai para estado 8 (pausa final).
+
+Senão:
+
+Se m.bidirectional == true, vai para estado 6 (troca de direção).
+
+Se m.bidirectional != true e ambas pausas forem definidas, pode voltar a estado 1 (novo ciclo simples).
+
+Interpretação: este estado decide se depois de chegar ao fim vai haver pausa, inversão de direção ou reciclagem simples.
+
+Estado 6 – Troca de direção
+Ações:
+
+inst.Direction = inst.Direction * (-1); (inverte direção: +1 → -1, -1 → +1).
+
+Condições:
+
+Se inst.Direction == -1, vai para 11 (preparar descida).
+
+Se inst.Direction == 1, vai para 12 (preparar subida).
+
+Interpretação: isto implementa o comportamento de vai-e-vem para movimentos bidirecionais.
+
+Estados 7 e 8 – Seleção do tempo de pausa
+Estado 7:
+
+inst.Dt_pause = m.Dt_pauseMs_Ini; (usa pausa inicial).
+
+Vai para 9.
+
+Estado 8:
+
+inst.Dt_pause = m.Dt_pauseMs_End; (usa pausa final).
+
+Vai para 9.
+
+Interpretação: escolhem qual pausa aplicar dependendo se se chegou ao início ou ao fim da trajetória.
+
+Estado 9 – Espera durante a pausa
+Ações:
+
+inst.elapsed_2 = nowMs - inst.segmentStartMs; (tempo decorrido na pausa).
+
+Condições:
+
+Se inst.elapsed_2 >= inst.Dt_pause, vai para estado 10 (fim da pausa).
+
+Estado 10 – Fim da pausa, decisão de reciclagem ou parada
+Ações:
+
+inst.segmentStartMs = nowMs;
+
+inst.elapsed_2 = 0;.
+
+Condições:
+
+Se start == 0 ou inst.active != true ou inst.Individual_start_comand == 0, volta a estado 0 (parado).
+
+Se m.bidirectional == true, volta a estado 6 (nova inversão e ciclo).
+
+Se m.bidirectional == false, vai para estado 1 (novo ciclo com mesma direção).
+
+Interpretação: este estado fecha o ciclo de pausa e decide se o movimento continua ou se pára.
+
+Estado 11 – Preparar descida (direção -1)
+Ações:
+
+inst.iIndex = m.n_Points - 1; (começa do último ponto).
+
+inst.jIndex = inst.iIndex + inst.Direction; (ponto anterior).
+
+inst.End_Point = 0; (final da descida é o índice 0).
+
+Condições:
+
+Vai para estado 13 (descida ativa).
+
+Interpretação: este estado inicializa os índices para percorrer a trajetória de trás para frente.
+
+(O estado 12 e 13 continuam essa lógica de subida/descida, mas o trecho enviado corta antes do fim; mesmo assim, dá para perceber o padrão.) 
+
+2.3 Integração com a tosse (estado 14 e Tosse_signal)
+No estado 4, há uma condição especial:
+
+Se Tosse_signal == 1 e m.bidirectional == true, inst.state = 14;.
+
+Isto indica que quando há sinal de tosse e o movimento atual é bidirecional (tipicamente respiração), a FSM entra num estado específico (14) onde provavelmente altera comportamento para encaixar a tosse (por exemplo, acelerar, aumentar amplitude, ou sincronizar com vibração).
+
+Mesmo sem ver todo o estado 14, o ponto chave é: a FSM de movimento “sente” o Tosse_signal e consegue alterar o ciclo com base nisso, o que é coerente com a lógica da função Preparacao_Tosse().
+
+Módulo 3 – FSM de Comandos (Serial / modos de operação)
+Este módulo é quem decide “em que modo fisiológico” o robô está, e como isso liga/desliga cada movimento (Batimento, Respiração, Tosse).
+
+3.1 Papel geral da FSM de comandos
+Lê comandos vindos da Serial (por exemplo números de 0 a 9) e traduz esses comandos em mudanças de modo.
+
+Cada modo define:
+
+Quais MotionInstance ficam active = true (Resp, Bat, Tosse).
+
+Se o sistema global está em execução (start_comand = 1) ou parado (start_comand = 0).
+
+Se algum evento especial deve acontecer (por exemplo, tosse L3, tosse aleatória, mudança de padrão de respiração).
+
+3.2 Modos típicos
+Embora o mapeamento exato dependa da tua implementação, o padrão que foste construindo é mais ou menos:
+
+Modo RESP:
+
+Resp_inst.active = true, Bat_inst.active = false, Tosse_inst.active normalmente false (a não ser num submodo).
+
+start_comand = 1.
+
+Resp_move define a trajetória principal; respiração é o movimento dominante.
+
+Modo BAT:
+
+Bat_inst.active = true, Resp_inst.active pode estar true ou false dependendo do que queres.
+
+start_comand = 1.
+
+Foco no batimento; respiração pode ser reduzida ou desativada.
+
+Modo ALL:
+
+Resp_inst.active = true.
+
+Bat_inst.active = true.
+
+Tosse_inst.active = true (ou pelo menos preparado).
+
+start_comand = 1.
+
+Aqui o loop() chama a FSM de movimento para os três instâncias, permitindo combinações de respiração, batimento e vibração.
+
+3.3 Comando L3 (tosse específica)
+O comando L3 (por exemplo case 9 na FSM de Serial) é dedicado a desencadear uma tosse “fisiológica”:
+
+Gera um sinal para tosse: sinal_tossir = true.
+
+Deixa a respiração ativa, para que a função Preparacao_Tosse() possa alterar Resp_move.period, Resp_move.T_pause_Ini e Resp_inst.Z_amp_mult.
+
+Não precisa diretamente de ligar Tosse_inst.active se isso já estiver feito no modo ALL; o que faz é marcar o evento de tosse para que outras rotinas atuem.
+
+3.4 Tosse aleatória
+Também definiste lógica para “tosse aleatória”, onde, por exemplo, um timer ou um gerador pseudoaleatório decide quando sinal_tossir deve ir a true sem intervenção da Serial.
+
+Isto permite que, em modo ALL, o robô se comporte mais como um paciente real, com tosse ocasional.
+
+A FSM de comando, neste caso, integra o sinal aleatório com o estado atual (por exemplo, só permitir tosse se respiração está ativa e o movimento não está em transição crítica).
+
+Módulo 4 – Tosse (sinais, preparação, vibração, interação com respiração)
+Este módulo é um dos mais delicados, porque mistura três coisas ao mesmo tempo: parâmetros da respiração, vibração em X/Y/Z, e sinais de controle lógico.
+
+4.1 Variáveis de estado da tosse
+Para coordenar tosse, usaste um conjunto de variáveis globais:
+
+sinal_tossir:
+
+Flag de “pedido de tosse”.
+
+Vai a true quando:
+
+Recebes comando L3 na FSM de Serial.
+
+Ou o sistema de tosse aleatória decide que é hora de tossir.
+
+É lida pela função Preparacao_Tosse() para desencadear o processo.
+
+Tosse_signal:
+
+Flag mais de “estado da tosse”: indica que tosse está em curso.
+
+Vai a 1 quando Preparacao_Tosse() prepara a tosse (ajusta respiração e vibração).
+
+Volta a 0 quando o ciclo de tosse termina e os parâmetros são restaurados.
+
+Tosse_em_preparacao:
+
+Booleano que indica que o sistema está em fase de tosse (parametrização alterada).
+
+Evita repetir preparação enquanto a tosse anterior ainda não foi concluída.
+
+Outros auxiliares:
+
+Resp_period_padrao: guarda o período original de respiração antes da tosse.
+
+Resp_T_pause_Ini_padrao: guarda a pausa inicial original da respiração.
+
+Estes valores permitem restaurar o comportamento “normal” após o evento de tosse.
+
+4.2 Movimento de vibração da tosse (Tosse_move)
+Trajetória dedicada à vibração: pequenos deslocamentos rápidos, geralmente em X/Y/Z.
+
+Configurada por Iniciate_Tosse_Move():
+
+Copia arrays como X_tosse_vibracao[i], Y_tosse_vibracao[i], Z_tosse_vibracao[i] para Tosse_move.X/Y/Z.
+
+Configura Tosse_move.n_Points, Tosse_move.period e pausas específicas para vibração.
+
+Usa Tosse_move.bidirectional = false, porque a vibração pode ser um ciclo unidirecional (ou curtinho) durante a tosse.
+
+Invoca updateDtMs() e updateDt_PauseMs() para calcular tempos em ms.
+
+4.3 Instância de tosse (Tosse_inst)
+Inicializada com Iniciate_Tosse_Instance():
+
+Tosse_inst.def = &Tosse_move.
+
+Zera índices (currentIndex, I_Index, iIndex, jIndex) e tempos (segmentStartMs, elapsed_1, elapsed_2, elapsed_3).
+
+Tosse_inst.active começa em false; só fica relevante quando o modo global permite.
+
+Tosse_inst.Individual_start_comand = 0 inicialmente, para que a vibração não comece sem tosse.
+
+Tosse_inst.Executing = false, Direction = 1, Dt_pause = 0, End_Point = 0, Situacion = 'F'.
+
+Papel:
+
+A FSM de movimento (FSM_Motion_Update) corre sobre Tosse_inst apenas quando:
+
+O modo global está ativo (start_comand = 1).
+
+Tosse_inst.active está true.
+
+Tosse_inst.Individual_start_comand está 1 (durante o evento de tosse).
+
+4.4 Função Preparacao_Tosse()
+Essa função implementa a “lógica de alto nível” da tosse, coordenando respiração e vibração:
+
+Caso geral de reset (start_comand == 0):
+
+Se Tosse_em_preparacao está true, significa que respiração tinha sido alterada; então:
+
+Resp_move.period volta para Resp_period_padrao.
+
+Resp_move.T_pause_Ini volta para Resp_T_pause_Ini_padrao.
+
+Resp_move.updateDtMs() e Resp_move.updateDt_PauseMs() são chamados para recalcular tempos.
+
+Resp_inst.Z_amp_mult = 1.0f; para voltar à amplitude normal.
+
+Limpa sinal e flags:
+
+sinal_tossir = false;
+
+Tosse_em_preparacao = false;
+
+Tosse_signal = 0;
+
+Garante que vibração pare:
+
+Tosse_inst.Individual_start_comand = 0;
+
+Tosse_inst.active = false;
+
+Sai (return).
+
+Caso de preparação da tosse (sistema a correr, start_comand == 1):
+
+Lê estadoResp = Resp_inst.state; (estado da FSM de respiração).
+
+Se sinal_tossir está true e Tosse_em_preparacao ainda é false:
+
+Se Resp_inst.active == false ou Resp_inst.def == nullptr, descarta tosse (sinal_tossir = false) e sai (não há respiração para alterar).
+
+Caso contrário:
+
+Tosse_inst.Individual_start_comand = 1; (arranca vibração).
+
+Guarda padrão atual:
+
+Resp_period_padrao = Resp_move.period;
+
+Resp_T_pause_Ini_padrao = Resp_move.T_pause_Ini;
+
+Altera respiração para modo de tosse:
+
+Resp_move.period = 0.50f; (respiração mais rápida).
+
+Resp_move.T_pause_Ini = 0.1f; (pausa curta antes do ciclo).
+
+Resp_inst.Z_amp_mult = 1.50f; (amplitude maior em Z, simulando tosse).
+
+Atualiza Resp_move (updateDtMs e updateDt_PauseMs).
+
+Marca:
+
+Tosse_signal = 1;
+
+Tosse_em_preparacao = true;
+
+Sai (return).
+
+Fecho do evento de tosse:
+
+Se Tosse_em_preparacao está true e estadoResp == 1 (respiração retorna a estado de ciclo base):
+
+Tosse_inst.Individual_start_comand = 0; (desliga vibração).
+
+Restaura respiração:
+
+Resp_move.period = Resp_period_padrao;
+
+Resp_move.T_pause_Ini = Resp_T_pause_Ini_padrao;
+
+Resp_inst.Z_amp_mult = 1.0f;
+
+Atualiza tempos (updateDtMs, updateDt_PauseMs).
+
+Limpa sinal:
+
+Tosse_signal = 0;
+
+Tosse_em_preparacao = false;
+
+sinal_tossir = false;
+
+Resumo clínico: a tosse é tratada como um “evento transitório” em cima da respiração. Quando ocorre, respiração acelera e ganha mais amplitude em Z, enquanto a vibração em X/Y/Z é ligada via Tosse_inst. Quando respiração volta a um estado base, tosse termina e tudo volta à normalidade.
+
+Módulo 5 – Funções de depuração e testes
+Para garantir que tudo funciona e para ajudar o próximo agente, há funções utilíssimas de debug e teste:
+
+5.1 debugPrintMove
+Recebe um MotionStorage e um name.
+
+Imprime:
+
+n_Points (quantos pontos na trajetória).
+
+period, dtMs.
+
+Pausas e seus tempos em ms.
+
+Cada ponto X[i], Y[i], Z[i].
+
+Serve para verificar se:
+
+As trajetórias foram copiadas corretamente de arrays para Resp_move, Bat_move, Tosse_move.
+
+Os tempos (period, dtMs) fazem sentido (não são zero ou negativos).
+
+5.2 debugPrintInstance
+Recebe um MotionInstance e um name.
+
+Imprime:
+
+active.
+
+currentIndex.
+
+segmentStartMs.
+
+Endereço do ponteiro def.
+
+Serve para ver se:
+
+A instância está ativa.
+
+O ponteiro def não é nulo.
+
+Os índices estão a avançar ao longo do tempo.
+
+5.3 LED_LOOP e Servo_test
+LED_LOOP: testa o NeoPixel com várias cores e imprime mensagens (“verde”, “desligado”, “amarelo”, “vermelho”, “azul”, “branco”); ajuda a garantir que o hardware da iluminação responde antes de integrar em modos fisiológicos.
+
+Servo_test: move servos 1, 2 e 3 por diferentes ângulos (varrimento) para garantir que:
+
+Mapeamento de ângulos está correto.
+
+Servos têm amplitude mecânica suficiente e não estão presos.
+
+Módulo 6 – Respiração
+Este módulo é a base “fisiológica” sobre a qual batimento e tosse são sobrepostos.
+
+6.1 Trajetória de respiração (Resp_move)
+A respiração é representada por uma trajetória discreta de pontos em 3D: X[i], Y[i], Z[i], com i de 0 até n_Points - 1.
+
+Esses pontos descrevem o ciclo de inspiração/expiração do broncoscópio:
+
+Tipicamente, Z aumenta durante inspiração e diminui durante expiração.
+
+X e Y podem oscilar ligeiramente para simular um movimento mais orgânico ou para seguir a geometria das vias respiratórias.
+
+A função de inicialização da respiração (por exemplo Iniciate_Resp_Move()) faz:
+
+Resp_move.n_Points = N_test2; com N_test2 definido pelo número de amostras da trajetória.
+
+Resp_move.period = T_period2;, o tempo em segundos para percorrer todo o ciclo respiratório.
+
+Resp_move.T_pause_Ini e Resp_move.T_pause_End são configurados para introduzir pausas entre ciclos (por exemplo, pausa no fim da expiração).
+
+Copia os arrays “brutos” para o armazenamento:
+
+Resp_move.X[i] = X_test2[i];
+
+Resp_move.Y[i] = -1 * Y_test2[i]; (inversão em Y para alinhar com o sistema de coordenadas físico).
+
+Resp_move.Z[i] = Z_test2[i];
+
+Define Resp_move.start_Index com um valor como 5, para começar o ciclo num ponto fisiologicamente conveniente (por exemplo, meio da inspiração).
+
+Define Resp_move.bidirectional = true, para que o ciclo possa ser percorrido em vai-e-vem ou seguir um padrão mais suave.
+
+Chama Resp_move.updateDtMs() e Resp_move.updateDt_PauseMs() para fazer a conversão de tempos em milissegundos, usada pela FSM de movimento.
+
+6.2 Instância de respiração (Resp_inst)
+A instância de respiração é inicializada com algo como Iniciate_Resp_Instance():
+
+Resp_inst.def = &Resp_move; liga a instância à trajetória de respiração.
+
+Zera índices (currentIndex, I_Index, iIndex, jIndex) e tempos (segmentStartMs, elapsed_1, elapsed_2, elapsed_3).
+
+Resp_inst.active começa em false e depois é posto em true pelo modo (RESP ou ALL).
+
+Resp_inst.Individual_start_comand = 1, indicando que, quando o sistema global está a correr, respiração deve arrancar automaticamente.
+
+Resp_inst.Executing = false e Resp_inst.Direction = 1 (começa no sentido “normal” da trajetória).
+
+Resp_inst.Dt_pause = 0, Resp_inst.End_Point = 0, Resp_inst.Situacion = 'F'.
+
+Parâmetro extra: Resp_inst.Z_amp_mult = 1.0f, um multiplicador aplicado à componente Z antes de passar pela cinemática inversa. Este multiplicador é crucial para a tosse (permite aumentar a amplitude vertical temporariamente).
+
+6.3 Comportamento da respiração na FSM
+Quando o modo ativa respiração (Resp_inst.active = true e start_comand = 1), a FSM_Motion_Update:
+
+Entra em estado 0 → 1 → 2, inicializando o movimento a partir de Resp_move.start_Index.
+
+Usa m.dtMs para controlar o tempo entre pontos e avança índices de acordo com Direction (em geral +1 para subir na trajetória).
+
+Aplica pausas iniciais e finais (Estados 7, 8, 9, 10) conforme Resp_move.T_pause_Ini e Resp_move.T_pause_End.
+
+Recicla o ciclo respiratório com base em bidirectional e nas condições de fim em End_Point.
+
+Em termos físicos:
+
+Em cada iteração do loop, a posição interpolada entre X[i], Y[i], Z[i] e X[j], Y[j], Z[j] é passada para a cinemática inversa.
+
+A componente Z recebe o fator Resp_inst.Z_amp_mult, que normalmente é 1.0, mas pode ser temporariamente maior (por exemplo 1.5) durante tosse.
+
+6.4 Respiração em modo tosse
+Quando Preparacao_Tosse() é chamada e decide preparar tosse:
+
+Guarda os valores padrão de Resp_move.period e Resp_move.T_pause_Ini.
+
+Ajusta:
+
+Resp_move.period = 0.50f; (respiração mais rápida durante a tosse).
+
+Resp_move.T_pause_Ini = 0.1f; (pausa reduzida).
+
+Resp_inst.Z_amp_mult = 1.50f; (amplitude vertical aumentada).
+
+Atualiza tempos (updateDtMs, updateDt_PauseMs).
+
+Quando a tosse termina (estado de respiração volta a 1 e a função detecta isso):
+
+Restaura Resp_move.period e Resp_move.T_pause_Ini aos valores guardados.
+
+Restaura Resp_inst.Z_amp_mult a 1.0.
+
+Deixa o ciclo respiratório retomar o padrão normal.
+
+Módulo 7 – Batimento
+Este módulo é um movimento adicional, normalmente mais rápido e de menor amplitude, que pode ser superposto ou usado isoladamente.
+
+7.1 Trajetória de batimento (Bat_move)
+Representada também como arrays X[i], Y[i], Z[i], com Bat_move.n_Points pontos.
+
+A forma exata depende da tua modelação, mas tipicamente:
+
+Pequenas oscilações periódicas, talvez mais visíveis em um dos eixos (Z ou Y), simulando um “batimento” fisiológico.
+
+Inicialização típica (por analogia ao que fizemos com respiração e tosse):
+
+Bat_move.n_Points = N_bat; (número de pontos definidos para o batimento).
+
+Bat_move.period = T_period_bat; (tempo total do ciclo de batimento, normalmente menor que o da respiração).
+
+Configuração de pausas (podem ser zero ou pequenas pausas entre ciclos).
+
+Copia dos arrays:
+
+Bat_move.X[i] = X_bat[i];
+
+Bat_move.Y[i] = Y_bat[i];
+
+Bat_move.Z[i] = Z_bat[i];
+
+Define Bat_move.start_Index (geralmente 0, pois o batimento pode começar no início da trajetória).
+
+Pode usar Bat_move.bidirectional = true ou false, dependendo se queres um ciclo de vai-e-vem ou um loop em um sentido.
+
+Chama Bat_move.updateDtMs() e Bat_move.updateDt_PauseMs().
+
+7.2 Instância de batimento (Bat_inst)
+Inicializada com algo como Iniciate_Bat_Instance():
+
+Bat_inst.def = &Bat_move; liga a instância ao movimento de batimento.
+
+Zera índices (currentIndex, I_Index, iIndex, jIndex) e tempos (segmentStartMs, elapsed_1, elapsed_2, elapsed_3).
+
+Bat_inst.active = false inicialmente; será ligado em modos específicos.
+
+Bat_inst.Individual_start_comand = 1 (por padrão, batimento acompanha o modo).
+
+Bat_inst.Executing = 0, Direction = 1, Dt_pause = 0, End_Point = 0, Situacion = 'F'.
+
+7.3 Comportamento em diferentes modos
+Em modo BAT:
+
+Bat_inst.active = true.
+
+Resp_inst.active pode ser false ou true, dependendo se queres batimento isolado ou sobreposto à respiração.
+
+O loop chama FSM_Motion_Update para Bat_inst, com start_comand = 1.
+
+Em modo ALL:
+
+Bat_inst.active = true.
+
+Resp_inst.active = true.
+
+Tosse_inst.active pode estar preparado para eventos de tosse.
+
+Assim, a FSM de movimento percorre simultaneamente:
+
+Respiração → ciclo principal do broncoscópio.
+
+Batimento → oscilação adicional.
+
+Tosse → vibração e alterações temporárias de parâmetros.
+
+Em modo RESP (se não quiseres batimento):
+
+Bat_inst.active = false, então a FSM ignora Bat_inst, deixando apenas respiração.
+
+7.4 Interação com tosse e respiração
+Geralmente, o batimento é independente da tosse:
+
+Tosse altera parâmetros de respiração (Resp_move.period, Resp_move.T_pause_Ini, Resp_inst.Z_amp_mult) e ativa vibração (Tosse_inst).
+
+Batimento continua com a sua própria trajetória.
+
+No entanto, podes escolher em que modos a tosse pode acontecer:
+
+Por exemplo, só permitir sinal_tossir quando Resp_inst.active == true, para manter tosse ligada a um contexto respiratório.
+
+Batimento pode continuar ou ser desativado durante tosse, dependendo da sensação fisiológica que queres simular.
+
+
+Visão geral da arquitetura
+Pensa no projeto como um “stack” de quatro níveis:
+
+Configuração e dados base
+
+Estruturas de configuração do manipulador (geometria, offsets, calibração de PWM por servo, limites de ângulo).
+
+Estruturas de movimento (MotionStorage) para cada modo fisiológico: Respiração, Batimento, Tosse (vibração).
+
+Cada MotionStorage guarda:
+
+Arrays de pontos em 3D (X[i], Y[i], Z[i]).
+
+Número de pontos (n_Points).
+
+Tempo total do ciclo (period).
+
+Pausas no início/fim (T_pause_Ini, T_pause_End).
+
+Parametrização de bidirecionalidade (bidirectional) e índice de arranque (start_Index).
+
+Conversão de tempos para milissegundos (dtMs, pausas em ms).
+
+Estado de execução em tempo real
+
+Estruturas MotionInstance para cada movimento (por exemplo, Resp_inst, Bat_inst, Tosse_inst).
+
+Cada instância guarda:
+
+Ponteiro para a trajetória (def = &Resp_move, &Bat_move, &Tosse_move).
+
+Índices atuais (ponto atual e próximo) e contadores (iIndex, jIndex, I_Index).
+
+Tempos de início de segmento e pausas (segmentStartMs, elapsed_1, elapsed_2, elapsed_3).
+
+Flags de controlo (active, Individual_start_comand, Executing, Direction, Situacion).
+
+Parâmetros específicos como Z_amp_mult no caso da respiração, usado para amplificar o movimento vertical durante tosse.
+
+Motores de lógica (FSM de movimento + FSM de comando)
+
+FSM de movimento (FSM_Motion_Update):
+
+Recebe start, uma MotionInstance e o tempo atual.
+
+Implementa uma máquina de estados que:
+
+No estado 0, mantém o movimento parado se estiver desativado, se o ponteiro estiver nulo ou se o sinal individual estiver a 0.
+
+No estado 1, valida se a trajetória tem pontos e período válidos e prepara direção.
+
+No estado 2–4, percorre os segmentos da trajetória, avançando índices no tempo (dtMs) e decidindo quando chegou ao fim (End_Point).
+
+Nos estados 5–10, trata pausas inicial/final, inverte direção em movimentos bidirecionais, e decide se recicla o ciclo ou volta a parar.
+
+Estados especiais (como 14) permitem integrar eventos como a tosse (por exemplo, respondendo a Tosse_signal).
+
+FSM de comandos:
+
+Lê comandos de interface (Serial, botões, etc.) e seleciona o modo de operação: RESP, BAT, ALL, L3 (tosse específica), etc.
+
+Ajusta:
+
+start_comand (0 ou 1).
+
+Quais instâncias ficam active = true.
+
+Sinais globais como sinal_tossir quando há um comando de tosse.
+
+Camada física (cinemática inversa + envio para os servos)
+
+Em cada ciclo de loop, para cada instância ativa e em execução:
+
+É calculada uma posição intermediária entre X[i],Y[i],Z[i] e X[j],Y[j],Z[j] com base em elapsed/dtMs.
+
+Essa posição é passada à cinemática inversa, que converte X/Y/Z em ângulos de junta (θ1, θ2, θ3).
+
+Os ângulos são mapeados para pulsos PWM usando a calibração em Manipulador_Config.
+
+Os servos recebem os pulsos via ESP32Servo, movendo fisicamente o manipulador.
+
+Arquiteturalmente, o sistema é limpo: dados → estado → FSMs → cinemática inversa → hardware.
+
+Sistema de tosse aleatória
+Além da tosse “manual” via comando L3, tens o sistema de tosse aleatória, que é um módulo lógico em cima da respiração.
+
+Como funciona conceptualmente
+Geração de eventos de tosse
+
+Um temporizador ou gerador pseudo-aleatório decide, de tempos em tempos, que é “hora de tossir”.
+
+Quando essa condição é satisfeita, o sistema coloca sinal_tossir = true.
+
+Isto não mexe diretamente nos servos; é só um pedido lógico.
+
+Integração com o modo atual
+
+A função Preparacao_Tosse() é chamada regularmente (por exemplo, em cada ciclo de loop ou quando relevante) e olha para:
+
+start_comand (se o sistema está a correr).
+
+Resp_inst.active e Resp_inst.def (se há respiração ativa em cima da qual faz sentido tossir).
+
+Flags Tosse_em_preparacao e Tosse_signal (para saber se está a iniciar, manter ou terminar tosse).
+
+Se sinal_tossir foi gerado pelo módulo aleatório e há respiração ativa:
+
+A função aciona Tosse_inst.Individual_start_comand = 1 para ligar a vibração.
+
+Ajusta os parâmetros da respiração (período, pausa, amplitude Z) para modo de tosse.
+
+Marca Tosse_signal = 1 e Tosse_em_preparacao = true.
+
+Sincronização com o ciclo respiratório
+
+Enquanto tosse está em curso, a respiração corre com período mais curto e Z ampliado.
+
+Ao observar Resp_inst.state, a função sabe quando a respiração regressou a um estado base (por exemplo state 1).
+
+Nesse momento, Preparacao_Tosse():
+
+Desliga vibração (Tosse_inst.Individual_start_comand = 0).
+
+Restaura os parâmetros da respiração aos valores padrão guardados.
+
+Limpa Tosse_signal, Tosse_em_preparacao e sinal_tossir.
+
+Tosse aleatória em modos diferentes
+
+Em modo RESP: tosse aleatória ajusta apenas respiração e, se Tosse_inst.active estiver preparado, vibração.
+
+Em modo ALL: tosse ocorre sobre respiração e batimento simultaneamente, criando um movimento mais complexo.
+
+A lógica garante que tosse só acontece quando há uma respiração ativa, evitando “tossir no vazio”.
+
+Na prática, o sistema de tosse aleatória é um módulo de eventos que conversa com a FSM de movimentos através de flags e com respiração através de ajustes de parâmetros.
+
+Cinemática inversa
+A cinemática inversa (IK) é o que transforma coordenadas X/Y/Z geradas pelos movimentos em comandos concretos para os servos.
+
+Dados que a IK usa
+Comprimentos dos segmentos:
+
+L1, L2, L3: definem o braço/manipulador como uma cadeia cinemática.
+
+Offsets de montagem:
+
+servoOffsetX, servoOffsetZ: dizem onde o “zero geométrico” do modelo está em relação ao zero físico na base dos servos.
+
+Limites de ângulo:
+
+angleMin, angleMax: evitam que os ângulos calculados levem os servos a posições perigosas.
+
+Calibração com PWM:
+
+servo1MinPulse, servo1MaxPulse (idem para servo2 e servo3): dão para a IK a relação entre um ângulo e o valor PWM real enviado ao servo.
+
+Campos theta1MinPulse, theta1MaxPulse, etc., complementam essa calibração, permitindo diferentes referenciais de ângulo se necessário.
+
+Estado atual:
+
+servo1Pulse, servo2Pulse, servo3Pulse: servem de referência para transições suaves (a IK pode usar o estado atual para evitar saltos abruptos).
+
+Passos lógicos da IK
+Aplicar offsets
+
+Recebe a posição-alvo (X_target, Y_target, Z_target) da FSM de movimento (interpolada entre dois pontos da trajetória).
+
+Corrige essa posição pelo offset:
+
+X_corr = X_target + servoOffsetX
+
+Z_corr = Z_target + servoOffsetZ
+
+Y pode ser usado diretamente ou também ajustado, dependendo da geometria.
+
+Calcular ângulos
+
+Para um braço planar em XZ, θ2 e θ3 podem ser calculados por trigonometria (Lei dos Cossenos), garantindo que a ponta atinge X_corr,Z_corr.
+
+θ1 (base) é tipicamente calculado por arctan2(Y, X) para alinhar o plano de movimento com a direção desejada.
+
+Podem ser aplicadas condições para:
+
+Escolher a solução “cotovelo para cima” ou “cotovelo para baixo”.
+
+Respeitar limites angleMin/angleMax.
+
+Limitar e ajustar
+
+Cada ângulo é restringido ao intervalo permitido.
+
+Podem ser usadas transformações para que o zero geométrico da IK coincida com o zero mecânico dos servos (por exemplo, adicionando offsets de ângulo).
+
+Mapear para PWM
+
+Com os ângulos calculados, usa-se a calibração:
+
+pulse1 = map(θ1, angleMin, angleMax, servo1MinPulse, servo1MaxPulse)
+
+(Analogamente para θ2 e θ3).
+
+Estes pulsos são enviados via ESP32Servo para os pinos correspondentes.
+
+Guardar estado e movimentar suavemente
+
+Os pulsos são armazenados em servo1Pulse, etc., para saber a posição atual na próxima iteração.
+
+Isso permite que, em cada ciclo do loop, o movimento se faça com continuidade, seguindo a curva em X/Y/Z definida pelas trajetórias.
+
+Ligação com os módulos de movimento
+Respiração, batimento e tosse não conhecem diretamente servo nem PWM; apenas definem pontos em X/Y/Z.
+
+A IK é o tradutor entre “movimento fisiológico em 3D” e “comandos concretos para o hardware”.
+
+O multiplicador Z_amp_mult na respiração atua antes da IK:
+
+A FSM de movimento entrega uma Z já amplificada durante tosse.
+
+A IK trata essa Z como alvo normal, o que resulta em deslocamentos maiores no braço (simulando tosse).
+
+
+1. Flags de tosse: Tosse_em_preparacao, Tosse_signal, sinal_tossir
+Estes três jogam juntos; se alguém mexer mal, a tosse deixa de acontecer ou não termina nunca.
+
+sinal_tossir
+
+É o “pedido” de tosse: vai a true quando o comando L3 (ou o sistema aleatório) decide que deve haver tosse.
+
+Não significa ainda que parâmetros foram alterados; é só o gatilho.
+
+Tosse_em_preparacao
+
+Vai a true quando Preparacao_Tosse() já fez o trabalho de alterar respiração e ligar vibração.
+
+Serve para garantir que, enquanto uma tosse está em curso, um novo sinal_tossir não volta a repetir a preparação.
+
+Se alguém esquecer de pôr isto a false no fim da tosse, o sistema nunca mais volta a preparar uma nova tosse.
+
+Tosse_signal
+
+Indica que “há tosse ativa” do ponto de vista da FSM de movimento; por exemplo, pode ser lido na FSM_Motion_Update para entrar num estado especial (14) quando há tosse sobre um movimento bidirecional.
+
+Quando vai a 1, a FSM de movimento sabe que está num ciclo alterado; quando volta a 0, o movimento volta ao padrão.
+
+Pontos de atenção para o próximo agente:
+
+Se quiser mudar a forma como tosse é desencadeada, deve mexer em quem põe sinal_tossir = true, não diretamente em Tosse_em_preparacao.
+
+No fim da tosse, é obrigatório restaurar:
+
+parâmetros de respiração (Resp_move.period, Resp_move.T_pause_Ini, Resp_inst.Z_amp_mult),
+
+e limpar os três flags (sinal_tossir, Tosse_em_preparacao, Tosse_signal).
+
+Se Resp_inst.active estiver a false ou Resp_inst.def for nullptr na altura do pedido, Preparacao_Tosse() descarta a tosse. O próximo agente precisa de garantir que respiração está ativa nos modos onde tosse faz sentido.
+
+2. Gestão de estado na FSM de movimento
+A FSM de movimento é robusta, mas também é fácil alguém quebrar o fluxo se mexer sem perceber.
+
+Principais armadilhas:
+
+Estado 0 (parado)
+
+É o “lixo zero”: zera índices e põe Executing = 0 e Situacion = 'F'.
+
+Qualquer condição crítica (start=0, inst.active=false, inst.def nulo, Individual_start_comand=0) faz o sistema cair aqui.
+
+Se o próximo agente testar coisas e deixar inst.Individual_start_comand = 0 por engano, o movimento nunca arranca.
+
+Estados 2–4 (percorrer trajetória)
+
+Estado 2 inicializa índices (iIndex = start_Index, End_Point = n_Points-1) e marca início de segmento.
+
+Estado 3 só conta tempo; Estado 4 atualiza iIndex e jIndex e decide se vai continuar (3) ou terminar ciclo (5).
+
+Se alguém mexer no cálculo de End_Point ou na condição de comparações com iIndex, o movimento pode ficar preso a meio ou nunca chegar ao fim.
+
+Estados 5–10 (pausas e reciclagem)
+
+Estado 5 decide se vai para pausa inicial (7), pausa final (8), inversão de direção (6) ou reciclagem.
+
+Estado 10 é crítico: é aqui que decide se volta a 0 (quando start=0 ou active=false ou Individual_start_comand=0) ou se continua outro ciclo (6 ou 1).
+
+Se o próximo agente quiser “parar um movimento” no meio, a forma correta é mexer em flags (active ou Individual_start_comand) e deixar a FSM cair em 0, e não saltar estados manualmente.
+
+Ligação com tosse (Tosse_signal)
+
+Em estado 4, há uma condição que manda para um estado 14 quando Tosse_signal == 1 e o movimento é bidirecional.
+
+Se o próximo agente quiser alterar como tosse interage com a trajetória, deve fazê-lo neste ponto da FSM, não em 15 sítios diferentes.
+
+Em resumo: o próximo agente deve evitar “if extra” por todo o lado. A forma correta de alterar comportamento é trabalhar com:
+
+os parâmetros de MotionStorage (period, pauas, bidirectional, start_Index),
+
+os flags (active, Individual_start_comand, Tosse_signal),
+
+e deixar a FSM seguir o seu fluxo natural.
+
+3. Calibração dos servos / PWM na cinemática inversa
+Sem uma calibração cuidadosa, todo o trabalho de IK e das trajetórias pode parecer “errado” na prática, mesmo que a lógica esteja perfeita.
+
+Pontos críticos:
+
+Intervalo de pulsos
+
+Cada servo tem um intervalo típico de pulsos: algo como 1 ms (mínimo) a 2 ms (máximo), o que corresponde a um intervalo de ângulo (por ex. 0–180 graus).
+
+Nos teus structs, isso aparece como servo1MinPulse, servo1MaxPulse, etc.
+
+Se estes valores forem mal escolhidos, o servo pode:
+
+bater em fim de curso mecânico,
+
+não usar toda a amplitude disponível,
+
+ou vibrar/tremer por estar constantemente contra o limite.
+
+Mapeamento ângulo → PWM
+
+A IK gera θ1, θ2, θ3; o mapeamento deve ser linear e consistente entre angleMin/angleMax e os pulsos mínimos/máximos.
+
+Se o próximo agente alterar angleMin/angleMax sem ajustar os pulsos correspondentes, vai distorcer a relação “posição desejada vs posição real”.
+
+Fonte de alimentação e ruído
+
+ESP32 e vários servos podem puxar bastante corrente; boas práticas recomendam fonte externa de 5–6V para servos, com GND comum, e cuidado com ruído no sinal de controlo.
+
+Se os servos perderem força a meio da trajetória por alimentação insuficiente, o próximo agente pode achar que “a IK está errada”, quando na verdade é problema elétrico.
+
+Testes de calibração
+
+Funções como Servo_test() são fundamentais:
+
+Varrem o ângulo de cada servo e permitem ver se o movimento físico corresponde ao esperado.
+
+Permitem ajustar os limites de ângulo e de pulso de forma empírica.
+
+A recomendação para o próximo agente é: antes de mexer em IK ou em trajetórias, testar sempre a calibração com um sketch simples de sweep.
+
+Em termos de arquitetura, a regra é:
+
+IK deve ser responsável apenas por transformar X/Y/Z em ângulos geométricos.
+
+Todo o ajuste ao comportamento físico do servo (fins de curso, pulsos válidos, offsets mecânicos) deve ficar encapsulado na calibração e nos parâmetros de Manipulador_Config.
+
+Assim, se mudar de servos ou de montagem, o próximo agente mexe na calibração, não na IK nem nas trajetórias.
+

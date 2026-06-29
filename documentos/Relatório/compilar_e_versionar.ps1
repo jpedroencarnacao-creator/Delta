@@ -20,10 +20,22 @@ function Require-Command {
 Require-Command "pdflatex"
 Require-Command "biber"
 
-pdflatex -interaction=nonstopmode main.tex
-biber main
-pdflatex -interaction=nonstopmode main.tex
-pdflatex -interaction=nonstopmode main.tex
+function Invoke-LatexCommand {
+    param(
+        [string]$Command,
+        [string[]]$Arguments
+    )
+
+    & $Command @Arguments
+    if ($LASTEXITCODE -ne 0) {
+        throw "O comando '$Command $($Arguments -join ' ')' falhou com codigo $LASTEXITCODE."
+    }
+}
+
+Invoke-LatexCommand "pdflatex" @("-interaction=nonstopmode", "main.tex")
+Invoke-LatexCommand "biber" @("main")
+Invoke-LatexCommand "pdflatex" @("-interaction=nonstopmode", "main.tex")
+Invoke-LatexCommand "pdflatex" @("-interaction=nonstopmode", "main.tex")
 
 $pdf = Join-Path $root "main.pdf"
 if (-not (Test-Path $pdf)) {
@@ -48,5 +60,29 @@ foreach ($file in $existingVersions) {
 $versionedPdf = Join-Path $versionsDir ("main_v{0}.pdf" -f $nextVersion)
 Copy-Item -LiteralPath $pdf -Destination $versionedPdf
 
+$buildDir = Join-Path $root "build"
+New-Item -ItemType Directory -Force $buildDir | Out-Null
+
+$auxiliaryPatterns = @(
+    "main.aux",
+    "main.bbl",
+    "main.bcf",
+    "main.blg",
+    "main.lof",
+    "main.log",
+    "main.lot",
+    "main.out",
+    "main.run.xml",
+    "main.toc"
+)
+
+foreach ($pattern in $auxiliaryPatterns) {
+    $auxiliaryFile = Join-Path $root $pattern
+    if (Test-Path -LiteralPath $auxiliaryFile) {
+        Move-Item -LiteralPath $auxiliaryFile -Destination $buildDir -Force
+    }
+}
+
 Write-Host "PDF compilado: $pdf"
 Write-Host "Copia versionada criada: $versionedPdf"
+Write-Host "Ficheiros auxiliares guardados em: $buildDir"

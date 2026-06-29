@@ -1,23 +1,263 @@
 \chapter{Desenvolvimentos do Software e Configurações}
 
-\section{Arquitetura do software}
-Descrever a organização geral do firmware, os módulos principais e o fluxo de execução. O software deve separar leitura de entradas, geração de perfis de movimento, controlo dos atuadores, calibração e comunicação com o utilizador.
+\section{Arquitetura geral do software}
+O software foi organizado para separar a definição dos movimentos, o estado de execução, a comunicação série, a cinemática inversa e o acionamento dos servos. Esta separação permite que os mesmos mecanismos de execução sejam usados para diferentes fenómenos fisiológicos, como respiração, batimento cardíaco e tosse.
+
+A arquitetura global, representada na \cref{fig:arquitetura-software}, segue a estrutura desenhada nas notas de projeto. O Raspberry Pi envia comandos por comunicação série. O ESP32-S3 lê esses dados, interpreta comandos, atualiza estruturas de movimento, prepara eventos como a tosse e calcula as posições finais que serão convertidas pela cinemática inversa.
+
+\begin{figure}[htbp]
+  \centering
+  \resizebox{\textwidth}{!}{%
+  \begin{tikzpicture}[
+    block/.style={draw, rounded corners=2pt, align=center, minimum width=2.8cm, minimum height=0.95cm},
+    small/.style={draw, rounded corners=2pt, align=center, minimum width=1.25cm, minimum height=0.65cm},
+    arrow/.style={-Latex, thick},
+    cfg/.style={-Latex, thick, green!60!black},
+    event/.style={-Latex, thick, red},
+    positionflow/.style={-Latex, thick, orange}
+  ]
+    \node[block] (pi) {Raspberry\\Pi};
+    \node[block, right=1.2cm of pi] (reader) {Leitor série\\FSM};
+    \node[small, below=0.8cm of reader, xshift=-0.7cm] (dt1) {\(\Delta t\)};
+    \node[small, below=0.8cm of reader, xshift=0.8cm] (dt2) {\(\Delta t\)};
+    \node[block, right=1.2cm of reader] (interp) {Interpretador\\série FSM};
+    \node[block, above=0.9cm of interp] (mem) {Gravação\\memória\\EEPROM};
+    \node[block, below=0.9cm of interp] (trigger) {Trigger FSM\\monitor};
+
+    \node[block, right=1.5cm of interp, yshift=1.35cm] (mresp) {Mov.\\respiração};
+    \node[block, right=1.5cm of interp] (mbat) {Mov.\\batimento};
+    \node[block, right=1.5cm of interp, yshift=-1.35cm] (mtosse) {Mov. vibração\\tosse};
+    \node[block, below=1.0cm of mtosse] (prep) {Preparação\\tosse};
+
+    \node[block, right=1.4cm of mbat, yshift=-1.0cm] (fus1) {Fusão + IK\\Delta 1};
+    \node[block, right=1.4cm of fus1] (ease1) {Easing\\servo};
+    \node[block, below=1.2cm of fus1] (fus2) {Fusão + IK\\Delta 2};
+    \node[block, right=1.4cm of fus2] (ease2) {Easing\\servo};
+
+    \node[small, right=0.65cm of ease1, yshift=0.35cm] (s11) {\(\theta_1\)};
+    \node[small, right=0.65cm of ease1] (s12) {\(\theta_2\)};
+    \node[small, right=0.65cm of ease1, yshift=-0.35cm] (s13) {\(\theta_3\)};
+    \node[small, right=0.65cm of ease2, yshift=0.35cm] (s21) {\(\theta_1\)};
+    \node[small, right=0.65cm of ease2] (s22) {\(\theta_2\)};
+    \node[small, right=0.65cm of ease2, yshift=-0.35cm] (s23) {\(\theta_3\)};
+
+    \draw[arrow] (pi) -- (reader);
+    \draw[arrow] (reader) -- node[above]{CH\_Command} (interp);
+    \draw[arrow] (dt1) -- (reader);
+    \draw[arrow] (reader) -- (dt2);
+    \draw[arrow] (interp) -- (mem);
+    \draw[arrow] (mem) -- (interp);
+    \draw[arrow] (interp) -- (trigger);
+    \draw[arrow] (trigger) -- (interp);
+    \draw[arrow] (interp) -- (mresp);
+    \draw[arrow] (interp) -- (mbat);
+    \draw[arrow] (interp) -- (mtosse);
+    \draw[event] (interp) -- (prep);
+    \draw[cfg] (mem) -- (mresp);
+    \draw[cfg] (mem) -- (mbat);
+    \draw[cfg] (mem) -- (mtosse);
+    \draw[event] (prep) -- (mtosse);
+    \draw[event] (prep) -- (fus1);
+    \draw[positionflow] (mresp) -- (fus1);
+    \draw[positionflow] (mbat) -- (fus1);
+    \draw[positionflow] (mtosse) -- (fus1);
+    \draw[positionflow] (mresp) |- (fus2);
+    \draw[positionflow] (mbat) |- (fus2);
+    \draw[positionflow] (mtosse) |- (fus2);
+    \draw[arrow] (fus1) -- node[above]{pulsos} (ease1);
+    \draw[arrow] (fus2) -- node[above]{pulsos} (ease2);
+    \draw[arrow] (ease1) -- (s11);
+    \draw[arrow] (ease1) -- (s12);
+    \draw[arrow] (ease1) -- (s13);
+    \draw[arrow] (ease2) -- (s21);
+    \draw[arrow] (ease2) -- (s22);
+    \draw[arrow] (ease2) -- (s23);
+  \end{tikzpicture}}
+  \caption{Estrutura global das máquinas de estados e blocos de controlo, baseada no esquema da página 37 das notas de projeto.}
+  \label{fig:arquitetura-software}
+\end{figure}
 
 \section{Ambiente de desenvolvimento}
-O projeto utiliza PlatformIO como ambiente de compilação e configuração do firmware. Nesta secção devem ser documentadas a placa alvo, bibliotecas, parâmetros de compilação, portas de comunicação e instruções de carregamento do programa.
+O firmware foi desenvolvido em C++ para a plataforma ESP32, usando o ecossistema Arduino/PlatformIO. Para controlo dos servos foi usada a biblioteca \texttt{ESP32Servo}. Para indicação visual de estados por LED RGB foi referida a biblioteca \texttt{Adafruit\_NeoPixel}.
+
+O ESP32 comunica com o computador ou com o Raspberry Pi 4B por porta série a 115200 baud. Durante o desenvolvimento, foram também usados scripts Python para leitura da porta série, depuração de mensagens e validação de comandos enviados pelo microcontrolador.
+
+\section{Estruturas de dados}
+A estrutura \texttt{Manipulador\_Config} concentra os parâmetros geométricos e de calibração. Entre os parâmetros principais encontram-se os comprimentos \(L1\), \(L2\) e \(L3\), os offsets do servo nos eixos \(X\) e \(Z\), os limites angulares e os valores mínimos e máximos de pulso para cada servo.
+
+A estrutura \texttt{MotionStorage} guarda a definição de uma trajetória. Cada movimento possui arrays de pontos \(X\), \(Y\) e \(Z\), número de pontos, período total, tempos de pausa no início e no fim, índice inicial e informação sobre se o movimento é bidirecional. A estrutura \texttt{MotionInstance} representa o estado dinâmico de uma trajetória em execução, guardando ponteiros, flags, índices, direção, tempos decorridos e estado atual da FSM.
 
 \section{Perfis de movimento}
-Os perfis de movimento devem representar diferentes fenómenos observados durante a broncoscopia:
-\begin{itemize}
-  \item respiração normal, com movimento periódico de baixa frequência;
-  \item oscilação associada ao batimento cardíaco, com baixa amplitude;
-  \item tosse, com deslocamento abrupto e não linear;
-  \item interação com o broncoscópio, com perturbações curtas e irregulares;
-  \item deformação localizada ou alteração de calibre, caso o hardware o permita.
-\end{itemize}
+Foram definidos três perfis principais. O perfil de respiração utiliza uma trajetória cíclica e bidirecional, com período relativamente longo e possibilidade de pausas. O perfil de batimento cardíaco utiliza movimentos de menor amplitude e maior frequência. O perfil de tosse utiliza uma sequência curta, abrupta e não necessariamente bidirecional, podendo ser sobreposta à respiração.
 
-\section{Configuração e calibração}
-Apresentar os parâmetros configuráveis, como amplitude, frequência, velocidade, limites de curso, tempos de pausa e perfis predefinidos. Incluir também o procedimento de calibração inicial e os critérios usados para validar se o movimento está dentro dos limites pretendidos.
+\section{Máquina de estados de movimento}
+A função genérica de atualização de movimento percorre qualquer trajetória associada a uma \texttt{MotionInstance}. No desenvolvimento, esta rotina foi referida como \texttt{FSM\_Motion\_Update}. A \cref{fig:fsm-motion} reorganiza a máquina desenhada na página 38 das notas de projeto, mantendo os estados principais, as pausas inicial/final, a inversão de direção e o tratamento do movimento bidirecional.
 
-\section{Comunicação e registo de dados}
-Caso exista comunicação série, interface de utilizador ou registo de eventos, documentar os comandos disponíveis, formato das mensagens, variáveis monitorizadas e exemplos de utilização. Estes dados podem apoiar a análise de resultados e a depuração do sistema.
+\begin{figure}[htbp]
+  \centering
+  \resizebox{\textwidth}{!}{%
+  \begin{tikzpicture}[
+    state/.style={draw, rounded corners=2pt, align=center, minimum width=2.25cm, minimum height=0.85cm, font=\small},
+    group/.style={draw, dashed, rounded corners=3pt, inner sep=6pt},
+    arrow/.style={-Latex, thick}
+  ]
+    \node[state] (s0) {0 INIT\\\(i=j=d=0\)};
+    \node[state, right=0.8cm of s0] (s1) {1 preparar\\\(d=1\)};
+    \node[state, right=0.8cm of s1] (s2) {2 início\\segmento};
+    \node[state, right=0.8cm of s2] (s3) {3 medir\\\(\Delta t\)};
+    \node[state, right=0.8cm of s3] (s4) {4 avançar\\índices};
+    \node[state, right=0.8cm of s4] (s5) {5 guardar\\segmento};
+
+    \node[state, below=0.9cm of s5] (s6) {6 inverter\\\(d=-d\)};
+    \node[state, left=0.8cm of s6] (s7) {7 pausa\\inicial};
+    \node[state, left=0.8cm of s7] (s8) {8 pausa\\final};
+    \node[state, left=0.8cm of s8] (s9) {9 contar\\pausa};
+    \node[state, left=0.8cm of s9] (s10) {10 fim\\pausa};
+
+    \node[state, below=0.9cm of s6] (s11) {11 fim\\percurso};
+    \node[state, left=0.8cm of s11] (s12) {12 reiniciar\\índices};
+    \node[state, left=0.8cm of s12] (s13) {13 atualizar\\segmento};
+    \node[state, left=0.8cm of s13] (s14) {14 terminar\\signal=0};
+
+    \node[group, fit=(s0)(s1)(s2)(s3)(s4)(s5), label=above:{execução do segmento}] {};
+    \node[group, fit=(s6)(s7)(s8)(s9)(s10), label=below:{pausas e inversão}] {};
+    \node[group, fit=(s11)(s12)(s13)(s14), label=below:{fim e reinício}] {};
+
+    \draw[arrow] (s0) -- (s1);
+    \draw[arrow] (s1) -- (s2);
+    \draw[arrow] (s2) -- (s3);
+    \draw[arrow] (s3) -- (s4);
+    \draw[arrow] (s4) -- (s5);
+    \draw[arrow] (s5) -- (s6);
+    \draw[arrow] (s6) -- (s7);
+    \draw[arrow] (s7) -- (s8);
+    \draw[arrow] (s8) -- (s9);
+    \draw[arrow] (s9) -- (s10);
+    \draw[arrow] (s10) to[bend right=35] node[left]{retomar} (s1);
+    \draw[arrow] (s6) -- node[right]{não bidirecional} (s11);
+    \draw[arrow] (s11) -- (s12);
+    \draw[arrow] (s12) -- (s13);
+    \draw[arrow] (s13) -- (s14);
+    \draw[arrow] (s13) to[bend left=28] node[below]{novo ciclo} (s2);
+    \draw[arrow] (s1) to[bend left=22] (s0);
+  \end{tikzpicture}}
+  \caption{FSM\_Movement redesenhada a partir do esquema da página 38 das notas de projeto.}
+  \label{fig:fsm-motion}
+\end{figure}
+
+A posição instantânea é obtida por interpolação linear entre dois pontos consecutivos:
+\[
+  P(t) = P_i + (P_j - P_i)\alpha
+\]
+em que \(\alpha\) é calculado pela razão entre o tempo decorrido e o tempo previsto para o segmento. O valor de \(\alpha\) é limitado ao intervalo \([0,1]\), garantindo que a posição interpolada permanece entre o ponto atual e o ponto seguinte.
+
+\section{Cinemática inversa do manipulador delta}
+A cinemática inversa converte a posição desejada \((X,Y,Z)\) em ângulos ou pulsos para os servos. O desenvolvimento parte da geometria do manipulador delta de três eixos. O cálculo retira offsets da base e dos servos, calcula projeções no plano, verifica se a articulação respeita limites geométricos e aplica relações trigonométricas para obter os ângulos.
+
+\section{Comunicação série e comandos}
+A comunicação série é organizada por duas máquinas de estados principais. A primeira lê caracteres e constrói comandos. A segunda interpreta o comando recebido, seleciona modos de funcionamento e altera parâmetros internos.
+
+\begin{figure}[htbp]
+  \centering
+  \resizebox{\textwidth}{!}{%
+  \begin{tikzpicture}[
+    state/.style={draw, circle, align=center, minimum size=1.75cm, font=\small},
+    arrow/.style={-Latex, thick}
+  ]
+    \node[state] (r0) {0\\INIT\\contador=0};
+    \node[state, right=1.2cm of r0] (r1) {1\\CH\_Bus\\=Serial.read()};
+    \node[state, right=1.2cm of r1] (r2) {2\\CH\_Command\\=CH\_Bus};
+    \node[state, below=1.0cm of r2] (r3) {3\\CH\_Bus\\=0};
+    \node[state, below=1.0cm of r3] (r5) {5\\modo\\Single};
+    \node[state, left=1.2cm of r5] (r6) {6\\C = Serial\\begin};
+    \node[state, below=1.0cm of r6] (r7) {7\\guardar\\ST\_Bus[m]};
+    \node[state, left=1.2cm of r7] (r8) {8\\ST\_Command\\=ST\_Bus};
+    \node[state, below=1.0cm of r7] (r9) {9\\limpar\\buffer};
+    \node[state, above=1.0cm of r6] (r4) {4\\modo\\Multiple};
+
+    \draw[arrow] (r0) -- node[above]{Serial.available} (r1);
+    \draw[arrow] (r1) -- node[above]{CH\_Bus válido} (r2);
+    \draw[arrow] (r2) -- (r3);
+    \draw[arrow] (r3) -- node[right]{LineReady} (r5);
+    \draw[arrow] (r5) -- (r6);
+    \draw[arrow] (r6) -- node[right]{caracteres} (r7);
+    \draw[arrow] (r7) -- node[below]{fim linha} (r8);
+    \draw[arrow] (r8) -- (r9);
+    \draw[arrow] (r9) to[bend left=22] node[right]{LineReady=true} (r0);
+    \draw[arrow] (r1) to[bend left=25] node[above]{CH\_Bus=M} (r4);
+    \draw[arrow] (r4) to[bend left=20] node[left]{modo M} (r6);
+    \draw[arrow] (r6) to[loop left] node{ST\_Bus[m]\(\neq\) fim} (r6);
+  \end{tikzpicture}}
+  \caption{FSM\_Serial\_Read redesenhada a partir do esquema da página 44 das notas de projeto.}
+  \label{fig:fsm-serial-reader}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \resizebox{\textwidth}{!}{%
+  \begin{tikzpicture}[
+    state/.style={draw, circle, align=center, minimum size=1.65cm, font=\scriptsize},
+    hub/.style={draw, circle, align=center, minimum size=1.85cm, font=\small},
+    arrow/.style={-Latex, thick},
+    cmd/.style={-Latex, thick, orange}
+  ]
+    \node[state] (c0) {0\\INIT};
+    \node[state, below=0.8cm of c0] (c1) {1\\LineReady\\out=false};
+    \node[state, below left=0.9cm and 1.0cm of c1] (c2) {2\\LED verde\\LineReady};
+    \node[state, below right=0.9cm and 1.0cm of c1] (c3) {3\\LED off\\LineReady};
+    \node[state, below=1.1cm of c1] (c4) {4\\monitor\\line=false};
+    \node[state, right=1.1cm of c4] (c5) {5\\LED azul\\LineReady};
+    \node[state, below=0.9cm of c5] (c6) {6\\LineReady\\false};
+    \node[hub, below=1.0cm of c6] (c27) {27\\distribuição\\comando};
+
+    \node[state, right=1.2cm of c27, yshift=1.0cm] (c28) {28\\Resp\\Move/Inst};
+    \node[state, right=1.2cm of c27] (c29) {29\\Bat\\Move/Inst};
+    \node[state, right=1.2cm of c27, yshift=-1.0cm] (c30) {30\\Tosse\\Move/Inst};
+    \node[state, below=0.9cm of c27] (c34) {34\\posição\\nPoints};
+    \node[state, left=1.2cm of c34] (c35) {35\\copiar\\ST\_Copia};
+    \node[state, left=1.2cm of c35] (c36) {36\\Period=atof\\LineReady};
+    \node[state, right=1.2cm of c34] (c38) {38\\Pausa\\INI};
+    \node[state, right=1.2cm of c38] (c39) {39\\Pausa\\End};
+    \node[state, below=0.9cm of c38] (c40) {40\\copiar\\parâmetro};
+    \node[state, below=0.9cm of c40] (c41) {41\\Pausa=atof\\LineReady};
+    \node[state, below=0.9cm of c36] (c37) {37\\Mode=S};
+
+    \draw[arrow] (c0) -- (c1);
+    \draw[cmd] (c1) -- node[left]{V} (c2);
+    \draw[cmd] (c1) -- node[right]{W} (c3);
+    \draw[arrow] (c2) -- (c4);
+    \draw[arrow] (c3) -- (c4);
+    \draw[arrow] (c4) -- (c5);
+    \draw[arrow] (c5) -- (c6);
+    \draw[arrow] (c6) -- (c27);
+    \draw[cmd] (c27) -- node[above]{R} (c28);
+    \draw[cmd] (c27) -- node[above]{B} (c29);
+    \draw[cmd] (c27) -- node[below]{T} (c30);
+    \draw[cmd] (c27) -- node[left]{P} (c34);
+    \draw[arrow] (c28) |- (c34);
+    \draw[arrow] (c29) |- (c34);
+    \draw[arrow] (c30) |- (c34);
+    \draw[arrow] (c34) -- (c35);
+    \draw[arrow] (c35) -- (c36);
+    \draw[cmd] (c27) -- node[above]{I} (c38);
+    \draw[cmd] (c27) -- node[above]{J} (c39);
+    \draw[arrow] (c38) -- (c40);
+    \draw[arrow] (c39) -- (c40);
+    \draw[arrow] (c40) -- (c41);
+    \draw[cmd] (c36) -- node[left]{S} (c37);
+    \draw[arrow] (c37) to[bend left=28] (c1);
+    \draw[arrow] (c41) to[bend right=24] (c1);
+  \end{tikzpicture}}
+  \caption{FSM\_Serial\_Command redesenhada a partir dos esquemas das páginas 46 e 47 das notas de projeto.}
+  \label{fig:fsm-serial-command}
+\end{figure}
+
+\section{Preparação e sincronização da tosse}
+A função de preparação da tosse é responsável por transformar um pedido de tosse num evento fisiológico sobreposto à respiração. Quando o sinal de tosse é ativado, a rotina guarda os parâmetros normais da respiração, reduz temporariamente o período, ajusta as pausas e aumenta a amplitude em \(Z\). Em paralelo, ativa a instância de vibração ou perturbação da tosse.
+
+Quando o ciclo respiratório atinge o estado apropriado para terminar o evento, a rotina repõe o período original, as pausas e o multiplicador de amplitude. Esta estratégia permite que a tosse não seja apenas uma trajetória independente, mas uma alteração temporária do comportamento respiratório, mais coerente com o fenómeno fisiológico que se pretende simular.
+
+\section{Depuração e validação interna}
+Durante o desenvolvimento foram usadas funções de depuração para imprimir a configuração dos movimentos, os pontos carregados, os índices atuais, o estado das instâncias e os ponteiros para as estruturas de definição. Foram também realizados testes específicos aos servos e ao LED RGB para separar problemas de hardware de problemas lógicos no firmware.
+
+Um ponto identificado durante os testes foi o comportamento da porta série ao abrir scripts Python ou o monitor série. A abertura da porta pode provocar reset no ESP32 devido aos sinais DTR/RTS, levando a nova execução do \texttt{setup()} e a reposicionamento dos servos. Este comportamento deve ser considerado nos testes e documentado no procedimento de operação.

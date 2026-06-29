@@ -36,7 +36,10 @@ pdflatex main.tex
 - `notas-bibliografia.md`: mapa entre os documentos analisados e as entradas bibliográficas criadas.
 - `compilar_e_versionar.ps1`: compila o relatório e guarda uma cópia versionada do PDF.
 - `versões/`: histórico dos PDFs gerados.
+- `build/`: ficheiros auxiliares gerados pela compilação LaTeX.
 - `figuras/`: imagens e esquemas.
 - `tabelas/`: tabelas auxiliares.
 
-As entradas de vídeo em `bibliografia.bib` devem ser confirmadas manualmente antes da versão final, porque o ficheiro `links.txt` contém apenas URLs.
+Na pasta `documentos/Bibliografia`, os ficheiros estão separados em `Artigos/`, `Documentos/` e `Links/`.
+
+As entradas de vídeo em `bibliografia.bib` devem ser confirmadas manualmente antes da versão final, porque o ficheiro `Bibliografia/Links/links.txt` contém apenas URLs.

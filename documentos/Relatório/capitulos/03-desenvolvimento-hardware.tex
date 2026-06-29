@@ -1,33 +1,134 @@
 \chapter{Desenvolvimento do Hardware}
 
 \section{Requisitos do sistema}
-O hardware deve permitir a fixação segura da árvore brônquica, a introdução de movimentos controlados, a repetição de ciclos de treino e a manutenção simples do protótipo. Os requisitos principais incluem baixo custo, robustez mecânica, segurança elétrica, facilidade de montagem e compatibilidade com ajustes futuros.
+O protótipo deve permitir o treino de videobroncofibroscopia com um modelo físico de baixo custo, robusto, lavável e fácil de montar. A partir dos documentos de trabalho produzidos durante o projeto, os requisitos principais foram agrupados em quatro eixos: realismo anatómico, facilidade de utilização, movimento fisiológico controlado e possibilidade de evolução futura.
+
+No plano anatómico, o modelo deve representar a árvore brônquica com dimensões, ângulos de ramificação e características compatíveis com dados obtidos por tomografia computorizada. No plano mecânico, deve permitir a introdução de movimentos de respiração, batimento cardíaco e tosse sem comprometer a estabilidade do conjunto. No plano pedagógico, deve permitir repetição de exercícios e adaptação da dificuldade. No plano técnico, deve manter a solução acessível, evitando materiais, atuadores ou processos de fabrico que tornem o sistema demasiado caro para o objetivo do projeto.
 
 \section{Modelo físico da árvore brônquica}
-Descrever o processo de obtenção ou seleção do modelo anatómico, a preparação para impressão 3D, o material utilizado, os parâmetros de fabrico e o método de montagem. Sempre que aplicável, incluir figuras do modelo CAD, da peça impressa e da integração no suporte.
+O ponto de partida do projeto é um modelo tridimensional da árvore brônquica obtido a partir de dados de imagem médica. Os ficheiros recebidos descreviam essencialmente a superfície interna da árvore brônquica, ou seja, a ``casca'' do volume. Por esse motivo, foi necessário atribuir espessura ao modelo antes da impressão 3D. Numa fase inicial, essa operação foi feita de forma expedita no Tinkercad, com o objetivo de realizar um teste rápido em PLA e validar a viabilidade geométrica da impressão.
 
-\section{Sistema de atuação}
-Apresentar os atuadores utilizados, a sua localização, o tipo de transmissão mecânica e o modo como cada atuador contribui para simular movimentos respiratórios, cardíacos, tosse ou interação com o broncoscópio. Deve ser incluída uma justificação da amplitude e frequência escolhidas, relacionando-as com a literatura e com os requisitos do protótipo \parencite{Chen2015,Gunatilaka2020,Fu2023,Santos2026}.
+A seleção de materiais foi considerada uma decisão crítica. Foram identificados filamentos flexíveis como PEBA, TPU, TPE, TPC e PP, bem como diferentes durezas comerciais, por exemplo 95A, 85A e 70A. Contudo, a reprodução integral do tato anatómico exigiria materiais e equipamentos mais caros. Assim, nesta fase, o realismo material foi limitado principalmente a aspetos visuais e mecânicos básicos, como flexibilidade, cor, textura e resistência, mantendo o objetivo de baixo custo.
 
-\section{Eletrónica de controlo}
-Descrever o microcontrolador, drivers, alimentação, proteções, ligações, conectores e sensores. Incluir um diagrama de blocos do sistema e uma tabela com os componentes principais.
+\section{Seleção do sistema de atuação}
+Foram consideradas duas abordagens para gerar movimento no modelo. A primeira consistia em distribuir vários atuadores ao longo da árvore brônquica, cada um com um movimento independente. Esta solução seria relativamente simples de programar para movimentos locais, mas tornaria o sistema mais difícil de gerir mecanicamente, aumentaria a quantidade de motores e exigiria uma estrutura de suporte complexa acoplada ao modelo.
+
+A segunda abordagem, aprovada para o desenvolvimento, consiste na utilização de manipuladores robóticos do tipo delta. Esta opção permite controlar pontos da estrutura nos três eixos cartesianos, concentrando a complexidade mecânica em unidades de atuação repetíveis. Embora introduza maior complexidade matemática, devido ao cálculo da cinemática inversa, permite reproduzir vários movimentos com menos alterações físicas ao hardware.
+
+Foram analisados dois tipos de manipuladores delta. O primeiro utiliza três atuadores e permite controlar a posição de um corpo em três eixos, \(X\), \(Y\) e \(Z\). O segundo utiliza seis motores, permitindo também controlar orientações adicionais. Para esta versão do projeto, foi considerado suficiente o controlo em três eixos, uma vez que os movimentos inicialmente acordados foram respiração, batimento cardíaco e tosse.
+
+\section{Movimentos representados no protótipo}
+O estado da arte identificou vários movimentos observáveis durante a broncoscopia. No entanto, para a primeira versão funcional do modelo, foram selecionados apenas os movimentos com melhor relação entre relevância clínica, viabilidade mecânica e simplicidade de controlo: respiração, batimento cardíaco e tosse.
+
+A respiração foi definida como um movimento cíclico, com frequência aproximada de 12 a 20 ciclos por minuto e deslocamento predominantemente craniocaudal. A implementação deve permitir pequenas irregularidades e alteração de amplitude, para que o movimento não pareça completamente artificial.
+
+O batimento cardíaco foi associado principalmente ao brônquio principal esquerdo, devido à proximidade anatómica do coração. O movimento previsto é de baixa amplitude, cerca de 1 a \SI{3}{\milli\metre}, com frequência aproximada de 60 a 120 batimentos por minuto. No protótipo, este movimento é tratado como uma oscilação sobreposta ao movimento respiratório.
+
+A tosse foi caracterizada como um evento abrupto, irregular e de maior amplitude relativa. Em vez de ser apenas uma trajetória independente, deve alterar temporariamente o comportamento respiratório, aumentando a amplitude e introduzindo uma perturbação rápida. Movimentos como deformação ativa do lúmen, estenose localizada e resistência ao contacto com a sonda ficam documentados como trabalho futuro.
 
 \begin{table}[htbp]
   \centering
-  \caption{Lista preliminar de componentes do protótipo.}
+  \caption{Movimentos considerados para a primeira versão do protótipo.}
+  \label{tab:movimentos-hardware}
+  \begin{tabular}{@{}p{3.0cm}p{3.0cm}p{3.0cm}p{4.4cm}@{}}
+    \toprule
+    Movimento & Frequência & Amplitude prevista & Observações \\
+    \midrule
+    Respiração & 12--20 ciclos/min & 5--\SI{10}{\milli\metre} & Cíclico, com pequenas irregularidades \\
+    Batimento cardíaco & 60--120 bpm & 1--\SI{3}{\milli\metre} & Oscilação de baixa amplitude \\
+    Tosse & Evento curto & 5--\SI{25}{\milli\metre} & Abrupto, não linear e irregular \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Eletrónica de controlo e alimentação}
+A arquitetura prevista separa a interface de utilizador e o cálculo de alto nível do controlo direto dos atuadores. O Raspberry Pi 4B fica responsável pela interface, monitorização e envio de comandos ou posições. O ESP32-S3 atua como microcontrolador de tempo real, recebendo dados por comunicação série e convertendo-os em comandos para os servos.
+
+O sistema de alimentação foi definido considerando pelo menos dois níveis: \SI{5}{\volt} para o Raspberry Pi 4B e o ESP32-S3, e \SI{5}{\volt} a \SI{6}{\volt} para os servos. Nas notas de projeto também foi considerada a possibilidade de utilizar motores de passo, que exigiriam tensões superiores, por exemplo \SI{8}{\volt} a \SI{12}{\volt}. Para os servos, foram estimados consumos nominais de cerca de 150 a \SI{250}{\milli\ampere} por unidade, com valores superiores em bloqueio.
+
+Foi considerada a utilização de uma UPS/HAT para o Raspberry Pi, permitindo alimentação pelos pinos de \SI{5}{\volt} e transição para bateria em caso de falha. A opção analisada foi um HAT de gestão de energia do tipo Suptronics X1209, por combinar alimentação, bateria e gestão de entrada no mesmo módulo. O ESP32 pode ser alimentado pelo Raspberry Pi através de USB-C, mantendo simultaneamente a ligação série necessária à comunicação.
+
+\begin{figure}[htbp]
+  \centering
+  \resizebox{\textwidth}{!}{%
+  \begin{tikzpicture}[
+    block/.style={draw, rounded corners=2pt, align=center, minimum width=2.7cm, minimum height=0.95cm},
+    small/.style={draw, rounded corners=2pt, align=center, minimum width=1.7cm, minimum height=0.75cm},
+    servo/.style={draw, rounded corners=2pt, align=center, minimum width=1.55cm, minimum height=0.8cm},
+    group/.style={draw, dashed, rounded corners=3pt, inner sep=7pt},
+    power/.style={-Latex, thick, red},
+    serial/.style={Latex-Latex, thick, blue},
+    pwm/.style={-Latex, thick, orange}
+  ]
+    \node[block] (fonte) {Fonte de\\Alimentação\\5 V -- 10 A};
+    \node[block, left=2.5cm of fonte] (ups) {UPS/HAT\\Power\\Management};
+    \node[block, left=2.5cm of ups] (pi) {Raspberry\\Pi 4B};
+    \node[small, below=1.0cm of pi, xshift=-1.2cm] (esp) {ESP32-S3};
+    \node[small, below=1.0cm of pi, xshift=1.25cm] (monitor) {Monitor};
+
+    \node[block, below=1.7cm of esp, xshift=-3.3cm] (drv1) {Driver};
+    \node[servo, below=0.8cm of drv1, xshift=-1.65cm] (s1) {Servo-\\Motores};
+    \node[servo, below=0.8cm of drv1] (s2) {Servo-\\Motores};
+    \node[servo, below=0.8cm of drv1, xshift=1.65cm] (s3) {Servo-\\Motores};
+
+    \node[block, below=1.7cm of esp, xshift=3.5cm] (drv2) {Driver};
+    \node[servo, below=0.8cm of drv2, xshift=-1.65cm] (s4) {Servo-\\Motores};
+    \node[servo, below=0.8cm of drv2] (s5) {Servo-\\Motores};
+    \node[servo, below=0.8cm of drv2, xshift=1.65cm] (s6) {Servo-\\Motores};
+
+    \node[group, fit=(drv1)(s1)(s2)(s3), label=below:{Manipulador Delta 1}] (delta1) {};
+    \node[group, fit=(drv2)(s4)(s5)(s6), label=below:{Manipulador Delta 2}] (delta2) {};
+
+    \draw[power] ($(fonte.north)+(0,0.75)$) -- node[right]{230 V} (fonte.north);
+    \draw[power] (fonte) -- node[above]{5 V} (ups);
+    \draw[power] (ups) -- node[above]{5 V} (pi);
+    \draw[power] (pi.south west) to[bend right=18] node[left]{5 V} (esp.north);
+    \draw[serial] (pi.south) to[bend left=10] node[right]{série} (esp.north east);
+    \draw[power] (pi.south east) to[bend left=18] node[right]{5 V} (monitor.north);
+    \draw[power] (ups.south) -- ++(0,-3.05) coordinate (dist5v) node[midway,right]{5 V};
+    \draw[power] (dist5v) -| (drv1.north);
+    \draw[power] (dist5v) -| (drv2.north);
+    \draw[pwm] (esp) -- node[above left]{PWM} (drv1);
+    \draw[pwm] (esp) -- node[above right]{PWM} (drv2);
+    \draw[pwm] (drv1) -- (s1);
+    \draw[pwm] (drv1) -- (s2);
+    \draw[pwm] (drv1) -- (s3);
+    \draw[pwm] (drv2) -- (s4);
+    \draw[pwm] (drv2) -- (s5);
+    \draw[pwm] (drv2) -- (s6);
+
+    \node[align=left, below=1.1cm of $(delta1.south)!0.5!(delta2.south)$] {
+      \textbf{Esquema de ligações elétricas e de comunicação}\\
+      \textcolor{red}{vermelho: alimentação 5 V}\\
+      \textcolor{blue}{azul: comunicação série bidirecional}\\
+      \textcolor{orange}{laranja: comando/PWM dos servo-motores}
+    };
+  \end{tikzpicture}}
+  \caption{Esquema consolidado de alimentação, comunicação e comando dos dois manipuladores delta.}
+  \label{fig:alimentacao-geral}
+\end{figure}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Componentes principais previstos para o sistema.}
   \label{tab:componentes-hardware}
-  \begin{tabular}{@{}lll@{}}
+  \footnotesize
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.8cm}>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{5.4cm}@{}}
     \toprule
     Componente & Função & Observações \\
     \midrule
-    Microcontrolador & Controlo do sistema & A preencher \\
-    Atuador & Geração de movimento & A preencher \\
-    Driver & Acionamento do atuador & A preencher \\
-    Fonte de alimentação & Alimentação elétrica & A preencher \\
-    Estrutura mecânica & Suporte do modelo & A preencher \\
+    Raspberry Pi 4B & Interface e coordenação & Envia comandos ou posições para o ESP32 \\
+    ESP32-S3 & Controlo dos atuadores & Executa FSMs e gera comandos para servos \\
+    Servo-motores & Atuação mecânica & Seis unidades distribuídas pelos dois manipuladores delta \\
+    Driver Servo-motores & Interface de potência/comando & Cada driver comanda três servo-motores de um manipulador delta \\
+    UPS/HAT & Gestão de energia & Alimentação do Raspberry Pi e transição para bateria \\
+    Fonte de Alimentação 5 V--10 A & Alimentação principal & Recebe 230 V e fornece 5 V ao sistema \\
+    LiPo Battery 2100 mA 3,7 V & Alimentação de reserva & Bateria associada ao sistema UPS/HAT \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 \section{Integração mecânica e segurança}
-Explicar como o protótipo foi montado, como são evitadas folgas excessivas, como é feita a proteção de cabos e elementos móveis, e que limitações foram impostas para evitar esforços mecânicos indesejados na árvore brônquica ou no broncoscópio.
+A integração mecânica deve garantir que o movimento é transmitido à árvore brônquica sem esforços excessivos, folgas significativas ou interferência com a passagem do broncoscópio. A estrutura deve ainda permitir acesso para manutenção, limpeza e substituição de peças. Do ponto de vista de segurança, os limites de curso do manipulador e os limites angulares dos servos devem ser definidos no firmware, evitando posições impossíveis ou capazes de danificar o modelo.
+
+Como melhoria futura, a estrutura poderá incluir sensores de fim de curso, deteção de contacto ou medição de corrente dos atuadores. Estes elementos permitiriam aumentar a segurança e abrir caminho para simulação de resistência ao avanço do broncoscópio ou contacto com as paredes internas.

@@ -1,7 +1,6 @@
 \documentclass[12pt,a4paper,oneside]{report}
 
 \usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
 \usepackage[portuguese]{babel}
 \usepackage{csquotes}
 \usepackage{geometry}
@@ -12,12 +11,17 @@
 \usepackage{siunitx}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc,fit}
 \usepackage{hyperref}
 \usepackage[nameinlink,noabbrev]{cleveref}
 \usepackage[backend=biber,style=numeric-comp,sorting=none]{biblatex}
 
 \geometry{margin=2.5cm}
 \onehalfspacing
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+\emergencystretch=2em
 \graphicspath{{figuras/}}
 \addbibresource{bibliografia.bib}
 
@@ -27,7 +31,7 @@
   citecolor=black,
   urlcolor=blue,
   pdftitle={Modelo Articulado de uma Árvore Brônquica},
-  pdfauthor={},
+  pdfauthor={João Pedro Coelho Encarnação},
 }
 
 \sisetup{
@@ -36,8 +40,8 @@
 }
 
 \title{Modelo Articulado de uma Árvore Brônquica}
-\author{Nome do Autor}
-\date{\today}
+\author{João Pedro Coelho Encarnação}
+\date{2025/2026}
 
 \begin{document}
 
@@ -45,21 +49,70 @@
 
 \begin{titlepage}
   \centering
-  \vspace*{2cm}
-  {\Large Projeto Final de Licenciatura\par}
-  \vspace{2cm}
-  {\Huge\bfseries Modelo Articulado de uma Árvore Brônquica\par}
-  \vspace{2cm}
-  {\Large Nome do Autor\par}
+  \vspace*{1.0cm}
+
+  \includegraphics[width=0.36\textwidth]{ualg_ise_logo_crop.png}\par
+
+  \vspace{2.2cm}
+  {\Large João Pedro Coelho Encarnação\par}
+
+  \vspace{2.2cm}
+  {\LARGE\bfseries Modelo Articulado de uma Árvore Brônquica\par}
+
+  \vspace{1.6cm}
+  {\large Relatório de Projeto Final de Licenciatura\par}
+  {\large Licenciatura em Engenharia de Eletrotecnia e Computadores\par}
+
+  \vspace{1.2cm}
+  {\large Trabalho efetuado sob orientação do\par}
+  {\large Professor Jorge Semião\par}
+
   \vfill
-  {\large Instituição\par}
-  {\large Curso\par}
-  {\large \today\par}
+  {\large Universidade do Algarve\par}
+  {\large Instituto Superior de Engenharia\par}
+  {\large 2025/2026\par}
+\end{titlepage}
+
+\begin{titlepage}
+  \centering
+  \vspace*{1.0cm}
+
+  \includegraphics[width=0.32\textwidth]{ualg_ise_logo_crop.png}\par
+
+  \vspace{2.0cm}
+  {\LARGE\bfseries Modelo Articulado de uma Árvore Brônquica\par}
+
+  \vspace{1.8cm}
+  {\Large João Pedro Coelho Encarnação\par}
+
+  \vspace{1.4cm}
+  {\large Relatório de Projeto Final de Licenciatura\par}
+  {\large Licenciatura em Engenharia de Eletrotecnia e Computadores\par}
+
+  \vspace{1.4cm}
+  {\large Trabalho efetuado sob orientação do\par}
+  {\large Professor Jorge Semião\par}
+
+  \vfill
+  {\large Universidade do Algarve\par}
+  {\large Instituto Superior de Engenharia\par}
+  {\large 2025/2026\par}
 \end{titlepage}
 
 \cleardoublepage
 \hypersetup{pageanchor=true}
 \pagenumbering{roman}
+
+\chapter*{Dedicatória}
+\addcontentsline{toc}{chapter}{Dedicatória}
+\vspace*{4cm}
+\begin{flushright}
+A preencher na versão final.
+\end{flushright}
+
+\chapter*{Agradecimentos}
+\addcontentsline{toc}{chapter}{Agradecimentos}
+A preencher na versão final.
 
 \chapter*{Resumo}
 \addcontentsline{toc}{chapter}{Resumo}

@@ -1,19 +1,44 @@
 \chapter{Estado da Arte}
 
 \section{Broncoscopia e treino por simulação}
-O treino por simulação permite repetir procedimentos, observar erros, desenvolver destreza técnica e preparar o operador para cenários clínicos sem expor doentes a risco desnecessário. A literatura descreve benefícios tanto na aquisição de competências básicas como na avaliação objetiva de desempenho em broncoscopia \parencite{Colt2001,Ost2001,Kennedy2013,Fielding2014,Gopal2018}.
+A broncoscopia flexível permite observar diretamente a árvore traqueobrônquica, recolher amostras, auxiliar diagnósticos e apoiar intervenções terapêuticas. A aprendizagem deste procedimento exige coordenação entre visão endoscópica, manipulação fina do broncoscópio e interpretação anatómica. A simulação é, por isso, uma ferramenta relevante para repetir tarefas, treinar orientação espacial e reduzir a dependência inicial de treino em doentes reais \parencite{Davoudi2008,Kennedy2013,Fielding2014,Nilsson2017}.
+
+As revisões e estudos de treino em broncoscopia apontam para ganhos na aquisição de competências quando os simuladores são integrados de forma estruturada no ensino. O valor pedagógico de um simulador depende não só do realismo visual, mas também da relação entre o exercício proposto, os objetivos de aprendizagem e a forma como o desempenho é avaliado \parencite{Kennedy2013,Fielding2014,Gopal2018}.
 
 \section{Fidelidade dos simuladores}
-A fidelidade de um simulador não se limita ao aspeto anatómico. Inclui resposta mecânica, ergonomia, dificuldade progressiva, feedback e transferência das competências para o contexto clínico. Estudos sobre treino psicomotor e modelos de bancada mostram que simuladores de baixa fidelidade podem ser úteis quando bem alinhados com os objetivos pedagógicos \parencite{Anastakis1999,Matsumoto2002,Grober2004,Chandra2008,Nicholls2016}.
+A fidelidade de um simulador pode ser entendida em várias dimensões. A fidelidade anatómica diz respeito à forma, proporção e organização espacial das vias aéreas. A fidelidade mecânica relaciona-se com a resistência ao avanço, a flexibilidade e a resposta ao contacto. A fidelidade funcional inclui movimento, variação de calibre, alterações respiratórias e eventos transitórios, como a tosse.
+
+Em broncoscopia, um modelo estático pode ser útil para treino inicial de navegação e reconhecimento anatómico. No entanto, durante um procedimento real, o operador observa um ambiente vivo e dinâmico. A respiração, os batimentos cardíacos, a tosse, a sedação e a interação do broncoscópio com as paredes internas modificam continuamente a imagem e a sensação de controlo. Esta diferença cria espaço para simuladores físicos de baixo custo que acrescentem movimento de forma controlada \parencite{Davoudi2008,Nilsson2017,Fu2023}.
 
 \section{Simuladores de broncoscopia}
-Os simuladores de broncoscopia incluem soluções virtuais, manequins comerciais, modelos de baixa fidelidade e modelos impressos em 3D. Revisões sistemáticas e estudos de treino indicam que a simulação pode melhorar o desempenho técnico, mas também salientam a necessidade de métricas de avaliação e validação adequadas \parencite{Davoudi2008,Kennedy2013,Nilsson2017,Gopal2018}.
+Os simuladores de broncoscopia incluem sistemas virtuais, manequins comerciais, modelos de bancada e modelos impressos em 3D. Os sistemas virtuais permitem métricas automáticas e cenários variáveis, mas podem ser dispendiosos. Os modelos físicos são mais simples e acessíveis, embora muitas vezes dependam de avaliação externa e tenham menor capacidade de reproduzir fenómenos dinâmicos.
+
+Os modelos impressos em 3D ganharam importância por permitirem transformar dados anatómicos em geometrias físicas. Em broncoscopia, esta abordagem pode representar a árvore traqueobrônquica com boa correspondência espacial e permitir a criação de simuladores específicos para treino de navegação \parencite{Pedersen2017,Fu2023}. A principal limitação, quando usados de forma isolada, é a ausência de movimento e de resposta fisiológica.
 
 \section{Impressão 3D aplicada à simulação médica}
-A impressão 3D permite produzir modelos anatómicos a partir de dados de imagem médica, com custo reduzido e possibilidade de personalização. Em broncoscopia, esta abordagem tem sido explorada para representar a árvore traqueobrônquica e para criar simuladores específicos do doente ou do procedimento \parencite{Pedersen2017,Chao2017,Fu2023,ProjetoBroncoscopia2023}.
+A impressão 3D permite produzir protótipos anatómicos com custo relativamente baixo, ajustar dimensões, testar materiais e repetir versões com rapidez. Para um projeto académico, esta flexibilidade é importante porque permite evoluir do modelo geométrico inicial para versões com espessura de parede, pontos de fixação, articulações e zonas de acoplamento aos atuadores.
 
-\section{Movimento da árvore brônquica}
-A árvore brônquica é dinâmica. A respiração altera a posição, a orientação e o calibre das vias aéreas; o movimento cardíaco introduz pequenas oscilações; e a tosse ou o contacto com o broncoscópio podem provocar deslocamentos transitórios e irregulares. Estudos históricos e recentes sobre variação de calibre, movimento respiratório e simulação computacional de fluxo suportam a importância destes fenómenos \parencite{Heinbecker1927,Ellis1936,Chen2015,Gunatilaka2020,Santos2026}.
+No caso da árvore brônquica, a escolha do material influencia a facilidade de impressão, a transparência ou cor, a flexibilidade, a resistência e a sensação ao toque. Materiais rígidos, como PLA, podem servir para validar forma e montagem. Materiais flexíveis, como TPU ou TPE, podem aproximar melhor a resposta mecânica, mas aumentam a dificuldade de impressão e calibração. Assim, a impressão 3D deve ser entendida como uma plataforma de iteração, não apenas como uma técnica de fabrico final.
+
+\section{Movimentos observáveis durante a broncoscopia}
+A árvore brônquica não é uma estrutura imóvel. Mesmo quando o broncoscópio está parado, a imagem endoscópica pode sofrer deslocações, alterações de orientação, variações de calibre e pequenas oscilações. Estes fenómenos têm origem em vários mecanismos fisiológicos e mecânicos.
+
+\subsection{Movimento respiratório}
+O movimento respiratório é o fenómeno dominante. Durante a inspiração e a expiração, os pulmões e as vias aéreas deslocam-se, com componente craniocaudal e com pequenas componentes laterais. A frequência respiratória normal situa-se aproximadamente entre 12 e 20 ciclos por minuto, podendo variar com ansiedade, sedação, esforço respiratório e condição clínica. A literatura mostra que a fase respiratória e o movimento das vias aéreas podem alterar a localização de estruturas pulmonares e influenciar simulações de fluxo respiratório \parencite{Chen2015,Gunatilaka2020}.
+
+Além da deslocação global, existe alteração do calibre brônquico ao longo do ciclo respiratório. Trabalhos clássicos já descreviam métodos para demonstrar alterações de calibre dos brônquios durante a respiração normal e o mecanismo das variações rítmicas do calibre brônquico \parencite{Heinbecker1927,Ellis1936}. Para um simulador físico, estes fenómenos podem ser representados de forma simplificada por deslocações controladas e, numa fase futura, por deformações locais da parede.
+
+\subsection{Movimento cardíaco}
+O movimento cardíaco introduz oscilações de menor amplitude, especialmente em regiões próximas do coração. A influência tende a ser mais percetível junto ao brônquio principal esquerdo e nas estruturas adjacentes. Em comparação com a respiração, trata-se de um movimento mais rápido e de menor deslocamento, que pode aparecer como uma vibração ou oscilação sobreposta ao movimento respiratório.
+
+\subsection{Tosse e perturbações rápidas}
+A tosse é um evento curto, abrupto e irregular. Pode deslocar subitamente as vias aéreas, alterar o fluxo de ar, modificar temporariamente a imagem endoscópica e exigir que o operador recupere a orientação. Num simulador, a tosse deve ser tratada como uma perturbação transitória, com maior amplitude relativa do que o batimento cardíaco e duração reduzida.
+
+\subsection{Interação com o broncoscópio}
+A própria passagem do broncoscópio pode deformar localmente as vias aéreas, provocar contacto com as paredes, gerar resistência ao avanço e induzir pequenas oscilações. Este tipo de interação é relevante para a sensação tátil do procedimento, mas exige sensores, materiais adequados e mecanismos de resposta mais complexos. Por esse motivo, pode ser considerado numa fase posterior do desenvolvimento.
+
+\subsection{Patologias e deformações locais}
+Estenoses, obstruções, variações anatómicas e alterações patológicas modificam a navegação e o aspeto interno das vias aéreas. A impressão 3D permite criar cenários anatómicos específicos, mas a simulação ativa de estenose variável ou deformação localizada exige mecanismos adicionais. Estes elementos são importantes para o realismo clínico, embora ultrapassem a primeira versão funcional do protótipo.
 
 \section{Síntese crítica}
-A revisão aponta para uma oportunidade de desenvolvimento: criar um modelo físico de baixo custo, baseado em impressão 3D, mas com movimento controlado. Esta combinação pretende preservar a acessibilidade dos modelos físicos e acrescentar uma dimensão dinâmica relevante para o treino realista de videobroncofibroscopia.
+A literatura aponta para uma oportunidade de desenvolvimento: criar um modelo físico acessível, baseado em impressão 3D, mas com movimento controlado. A primeira versão do projeto deve concentrar-se nos movimentos mais relevantes e tecnicamente viáveis: respiração, batimento cardíaco e tosse. Outros fenómenos, como deformação ativa do lúmen, estenose variável e resistência ao contacto, devem ser documentados como evolução futura.
