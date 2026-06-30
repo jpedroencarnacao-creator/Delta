@@ -1,0 +1,98 @@
+﻿\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=1cm]{geometry}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc,fit}
+
+\pagestyle{empty}
+
+\begin{document}
+\begin{figure}[p]
+  \centering
+  \vspace*{-1.0cm}
+  \begin{tikzpicture}[
+    x=0.43cm,
+    y=0.80cm,
+    state/.style={draw, circle, align=center, minimum size=2.5cm, font=\small, thick, inner sep=3pt},
+    arrow/.style={-Latex, thick},
+    rlabel/.style={fill=white, inner sep=1pt},
+    >=Stealth
+  ]
+    % â”€â”€ Nome do estado a negrito no topo, variÃ¡veis abaixo â”€â”€
+    \node[state, fill=blue!10]   (s0)  at (0.0, 26) {\textbf{S0}\\[2pt]$I{=}0$\\$i{=}0$\\$j{=}0$\\$Exec{=}0$};
+    \node[state, fill=blue!10]   (s1)  at (0.0, 21.0) {\textbf{S1}\\[2pt]$I{=}0$\\Situa\c{c}\~ao$=$P\\$j{=}1$};
+    \node[state, fill=blue!10, minimum size=2.0cm] (s2) at (14.0, 20.0) {\textbf{S2}\\[1pt]$Exec{=}1$\\$INT.Seg{=}mow$\\$i{=}P_{ini}$\\$j{=}i{+}d$\\$P_{fim}{=}M.Pts$};
+    \node[state, fill=blue!10]   (s3)  at (6.0, 15.0) {\textbf{S3}\\[2pt]$Elapsed_1$\\$=mow{-}INT.Seg$};
+    \node[state, fill=blue!10, minimum size=2.8cm] (s4) at (4.5, 9.0) {\textbf{S4}\\[1pt]$i{+}{+}$\\$i{=}i{+}d$\\$j{=}i{+}d$\\$INT.Seg{=}mow$};
+    \node[state, fill=green!10]  (s13) at (19.0, 13.5) {\textbf{S13}\\[2pt]$INT.Seg{=}mow$};
+    \node[state, fill=green!10]  (s14) at (19.0, 5.5)  {\textbf{S14}\\[1pt]$Signal{=}0$\\$d{=}{-}1$\\$P_{fim}{=}0$};
+    \node[state, fill=green!10, minimum size=2.8cm] (s11) at (19.0, 1.0) {\textbf{S11}\\[1pt]$i{=}M.Pts$\\$j{=}i{+}d$\\$P_{fim}{=}0$};
+    \node[state, fill=green!10, minimum size=2.8cm] (s12) at (8.0, 1.0) {\textbf{S12}\\[1pt]$i{=}0$\\$j{=}i{+}d$\\$P_{fim}{=}M.Pts$};
+    \node[state, fill=orange!12] (s5)  at (0.0, 5.0) {\textbf{S5}\\[2pt]$INT.Seg{=}mow$\\$j{=}i$};
+    \node[state, fill=orange!12] (s6)  at (8.0, 0.5)  {\textbf{S6}\\[2pt]$d{=}d\!\times\!({-}1)$};
+    \node[state, fill=orange!12] (s7)  at (-6.0, 9.5) {\textbf{S7}\\[2pt]$DT_{pausa}$\\$=DT_{pausa.ini}$};
+    \node[state, fill=orange!12] (s8)  at (-6.0, 0.9)  {\textbf{S8}\\[2pt]$DT_{pausa}$\\$=DT_{pausa.fim}$};
+    \node[state, fill=orange!12] (s9)  at (-10.0, 14.8) {\textbf{S9}\\[2pt]$Elapsed_2$\\$=mow{-}INT.Seg$};
+    \node[state, fill=gray!10]   (s10) at (-10.0, 20.0) {\textbf{S10}};
+
+    % â”€â”€ Seta de inÃ­cio â”€â”€
+    \draw[arrow] (1.5, 29.0) node[above]{\small INI} -- (s0.north);
+
+    % â”€â”€ S0 â”€â”€
+    \draw[arrow] (s0) edge[loop left] node[left]{\small Sent$=$0} (s0);
+    \draw[arrow] (s0) -- node[rlabel, right]{\small Sent$==$1} (s1);
+    \draw[arrow] (s1.west) to[out=170, in=-170] node[rlabel, pos=0.52, left, align=center]{\small M.Pts$\le$1\\M.Per$\le$0} (s0.west);
+
+    % â”€â”€ S1 â†’ S2 â”€â”€
+    \draw[arrow] (s1) -- node[rlabel, above, align=left]{\small $d{==}1$\\\& Sent$==$1} (s2);
+
+    % â”€â”€ Cadeia principal S2â†’S3â†’S4 â”€â”€
+    \draw[arrow] (s2) -- (s3);
+    \draw[arrow] (s3.west) -- node[rlabel, pos=0.50, above, align=center]{\small $Elapsed_1\!\ge\!DT_{MS}$} (s4.east);
+
+    % â”€â”€ S4: retorno a S2 â”€â”€
+    \draw[arrow] (s4.north east) to[out=50, in=-135] node[rlabel, pos=0.55, right, align=left]{\small $i{<}P_{fim}$ \& $d{=}1$\\$i{>}P_{fim}$ \& $d{=}{-}1$} (s2.south west);
+
+    % â”€â”€ S4: saÃ­da para S13 â”€â”€
+    \draw[arrow] (s4.south east) to[out=-20, in=165] node[rlabel, pos=0.45, below, align=center]{\small $i{\ge}P_{fim}$ \& $d{=}1$\\$i{\le}P_{fim}$ \& $d{=}{-}1$} (s13.west);
+
+    % â”€â”€ Bloco fim e reinÃ­cio S13â†’S14â†’S11â†’S12â†’S1 â”€â”€
+    \draw[arrow] (s13) -- (s14);
+    \draw[arrow] (s14) -- node[rlabel, left, align=right]{\small Signal$==$0\\\& Bidirecional} (s11);
+    \draw[arrow] (s11) -- (s12);
+    \draw[arrow] (s12.north east) .. controls (13.4,3.8) and (13.4,17.3) .. node[rlabel, pos=0.62, right]{\small novo ciclo} (s1.south east);
+
+    % â”€â”€ S4â†’S5â†’S6 (bloco pausas e inversÃ£o) â”€â”€
+    \draw[arrow] (s4)  -- (s5);
+    \draw[arrow] (s5)  -- (s6);
+    \draw[arrow] (s6.east) to[out=30, in=-30] node[rlabel, pos=0.50, right, align=left]{\small Bidirecional\\\& $d{=}{+}1$} (s5.east);
+    \draw[arrow] (s6.south east) to[out=-30, in=200] (s11.west);
+
+    % â”€â”€ S6 para pausas â”€â”€
+    \draw[arrow] (s6.west) to[out=165, in=-35] node[rlabel, pos=0.50, above, sloped]{\small pausa ini} (s7.south east);
+    \draw[arrow] (s6.west) to[out=195, in=0] node[rlabel, pos=0.50, below, sloped]{\small pausa fim} (s8.east);
+
+    % â”€â”€ S7/S8 â†’ S9 â”€â”€
+    \draw[arrow] (s7.north west) to[out=135, in=-55] node[rlabel, pos=0.50, above, sloped]{\small medir} (s9.south east);
+    \draw[arrow] (s8.west) to[out=175, in=-125] node[rlabel, pos=0.50, left, sloped]{\small medir} (s9.south west);
+
+    % â”€â”€ S9 auto-loop e saÃ­da â”€â”€
+    
+    \draw[arrow] (s9) -- node[rlabel, pos=0.52, left, align=right]{\small $Elapsed_2{\ge}$\\$DT_{pausa}$} (s10);
+
+    % â”€â”€ Retornos a S1 e S12 â”€â”€
+    \draw[arrow] (s10.east) to[out=8, in=175] node[rlabel, pos=0.50, above]{\small Bidirecional$==$Falso} (s1.west);
+    \draw[arrow] (s10.south east) to[out=-18, in=190] node[rlabel, pos=0.58, below, align=center]{\small Bidirecional \&\\$i{=}P_{ini}$ \& $j{=}P_{ini}{+}1$} (s1.south west);
+    \draw[arrow] (s10.west) .. controls (-9.0,16.5) and (-9.0,3.0) .. (s12.west);
+  \end{tikzpicture}
+  \caption{Esquema da FSM\_Motion\_Update.}
+  \label{fig:fsm-motion}
+\end{figure}
+
+\end{document}

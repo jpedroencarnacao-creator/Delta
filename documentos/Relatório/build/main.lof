@@ -2,12 +2,15 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {3.1}{\ignorespaces Esquema consolidado de alimentação, comunicação e comando dos dois manipuladores delta.}}{10}{figure.caption.9}%
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Esquema consolidado de alimentação, comunicação e comando dos dois manipuladores delta.}}{10}{figure.caption.10}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {4.1}{\ignorespaces Estrutura global das máquinas de estados e blocos de controlo, baseada no esquema da página 37 das notas de projeto.}}{12}{figure.caption.11}%
-\contentsline {figure}{\numberline {4.2}{\ignorespaces FSM\_Movement redesenhada a partir do esquema da página 38 das notas de projeto.}}{14}{figure.caption.12}%
-\contentsline {figure}{\numberline {4.3}{\ignorespaces FSM\_Serial\_Read redesenhada a partir do esquema da página 44 das notas de projeto.}}{15}{figure.caption.13}%
-\contentsline {figure}{\numberline {4.4}{\ignorespaces FSM\_Serial\_Command redesenhada a partir dos esquemas das páginas 46 e 47 das notas de projeto.}}{16}{figure.caption.14}%
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Estrutura global das máquinas de estados e blocos de controlo, baseada no esquema da página 37 das notas de projeto.}}{12}{figure.caption.12}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Relação entre as estruturas de dados principais do firmware.}}{13}{figure.caption.13}%
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Esquema da FSM\_Motion\_Update.}}{15}{figure.caption.15}%
+\contentsline {figure}{\numberline {4.4}{\ignorespaces Representação lateral das variáveis usadas na cinemática inversa do manipulador delta.}}{17}{figure.caption.18}%
+\contentsline {figure}{\numberline {4.5}{\ignorespaces Relação linear de referência entre o ângulo calculado pela cinemática inversa e o pulso PWM aplicado aos servos nos dois manipuladores.}}{19}{figure.caption.19}%
+\contentsline {figure}{\numberline {4.6}{\ignorespaces FSM\_Serial\_Read redesenhada a partir do esquema da página 44 das notas de projeto.}}{22}{figure.caption.23}%
+\contentsline {figure}{\numberline {4.7}{\ignorespaces FSM\_Serial\_Command redesenhada a partir dos esquemas das páginas 46 e 47 das notas de projeto.}}{23}{figure.caption.24}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

@@ -1,8 +1,9 @@
 \babel@toc {portuguese}{}\relax 
-\contentsline {chapter}{Dedicatória}{i}{chapter*.1}%
-\contentsline {chapter}{Agradecimentos}{ii}{chapter*.2}%
-\contentsline {chapter}{Resumo}{iii}{chapter*.3}%
-\contentsline {chapter}{Abstract}{iv}{chapter*.4}%
+\contentsline {chapter}{Dedicatória}{ii}{chapter*.1}%
+\contentsline {chapter}{Agradecimentos}{iii}{chapter*.2}%
+\contentsline {chapter}{Resumo}{iv}{chapter*.3}%
+\contentsline {chapter}{Abstract}{v}{chapter*.4}%
+\contentsline {chapter}{Abreviaturas, Siglas e Termos}{vi}{chapter*.5}%
 \contentsline {chapter}{\numberline {1}Introdução}{1}{chapter.1}%
 \contentsline {section}{\numberline {1.1}Enquadramento}{1}{section.1.1}%
 \contentsline {section}{\numberline {1.2}Motivação}{1}{section.1.2}%
@@ -34,30 +35,33 @@
 \contentsline {section}{\numberline {4.3}Estruturas de dados}{13}{section.4.3}%
 \contentsline {section}{\numberline {4.4}Perfis de movimento}{13}{section.4.4}%
 \contentsline {section}{\numberline {4.5}Máquina de estados de movimento}{13}{section.4.5}%
-\contentsline {section}{\numberline {4.6}Cinemática inversa do manipulador delta}{14}{section.4.6}%
-\contentsline {section}{\numberline {4.7}Comunicação série e comandos}{14}{section.4.7}%
-\contentsline {section}{\numberline {4.8}Preparação e sincronização da tosse}{14}{section.4.8}%
-\contentsline {section}{\numberline {4.9}Depuração e validação interna}{17}{section.4.9}%
-\contentsline {chapter}{\numberline {5}Testes e Análise de Resultados}{18}{chapter.5}%
-\contentsline {section}{Nota sobre o estado atual do capítulo}{18}{section*.15}%
-\contentsline {section}{\numberline {5.1}Plano de testes}{18}{section.5.1}%
-\contentsline {section}{\numberline {5.2}Testes do modelo físico}{18}{section.5.2}%
-\contentsline {section}{\numberline {5.3}Testes dos atuadores e da estrutura delta}{19}{section.5.3}%
-\contentsline {section}{\numberline {5.4}Testes de alimentação}{19}{section.5.4}%
-\contentsline {section}{\numberline {5.5}Testes de software}{19}{section.5.5}%
-\contentsline {section}{\numberline {5.6}Testes de comunicação série}{20}{section.5.6}%
-\contentsline {section}{\numberline {5.7}Testes de integração dos movimentos}{20}{section.5.7}%
-\contentsline {section}{\numberline {5.8}Critérios de aceitação}{20}{section.5.8}%
-\contentsline {section}{\numberline {5.9}Informação experimental em falta}{21}{section.5.9}%
-\contentsline {chapter}{\numberline {6}Conclusão}{22}{chapter.6}%
-\contentsline {section}{\numberline {6.1}Síntese do trabalho}{22}{section.6.1}%
-\contentsline {section}{\numberline {6.2}Principais contributos}{22}{section.6.2}%
-\contentsline {section}{\numberline {6.3}Limitações}{23}{section.6.3}%
-\contentsline {section}{\numberline {6.4}Trabalho futuro}{23}{section.6.4}%
-\contentsline {chapter}{Bibliografia}{24}{chapter*.16}%
-\contentsline {chapter}{\numberline {A}Anexos}{26}{appendix.A}%
-\contentsline {section}{\numberline {A.1}Anexo A: Desenhos técnicos e modelo 3D}{26}{section.A.1}%
-\contentsline {section}{\numberline {A.2}Anexo B: Lista de materiais}{26}{section.A.2}%
-\contentsline {section}{\numberline {A.3}Anexo C: Datasheets}{26}{section.A.3}%
-\contentsline {section}{\numberline {A.4}Anexo D: Código e configurações}{26}{section.A.4}%
-\contentsline {section}{\numberline {A.5}Anexo E: Protocolos de teste}{26}{section.A.5}%
+\contentsline {paragraph}{Interação com as estruturas de dados.}{14}{section*.14}%
+\contentsline {paragraph}{Fases de funcionamento.}{16}{section*.16}%
+\contentsline {paragraph}{Saída para a função de posição instantânea.}{16}{section*.17}%
+\contentsline {section}{\numberline {4.6}Cinemática inversa do manipulador delta}{17}{section.4.6}%
+\contentsline {section}{\numberline {4.7}Comunicação série e comandos}{20}{section.4.7}%
+\contentsline {section}{\numberline {4.8}Preparação e sincronização da tosse}{24}{section.4.8}%
+\contentsline {section}{\numberline {4.9}Depuração e validação interna}{24}{section.4.9}%
+\contentsline {chapter}{\numberline {5}Testes e Análise de Resultados}{26}{chapter.5}%
+\contentsline {section}{Nota sobre o estado atual do capítulo}{26}{section*.25}%
+\contentsline {section}{\numberline {5.1}Plano de testes}{26}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Testes do modelo físico}{26}{section.5.2}%
+\contentsline {section}{\numberline {5.3}Testes dos atuadores e da estrutura delta}{27}{section.5.3}%
+\contentsline {section}{\numberline {5.4}Testes de alimentação}{27}{section.5.4}%
+\contentsline {section}{\numberline {5.5}Testes de software}{27}{section.5.5}%
+\contentsline {section}{\numberline {5.6}Testes de comunicação série}{28}{section.5.6}%
+\contentsline {section}{\numberline {5.7}Testes de integração dos movimentos}{28}{section.5.7}%
+\contentsline {section}{\numberline {5.8}Critérios de aceitação}{28}{section.5.8}%
+\contentsline {section}{\numberline {5.9}Informação experimental em falta}{29}{section.5.9}%
+\contentsline {chapter}{\numberline {6}Conclusão}{30}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Síntese do trabalho}{30}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Principais contributos}{30}{section.6.2}%
+\contentsline {section}{\numberline {6.3}Limitações}{31}{section.6.3}%
+\contentsline {section}{\numberline {6.4}Trabalho futuro}{31}{section.6.4}%
+\contentsline {chapter}{Bibliografia}{32}{chapter*.26}%
+\contentsline {chapter}{\numberline {A}Anexos}{34}{appendix.A}%
+\contentsline {section}{\numberline {A.1}Anexo A: Desenhos técnicos e modelo 3D}{34}{section.A.1}%
+\contentsline {section}{\numberline {A.2}Anexo B: Lista de materiais}{34}{section.A.2}%
+\contentsline {section}{\numberline {A.3}Anexo C: Datasheets}{34}{section.A.3}%
+\contentsline {section}{\numberline {A.4}Anexo D: Código e configurações}{34}{section.A.4}%
+\contentsline {section}{\numberline {A.5}Anexo E: Protocolos de teste}{34}{section.A.5}%

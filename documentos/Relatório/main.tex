@@ -1,6 +1,7 @@
 \documentclass[12pt,a4paper,oneside]{report}
 
 \usepackage[utf8]{inputenc}
+\usepackage{lmodern}
 \usepackage[portuguese]{babel}
 \usepackage{csquotes}
 \usepackage{geometry}
@@ -8,11 +9,13 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{array}
+\usepackage{amsmath}
 \usepackage{siunitx}
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc,fit}
+\usepackage{colortbl}
 \usepackage{hyperref}
 \usepackage[nameinlink,noabbrev]{cleveref}
 \usepackage[backend=biber,style=numeric-comp,sorting=none]{biblatex}
@@ -42,6 +45,9 @@
 \title{Modelo Articulado de uma Árvore Brônquica}
 \author{João Pedro Coelho Encarnação}
 \date{2025/2026}
+\renewcommand{\contentsname}{Índice Geral}
+\renewcommand{\listfigurename}{Lista de Figuras}
+\renewcommand{\listtablename}{Lista de Tabelas}
 
 \begin{document}
 
@@ -49,49 +55,13 @@
 
 \begin{titlepage}
   \centering
-  \vspace*{1.0cm}
+  \thispagestyle{empty}
+  \vspace*{2.0cm}
 
-  \includegraphics[width=0.36\textwidth]{ualg_ise_logo_crop.png}\par
-
-  \vspace{2.2cm}
   {\Large João Pedro Coelho Encarnação\par}
 
-  \vspace{2.2cm}
+  \vspace{3.0cm}
   {\LARGE\bfseries Modelo Articulado de uma Árvore Brônquica\par}
-
-  \vspace{1.6cm}
-  {\large Relatório de Projeto Final de Licenciatura\par}
-  {\large Licenciatura em Engenharia de Eletrotecnia e Computadores\par}
-
-  \vspace{1.2cm}
-  {\large Trabalho efetuado sob orientação do\par}
-  {\large Professor Jorge Semião\par}
-
-  \vfill
-  {\large Universidade do Algarve\par}
-  {\large Instituto Superior de Engenharia\par}
-  {\large 2025/2026\par}
-\end{titlepage}
-
-\begin{titlepage}
-  \centering
-  \vspace*{1.0cm}
-
-  \includegraphics[width=0.32\textwidth]{ualg_ise_logo_crop.png}\par
-
-  \vspace{2.0cm}
-  {\LARGE\bfseries Modelo Articulado de uma Árvore Brônquica\par}
-
-  \vspace{1.8cm}
-  {\Large João Pedro Coelho Encarnação\par}
-
-  \vspace{1.4cm}
-  {\large Relatório de Projeto Final de Licenciatura\par}
-  {\large Licenciatura em Engenharia de Eletrotecnia e Computadores\par}
-
-  \vspace{1.4cm}
-  {\large Trabalho efetuado sob orientação do\par}
-  {\large Professor Jorge Semião\par}
 
   \vfill
   {\large Universidade do Algarve\par}
@@ -102,6 +72,36 @@
 \cleardoublepage
 \hypersetup{pageanchor=true}
 \pagenumbering{roman}
+\setcounter{page}{2}
+
+\begin{titlepage}
+  \centering
+  \thispagestyle{plain}
+  \vspace*{2.0cm}
+
+  {\Large João Pedro Coelho Encarnação\par}
+
+  \vspace{2.0cm}
+  {\LARGE\bfseries Modelo Articulado de uma Árvore Brônquica\par}
+
+  \vspace{1.6cm}
+  \begin{flushright}
+  {\large Relatório de Projeto Final de Licenciatura\par}
+  {\large Licenciatura em Engenharia de Eletrotecnia e Computadores\par}
+
+  \vspace{1.4cm}
+  {\large Trabalho efetuado sob orientação do\par}
+  {\large Professor Jorge Semião\par}
+  \end{flushright}
+
+  \vfill
+  {\large Universidade do Algarve\par}
+  {\large Instituto Superior de Engenharia\par}
+  {\large 2025/2026\par}
+\end{titlepage}
+
+\cleardoublepage
+\setcounter{page}{3}
 
 \chapter*{Dedicatória}
 \addcontentsline{toc}{chapter}{Dedicatória}
@@ -122,10 +122,37 @@ Este relatório descreve o desenvolvimento de um modelo articulado de uma árvor
 \addcontentsline{toc}{chapter}{Abstract}
 This report describes the development of an articulated bronchial tree model for flexible bronchoscopy simulation. The project addresses the need for accessible, realistic and repeatable training platforms by combining 3D printing, mechanical actuation, electronic control and embedded software.
 
+\chapter*{Abreviaturas, Siglas e Termos}
+\addcontentsline{toc}{chapter}{Abreviaturas, Siglas e Termos}
+\begin{description}
+  \item[ESP32-S3] Microcontrolador usado para executar o firmware, interpretar comandos e gerar os sinais de controlo.
+  \item[GPIO] \textit{General Purpose Input/Output}; pinos digitais usados para ligação a periféricos.
+  \item[PWM] \textit{Pulse Width Modulation}; técnica usada para controlar os servos através da largura de pulso.
+  \item[UART] \textit{Universal Asynchronous Receiver/Transmitter}; interface de comunicação série usada entre o Raspberry Pi e o ESP32-S3.
+  \item[FSM] \textit{Finite State Machine}; máquina de estados finitos usada para organizar a lógica de movimento, leitura série e interpretação de comandos.
+  \item[IK] \textit{Inverse Kinematics}; cinemática inversa, usada para converter coordenadas cartesianas em ângulos dos servos.
+  \item[LiPo] Bateria de polímero de lítio.
+  \item[MG90S] Servo motor de engrenagens metálicas com um grau de liberdade de aproximadamente \(180^\circ\).
+  \item[PLA] Filamento de impressão 3D de ácido polilático, usado sobretudo pela facilidade de impressão e rigidez.
+  \item[PEBA] Filamento de impressão 3D de polieter-bloco-amida, elastómero termoplástico flexível e leve.
+  \item[TPU] Filamento de impressão 3D de poliuretano termoplástico, usado em peças flexíveis e elásticas.
+  \item[TPE] Filamento de impressão 3D de elastómero termoplástico, família de materiais com comportamento elástico semelhante a borracha.
+  \item[TPC] Filamento de impressão 3D de copoliéster termoplástico, material flexível usado em peças elásticas e funcionais.
+  \item[PP] Filamento de impressão 3D de polipropileno, polímero termoplástico leve e com boa resistência à fadiga.
+  \item[UPS HAT] Placa de gestão de alimentação usada para suporte energético do Raspberry Pi.
+  \item[Manipulador delta] Mecanismo paralelo usado para transformar o movimento dos servos no deslocamento da plataforma móvel.
+\end{description}
+
+\cleardoublepage
 \tableofcontents
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Lista de Figuras}
 \listoffigures
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Lista de Tabelas}
 \listoftables
-\clearpage
 
 \cleardoublepage
 \pagenumbering{arabic}
