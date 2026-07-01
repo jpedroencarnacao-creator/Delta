@@ -1,4 +1,4 @@
-\chapter{Desenvolvimentos do Software e Configurações}
+﻿\chapter{Desenvolvimentos do Software e Configurações}
 
 \section{Arquitetura geral do software}
 O software foi organizado para separar a definição dos movimentos, o estado de execução, a comunicação série, a cinemática inversa e o acionamento dos servos. Esta separação permite que os mesmos mecanismos de execução sejam usados para diferentes fenómenos fisiológicos, como respiração, batimento cardíaco e tosse.
@@ -9,37 +9,37 @@ A arquitetura global, representada na \cref{fig:arquitetura-software}, segue a e
   \centering
   \resizebox{\textwidth}{!}{%
   \begin{tikzpicture}[
-    block/.style={draw, rounded corners=2pt, align=center, minimum width=2.8cm, minimum height=0.95cm},
-    small/.style={draw, rounded corners=2pt, align=center, minimum width=1.25cm, minimum height=0.65cm},
+    block/.style={draw, rounded corners=3pt, align=center, minimum width=2.8cm, minimum height=0.95cm, thick},
+    small/.style={draw, rounded corners=3pt, align=center, minimum width=1.25cm, minimum height=0.65cm, thick},
     arrow/.style={-Latex, thick},
     cfg/.style={-Latex, thick, green!60!black},
-    event/.style={-Latex, thick, red},
-    positionflow/.style={-Latex, thick, orange}
+    event/.style={-Latex, thick, red!70!black},
+    positionflow/.style={-Latex, thick, orange!85!black}
   ]
-    \node[block] (pi) {Raspberry\\Pi};
-    \node[block, right=1.2cm of pi] (reader) {Leitor série\\FSM};
-    \node[small, below=0.8cm of reader, xshift=-0.7cm] (dt1) {\(\Delta t\)};
-    \node[small, below=0.8cm of reader, xshift=0.8cm] (dt2) {\(\Delta t\)};
-    \node[block, right=1.2cm of reader] (interp) {Interpretador\\série FSM};
-    \node[block, above=0.9cm of interp] (mem) {Gravação\\memória\\EEPROM};
-    \node[block, below=0.9cm of interp] (trigger) {Trigger FSM\\monitor};
+    \node[block, fill=blue!12] (pi) {Raspberry\\Pi};
+    \node[block, right=1.2cm of pi, fill=cyan!10] (reader) {Leitor série\\FSM};
+    \node[small, below=0.8cm of reader, xshift=-0.7cm, fill=cyan!7] (dt1) {\(\Delta t\)};
+    \node[small, below=0.8cm of reader, xshift=0.8cm, fill=cyan!7] (dt2) {\(\Delta t\)};
+    \node[block, right=1.2cm of reader, fill=cyan!10] (interp) {Interpretador\\série FSM};
+    \node[block, above=0.9cm of interp, fill=gray!12] (mem) {Gravação\\memória\\EEPROM};
+    \node[block, below=0.9cm of interp, fill=gray!12] (trigger) {Trigger FSM\\monitor};
 
-    \node[block, right=1.5cm of interp, yshift=1.35cm] (mresp) {Mov.\\respiração};
-    \node[block, right=1.5cm of interp] (mbat) {Mov.\\batimento};
-    \node[block, right=1.5cm of interp, yshift=-1.35cm] (mtosse) {Mov. vibração\\tosse};
-    \node[block, below=1.0cm of mtosse] (prep) {Preparação\\tosse};
+    \node[block, right=1.5cm of interp, yshift=1.35cm, fill=green!10] (mresp) {Mov.\\respiração};
+    \node[block, right=1.5cm of interp, fill=green!10] (mbat) {Mov.\\batimento};
+    \node[block, right=1.5cm of interp, yshift=-1.35cm, fill=green!10] (mtosse) {Mov. vibração\\tosse};
+    \node[block, below=1.0cm of mtosse, fill=red!10] (prep) {Preparação\\tosse};
 
-    \node[block, right=1.4cm of mbat, yshift=-1.0cm] (fus1) {Fusão + IK\\Delta 1};
-    \node[block, right=1.4cm of fus1] (ease1) {Easing\\servo};
-    \node[block, below=1.2cm of fus1] (fus2) {Fusão + IK\\Delta 2};
-    \node[block, right=1.4cm of fus2] (ease2) {Easing\\servo};
+    \node[block, right=1.4cm of mbat, yshift=-1.0cm, fill=orange!12] (fus1) {Fusão + IK\\Delta 1};
+    \node[block, right=1.4cm of fus1, fill=orange!9] (ease1) {Easing\\servo};
+    \node[block, below=1.2cm of fus1, fill=orange!12] (fus2) {Fusão + IK\\Delta 2};
+    \node[block, right=1.4cm of fus2, fill=orange!9] (ease2) {Easing\\servo};
 
-    \node[small, right=0.65cm of ease1, yshift=0.35cm] (s11) {\(\theta_1\)};
-    \node[small, right=0.65cm of ease1] (s12) {\(\theta_2\)};
-    \node[small, right=0.65cm of ease1, yshift=-0.35cm] (s13) {\(\theta_3\)};
-    \node[small, right=0.65cm of ease2, yshift=0.35cm] (s21) {\(\theta_1\)};
-    \node[small, right=0.65cm of ease2] (s22) {\(\theta_2\)};
-    \node[small, right=0.65cm of ease2, yshift=-0.35cm] (s23) {\(\theta_3\)};
+    \node[small, right=0.65cm of ease1, yshift=0.35cm, fill=yellow!20] (s11) {\(\theta_1\)};
+    \node[small, right=0.65cm of ease1, fill=yellow!20] (s12) {\(\theta_2\)};
+    \node[small, right=0.65cm of ease1, yshift=-0.35cm, fill=yellow!20] (s13) {\(\theta_3\)};
+    \node[small, right=0.65cm of ease2, yshift=0.35cm, fill=yellow!20] (s21) {\(\theta_1\)};
+    \node[small, right=0.65cm of ease2, fill=yellow!20] (s22) {\(\theta_2\)};
+    \node[small, right=0.65cm of ease2, yshift=-0.35cm, fill=yellow!20] (s23) {\(\theta_3\)};
 
     \draw[arrow] (pi) -- (reader);
     \draw[arrow] (reader) -- node[above]{CH\_Command} (interp);
@@ -87,170 +87,554 @@ A estrutura \texttt{Manipulador\_Config} concentra os parâmetros geométricos e
 
 A estrutura \texttt{MotionStorage} guarda a definição de uma trajetória. Cada movimento possui arrays de pontos \(X\), \(Y\) e \(Z\), número de pontos, período total, tempos de pausa no início e no fim, índice inicial e informação sobre se o movimento é bidirecional. A estrutura \texttt{MotionInstance} representa o estado dinâmico de uma trajetória em execução, guardando ponteiros, flags, índices, direção, tempos decorridos e estado atual da FSM.
 
+\begin{figure}[htbp]
+  \centering
+  \resizebox{\textwidth}{!}{%
+  \begin{tikzpicture}[
+    hdr/.style={draw, thick, fill=blue!15, font=\small\bfseries\ttfamily,
+                align=center, minimum width=5.6cm, minimum height=0.72cm},
+    fld/.style={draw=gray!50, fill=white, font=\small\ttfamily,
+                align=left, minimum width=5.6cm, minimum height=0.60cm, inner sep=4pt},
+    fldout/.style={draw=gray!50, fill=green!8, font=\small\ttfamily,
+                align=left, minimum width=5.6cm, minimum height=0.60cm, inner sep=4pt},
+    ptr/.style={-Latex, thick, dashed, blue!60!black}
+  ]
+    %% ── Manipulador_Config ──
+    \node[hdr]                    (mc0) at (0,0)    {Manipulador\_Config};
+    \node[fld, below=0pt of mc0] (mc1)              {\quad L1,\ L2,\ L3};
+    \node[fld, below=0pt of mc1] (mc2)              {\quad servoOffsetX,\ servoOffsetZ};
+    \node[fld, below=0pt of mc2] (mc3)              {\quad angleMin,\ angleMax};
+    \node[fld, below=0pt of mc3] (mc4)              {\quad rotationOffsetZ};
+    \node[fld, below=0pt of mc4] (mc5)              {\quad servo1/2/3: minPulse,\ maxPulse};
+    \node[fld, below=0pt of mc5] (mc6)              {\quad theta1/2/3: minPulse,\ maxPulse};
+    \node[fldout, below=0pt of mc6] (mc7)           {\quad servo1/2/3Pulse\ \ \textit{(saída IK)}};
+
+    %% ── MotionStorage ──
+    \node[hdr]                    (ms0) at (7.0,0)  {MotionStorage};
+    \node[fld, below=0pt of ms0] (ms1)              {\quad X[],\ Y[],\ Z[]\ \ \textit{(trajetória)}};
+    \node[fld, below=0pt of ms1] (ms2)              {\quad nPts,\ Pini};
+    \node[fld, below=0pt of ms2] (ms3)              {\quad Period,\ dtMs};
+    \node[fld, below=0pt of ms3] (ms4)              {\quad T\_PausaIni,\ T\_PausaFim};
+    \node[fld, below=0pt of ms4] (ms5)              {\quad Bidirecional\ \ \textit{(bool)}};
+
+    %% ── MotionInstance ──
+    \node[hdr]                    (mi0) at (14.0,0) {MotionInstance};
+    \node[fld, below=0pt of mi0] (mi1)              {\quad *move\ $\to$\ MotionStorage};
+    \node[fld, below=0pt of mi1] (mi2)              {\quad iIndex,\ jIndex};
+    \node[fld, below=0pt of mi2] (mi3)              {\quad d\ (+1\,/\,$-$1)};
+    \node[fld, below=0pt of mi3] (mi4)              {\quad elapsed\_1,\ elapsed\_2};
+    \node[fld, below=0pt of mi4] (mi5)              {\quad Z\_amp\_mult};
+    \node[fld, below=0pt of mi5] (mi6)              {\quad state\ \ \textit{(FSM)}};
+    \node[fld, below=0pt of mi6] (mi7)              {\quad Signal,\ Exec,\ Sent};
+
+    %% ── ponteiro ──
+    \draw[ptr] (mi1.west) -- ++(-0.5,0) |- (ms0.east);
+  \end{tikzpicture}}
+  \caption{Relação entre as estruturas de dados principais do firmware.}
+  \label{fig:estruturas-dados}
+\end{figure}
+
 \section{Perfis de movimento}
 Foram definidos três perfis principais. O perfil de respiração utiliza uma trajetória cíclica e bidirecional, com período relativamente longo e possibilidade de pausas. O perfil de batimento cardíaco utiliza movimentos de menor amplitude e maior frequência. O perfil de tosse utiliza uma sequência curta, abrupta e não necessariamente bidirecional, podendo ser sobreposta à respiração.
 
 \section{Máquina de estados de movimento}
 A função genérica de atualização de movimento percorre qualquer trajetória associada a uma \texttt{MotionInstance}. No desenvolvimento, esta rotina foi referida como \texttt{FSM\_Motion\_Update}. A \cref{fig:fsm-motion} reorganiza a máquina desenhada na página 38 das notas de projeto, mantendo os estados principais, as pausas inicial/final, a inversão de direção e o tratamento do movimento bidirecional.
 
-\begin{figure}[htbp]
+A \texttt{FSM\_Motion\_Update()} recebe a cada ciclo de execução o sinal global de arranque \texttt{start}, a referência da instância de movimento \texttt{inst} e o instante de tempo atual \texttt{nowMs}. A função não calcula posições --- essa responsabilidade pertence à etapa seguinte --- mas mantém atualizados os índices de trajetória e o cronómetro interno que a função de posição instantânea vai consumir.
+
+\paragraph{Interação com as estruturas de dados.}
+A cada chamada, a FSM lê da \texttt{MotionStorage} associada (via \texttt{inst.def}): o número de pontos \texttt{n\_Points}, o período total \texttt{period}, o intervalo por segmento \texttt{dtMs}, o índice inicial \texttt{start\_Index}, o flag \texttt{bidirectional} e as durações de pausa \texttt{Dt\_pauseMs\_Ini}/\texttt{Dt\_pauseMs\_End}. Escreve na \texttt{MotionInstance}: os índices \texttt{iIndex} e \texttt{jIndex}, os cronómetros \texttt{elapsed\_1}, \texttt{elapsed\_2} e \texttt{segmentStartMs}, a direção \texttt{Direction} e a flag \texttt{Executing}.
+
+\clearpage
+\begin{figure}[p]
   \centering
-  \resizebox{\textwidth}{!}{%
+  \vspace*{-1.0cm}
+  \resizebox{1.15\textwidth}{!}{%
   \begin{tikzpicture}[
-    state/.style={draw, rounded corners=2pt, align=center, minimum width=2.25cm, minimum height=0.85cm, font=\small},
-    group/.style={draw, dashed, rounded corners=3pt, inner sep=6pt},
-    arrow/.style={-Latex, thick}
+    x=0.43cm,
+    y=0.80cm,
+    state/.style={draw, circle, align=center, minimum size=2.5cm, font=\small, thick, inner sep=3pt},
+    arrow/.style={-Latex, thick},
+    rlabel/.style={fill=white, inner sep=1pt},
+    >=Stealth
   ]
-    \node[state] (s0) {0 INIT\\\(i=j=d=0\)};
-    \node[state, right=0.8cm of s0] (s1) {1 preparar\\\(d=1\)};
-    \node[state, right=0.8cm of s1] (s2) {2 início\\segmento};
-    \node[state, right=0.8cm of s2] (s3) {3 medir\\\(\Delta t\)};
-    \node[state, right=0.8cm of s3] (s4) {4 avançar\\índices};
-    \node[state, right=0.8cm of s4] (s5) {5 guardar\\segmento};
+    % �"?�"? Nome do estado a negrito no topo, variáveis abaixo �"?�"?
+    \node[state, fill=blue!10]   (s0)  at (-12.0, 28) {{\large\textbf{S0}}\\[2pt]$I{=}0$\\$i{=}0$\\$j{=}0$\\$Exec{=}0$};
+    \node[state, fill=blue!10]   (s1)  at (0.0, 26.5) {\textbf{S1}\\[2pt]$I{=}0$\\Situa\c{c}\~ao$=$P\\$j{=}1$};
+    \node[state, fill=blue!10] (s2) at (15.5, 25.5) {\textbf{S2}\\[1pt]$Exec{=}1$\\$Inst.Segm{=}now$\\$i{=}P_{ini}$\\$j{=}i{+}d$\\$P_{fim}{=}m.nPts$};
+    \node[state, fill=blue!10]   (s3)  at (4.0, 21.5) {\textbf{S3}\\[2pt]$T_{Decorrido1}{=}$\\$now{-}Inst.Segm$};
+    \node[state, fill=blue!10] (s4) at (3.5, 13.0) {\textbf{S4}\\[1pt]$I{+}{+}$\\$i{=}i{+}d$\\$j{=}i{+}d$\\$Inst.Segm{=}now$};
+    \node[state, fill=green!10]  (s13) at (22.0, 19.5) {\textbf{S13}\\[2pt]$Inst.Segm{=}now$};
+    \node[state, fill=green!10]  (s14) at (14.0, 13.5)  {\textbf{S14}\\[1pt]$Signal{=}0$\\$d{=}{-}1$\\$P_{fim}{=}0$};
+    \node[state, fill=green!10] (s11) at (14.0, 8.5) {\textbf{S11}\\[1pt]$i{=}m.Pts$\\$j{=}i{+}d$\\$P_{fim}{=}0$};
+    \node[state, fill=green!10] (s12) at (23.0, 6.5) {\textbf{S12}\\[1pt]$i{=}0$\\$j{=}i{+}d$\\$P_{fim}{=}m.Pts$};
+    \node[state, fill=orange!12] (s5)  at (3.0, 5.0) {\textbf{S5}\\[2pt]$Inst.Segm{=}now$\\$j{=}i$};
+    \node[state, fill=orange!12] (s6)  at (15.0, 1.5)  {\textbf{S6}\\[2pt]$d{=}d\!\times\!({-}1)$};
+    \node[state, fill=orange!12] (s7)  at (-9.5, 8.0) {\textbf{S7}\\[2pt]$DT_{pausa}$\\$=DT_{Pausa.ini}$};
+    \node[state, fill=orange!12] (s8)  at (-13.0, 4.0)  {\textbf{S8}\\[2pt]$DT_{pausa}$\\$=DT_{Pausa.fim}$};
+    \node[state, fill=orange!12] (s9)  at (-12.5, 14.8) {\textbf{S9}\\[2pt]$T_{Decorrido2}$\\${=}now{-}Inst.Segm$};
+    \node[state, fill=gray!10]   (s10) at (-13.5, 21.0) {\textbf{S10}};
 
-    \node[state, below=0.9cm of s5] (s6) {6 inverter\\\(d=-d\)};
-    \node[state, left=0.8cm of s6] (s7) {7 pausa\\inicial};
-    \node[state, left=0.8cm of s7] (s8) {8 pausa\\final};
-    \node[state, left=0.8cm of s8] (s9) {9 contar\\pausa};
-    \node[state, left=0.8cm of s9] (s10) {10 fim\\pausa};
+    % ?? Seta de in�cio ??
+    \draw[arrow] (-10, 32.0) node[above]{\small INI} -- (s0.north);
 
-    \node[state, below=0.9cm of s6] (s11) {11 fim\\percurso};
-    \node[state, left=0.8cm of s11] (s12) {12 reiniciar\\índices};
-    \node[state, left=0.8cm of s12] (s13) {13 atualizar\\segmento};
-    \node[state, left=0.8cm of s13] (s14) {14 terminar\\signal=0};
-
-    \node[group, fit=(s0)(s1)(s2)(s3)(s4)(s5), label=above:{execução do segmento}] {};
-    \node[group, fit=(s6)(s7)(s8)(s9)(s10), label=below:{pausas e inversão}] {};
-    \node[group, fit=(s11)(s12)(s13)(s14), label=below:{fim e reinício}] {};
-
+    % ?? S0: loop e sa�da ??
+    \draw[arrow] (s0) edge[loop, out=60, in=20, looseness=7] node[above right]{\small Start$=$0} (s0);
     \draw[arrow] (s0) -- (s1);
-    \draw[arrow] (s1) -- (s2);
+
+    % ?? S1: loop e retorno a S0 ??
+    \draw[arrow] (s1) edge[loop above] node[above]{} (s1);
+    \draw[arrow] (s1.west) to[out=-150, in=-60] node[rlabel, below, align=center]{\small M.Pts$\le$1\\M.Per$\le$0} (s0.south);
+
+    % ?? S1 ? S2 ??
+    \draw[arrow] (s1) -- node[rlabel, above, align=left]{\small $d{==}1$\\\& Sent$==$1} (s2);
+
+    % ?? Cadeia principal S2?S3?S4 ??
     \draw[arrow] (s2) -- (s3);
-    \draw[arrow] (s3) -- (s4);
-    \draw[arrow] (s4) -- (s5);
+    \draw[arrow] (s3.south east) to[out=-45, in=45] node[rlabel, pos=0.50, above, align=center]{\small $Elapsed_1\!\ge\!DT_{MS}$} (s4.north east);
+
+    % ?? S4: retorno a S3 ??
+    \draw[arrow] (s4.north west) to[out=120, in=-135] node[rlabel, pos=0.55, right, align=left]{\small $i{<}P_{fim}$ \& $d{=}1$\\$i{>}P_{fim}$ \& $d{=}{-}1$} (s3.south west);
+
+    % ?? S4 ? S5 ??
+    \draw[arrow] (s4.south) -- node[rlabel, right, align=left]{\small $i{\ge}P_{fim}$ \& $d{=}1$\\$i{\le}P_{fim}$ \& $d{=}{-}1$} (s5.north);
+
+    % ?? S4 ? S14 ??
+    \draw[arrow] (s4.east) -- (s14.west);
+
+    % ?? S4 ? S1 ??
+    \draw[arrow] (s4.west) to[out=150, in=-120] (s1.south);
+
+    % ?? S5 ? S1 ??
+    \draw[arrow] (s5.north west) to[out=140, in=-140] (s1.south);
+
+    % ?? S13 ? S3 ??
+    \draw[arrow] (s13.west) -- (s3.east);
+
+    % ?? S14 ? S13 ??
+    \draw[arrow] (s14.north east) to[out=45, in=-120] node[rlabel, right, align=left]{\small Signal$==$0\\\& Bidirecional} (s13.south west);
+
+    % ?? S11 ? S13 / S12 ? S13 ??
+    \draw[arrow] (s11.north east) to[out=45, in=-90] (s13.south);
+    \draw[arrow] (s12.north) to[out=90, in=-60] (s13.south east);
+
+    % ?? S5 ? S6 ??
     \draw[arrow] (s5) -- (s6);
-    \draw[arrow] (s6) -- (s7);
-    \draw[arrow] (s7) -- (s8);
-    \draw[arrow] (s8) -- (s9);
-    \draw[arrow] (s9) -- (s10);
-    \draw[arrow] (s10) to[bend right=35] node[left]{retomar} (s1);
-    \draw[arrow] (s6) -- node[right]{não bidirecional} (s11);
-    \draw[arrow] (s11) -- (s12);
-    \draw[arrow] (s12) -- (s13);
-    \draw[arrow] (s13) -- (s14);
-    \draw[arrow] (s13) to[bend left=28] node[below]{novo ciclo} (s2);
-    \draw[arrow] (s1) to[bend left=22] (s0);
+
+    % ?? S6 ? S11 / S6 ? S12 ??
+    \draw[arrow] (s6.north) to[out=90, in=-60] (s11.south);
+    \draw[arrow] (s6.north east) to[out=60, in=-120] (s12.south);
+
+    % ?? S5 para pausas ??
+    \draw[arrow] (s5.west) to[out=165, in=-35] node[rlabel, pos=0.50, above, sloped]{\small pausa ini} (s7.south east);
+    \draw[arrow] (s5.west) to[out=195, in=0] node[rlabel, pos=0.50, below, sloped]{\small pausa fim} (s8.east);
+
+    % ?? S7 ? S9 ??
+    \draw[arrow] (s7.north) to[out=135, in=-55] node[rlabel, pos=0.50, above, sloped]{\small medir} (s9.south east);
+
+    % ?? S8 ? S9 ??
+    \draw[arrow] (s8.north) to[out=110, in=-100] node[rlabel, pos=0.50, above, sloped]{\small medir} (s9.south);
+
+    % ?? S9 ? S10 ??
+    \draw[arrow] (s9) -- node[rlabel, pos=0.52, left, align=right]{\small $Elapsed_2{\ge}$\\$DT_{pausa}$} (s10);
+
+    % ?? S10 ? S1 ??
+    \draw[arrow] (s10.north east) to[out=25, in=-110] node[rlabel, pos=0.50, above]{\small Bidirecional$==$Falso} (s1.south west);
+    \draw[arrow] (s10.south west)
+        .. controls (-19.5, 14) and (-18, 8) .. (-18, 4)
+        .. controls (-18, -1) and (5, -1) .. (s6.south west);
   \end{tikzpicture}}
-  \caption{FSM\_Movement redesenhada a partir do esquema da página 38 das notas de projeto.}
+  \caption{Esquema da FSM\_Motion\_Update.}
   \label{fig:fsm-motion}
 \end{figure}
 
-A posição instantânea é obtida por interpolação linear entre dois pontos consecutivos:
+\clearpage
+
+\paragraph{Fases de funcionamento.}
+\begin{itemize}
+  \item \textbf{Arranque (S0$\to$S1$\to$S2):} No estado S0 a instância está inativa, com índices e \texttt{Executing} zerados. Quando \texttt{start=1} e a instância está marcada como ativa, a FSM transita para S1, que valida os parâmetros da trajetória (pelo menos dois pontos e período positivo) e inicializa \texttt{Direction=1}. Em S2 regista \texttt{segmentStartMs=nowMs}, define \texttt{iIndex=start\_Index} e \texttt{jIndex=iIndex+d}, e transita imediatamente para S3.
+
+  \item \textbf{Ciclo de segmentos (S3$\leftrightarrow$S4):} S3 mede o tempo decorrido (\texttt{elapsed\_1 = nowMs - segmentStartMs}) e aguarda que este iguale \texttt{dtMs}. Quando atingido, S4 avança \texttt{iIndex} na direção \texttt{d} (+1 ou $-$1), atualiza \texttt{jIndex=iIndex+d}, reinicia o cronómetro e retorna a S3. Este ciclo repete-se até \texttt{iIndex} atingir \texttt{End\_Point}.
+
+  \item \textbf{Gestão do extremo e pausas (S5$\to$S7/S8$\to$S9$\to$S10):} Ao atingir o fim da passagem, S5 decide o caminho: se existir pausa configurada, S7 ou S8 carregam a duração correspondente (inicial ou final), S9 aguarda até ao fim da pausa, e S10 decide se recomeça o ciclo bidirecional (\mbox{$\to$S6}) ou reinicializa do início (\mbox{$\to$S1}).
+
+  \item \textbf{Inversão de direção (S6$\to$S11/S12$\to$S13):} S6 inverte \texttt{Direction} (multiplica por $-1$). Consoante o novo sentido, S11 (passagem descendente) ou S12 (passagem ascendente) reinicializa os índices para o extremo correto. S13 regista o novo \texttt{segmentStartMs} e entra de imediato em S3.
+
+  \item \textbf{Interrupção de tosse (S4$\to$S14$\to$S13):} Se o sinal global \texttt{Tosse\_signal} for ativado durante o avanço (S4), a FSM entra em S14, que força a direção de regresso (\texttt{Direction=$-$1}, \texttt{End\_Point=0}) e encadeia com S13 para iniciar a descida de emergência.
+\end{itemize}
+
+\paragraph{Saída para a função de posição instantânea.}
+Ao terminar cada chamada, a \texttt{MotionInstance} contém: \texttt{iIndex} (índice do ponto de partida do segmento atual), \texttt{jIndex} (índice do ponto de chegada) e \texttt{elapsed\_1} (tempo decorrido desde o início do segmento). A função \texttt{Intermed\_position()} lê estes três campos, acede ao \texttt{MotionStorage} para obter as coordenadas \texttt{X[i]}, \texttt{X[j]}, \texttt{Y[i]}, \texttt{Y[j]}, \texttt{Z[i]}, \texttt{Z[j]} e o intervalo \texttt{dtMs}, e calcula a posição interpolada entre os dois pontos. O resultado é um tripleto $(X,Y,Z)$ em coordenadas relativas ao ponto de referência \texttt{Index0}, que segue depois para a função de fusão e cinemática inversa.
+
+A posição instantânea é obtida por interpolação linear entre dois pontos consecutivos da trajetória:
 \[
-  P(t) = P_i + (P_j - P_i)\alpha
+  P(\alpha) = P_i + (P_j - P_i)\,\alpha
 \]
-em que \(\alpha\) é calculado pela razão entre o tempo decorrido e o tempo previsto para o segmento. O valor de \(\alpha\) é limitado ao intervalo \([0,1]\), garantindo que a posição interpolada permanece entre o ponto atual e o ponto seguinte.
+Definindo a razão temporal bruta \(\alpha_0 = t_{dec}/DT_{MS}\), onde \(t_{dec}\) é o valor de \texttt{elapsed\_1} e \(DT_{MS}\) é \texttt{dtMs}, o coeficiente de interpolação saturado é:
+\[
+  \alpha = \begin{cases}
+    0        & \text{se } \alpha_0 < 0 \\
+    \alpha_0 & \text{se } 0 \le \alpha_0 \le 1 \\
+    1        & \text{se } \alpha_0 > 1
+  \end{cases}
+  \qquad \alpha_0 = \frac{t_{dec}}{DT_{MS}}
+\]
 
 \section{Cinemática inversa do manipulador delta}
-A cinemática inversa converte a posição desejada \((X,Y,Z)\) em ângulos ou pulsos para os servos. O desenvolvimento parte da geometria do manipulador delta de três eixos. O cálculo retira offsets da base e dos servos, calcula projeções no plano, verifica se a articulação respeita limites geométricos e aplica relações trigonométricas para obter os ângulos.
+A cinemática inversa converte a posição desejada da plataforma móvel \((X,Y,Z)\) nos três ângulos de servo \(\theta_1\), \(\theta_2\) e \(\theta_3\). A \cref{fig:delta-cinematica-lateral} mostra a representação lateral usada como referência para as variáveis do cálculo: \(L_1\) representa o braço acionado pelo servo, \(L_2\) o braço passivo, \(L_3\) o afastamento horizontal até à articulação da plataforma móvel, \(\phi\) e \(\omega\) são ângulos intermédios e \(\theta\) é o ângulo final aplicado ao servo.
 
-\section{Comunicação série e comandos}
-A comunicação série é organizada por duas máquinas de estados principais. A primeira lê caracteres e constrói comandos. A segunda interpreta o comando recebido, seleciona modos de funcionamento e altera parâmetros internos.
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{figuras/Imagem lateral do Manipulador Delta.png}
+  \caption{Representação lateral das variáveis usadas na cinemática inversa do manipulador delta.}
+  \label{fig:delta-cinematica-lateral}
+\end{figure}
+
+O firmware aplica o mesmo cálculo aos três braços. A diferença entre eles está apenas na rotação do referencial no plano \(XY\). Para cada manipulador existe um offset global \(\alpha_m\), definido na estrutura \texttt{Manipulador\_Config}, e para cada servo existe uma rotação adicional \(\beta_k\):
+\[
+  \alpha_m =
+  \begin{cases}
+    -15^\circ, & \text{Manipulador Delta 1}\\
+    -45^\circ, & \text{Manipulador Delta 2}
+  \end{cases}
+  \qquad
+  \beta_k \in \{0^\circ,\;120^\circ,\;240^\circ\}
+\]
+\[
+  \varphi_k = \alpha_m + \beta_k
+  \qquad
+  R_z(\varphi_k)=
+  \begin{bmatrix}
+    \cos\varphi_k & -\sin\varphi_k & 0\\
+    \sin\varphi_k &  \cos\varphi_k & 0\\
+    0             &  0             & 1
+  \end{bmatrix}
+\]
+Assim, o ponto pedido é primeiro expresso no plano de trabalho do servo \(k\):
+\[
+  \begin{bmatrix}
+    x'_k\\ y'_k\\ z'_k
+  \end{bmatrix}
+  =
+  R_z(\varphi_k)
+  \begin{bmatrix}
+    X\\Y\\Z
+  \end{bmatrix}
+  -
+  \begin{bmatrix}
+    0\\0\\z_{offset}
+  \end{bmatrix}
+  \quad
+  \Longrightarrow
+  \quad
+  \begin{cases}
+    x'_k = X\cos\varphi_k - Y\sin\varphi_k\\
+    y'_k = X\sin\varphi_k + Y\cos\varphi_k\\
+    z'_k = Z - z_{offset}
+  \end{cases}
+\]
+No código, \(z_{offset}=0\,\text{mm}\), mas a variável foi mantida para permitir calibração posterior.
+
+Depois da rotação, o problema fica reduzido ao plano lateral do servo. A extremidade associada à plataforma móvel é deslocada pelo comprimento \(L_3\):
+\[
+  x_{arm,k}=x'_k+L_3
+\]
+Como o braço passivo \(L_2\) pode sair ligeiramente do plano, o código calcula a sua projeção nesse plano. Esta projeção só é válida se a junta esférica não ultrapassar o limite angular admitido:
+\[
+  L_{2p,k}=\sqrt{L_2^2-y_k'^2}
+  \qquad
+  \gamma_k=\arcsin\!\left(\frac{y'_k}{L_2}\right)
+  \qquad
+  |\gamma_k| < 0{,}5934\,\text{rad}\approx34^\circ
+\]
+Este limite aparece no firmware como proteção para evitar que o ângulo entre a junta esférica e o braço passivo saia da zona mecânica admissível.
+
+De seguida calcula-se a distância entre o eixo do servo e a articulação projetada. Esta distância é designada no código por \texttt{ext}:
+\[
+  d_k=\sqrt{z_k'^2+\left(d_s-x_{arm,k}\right)^2}
+  \qquad
+  d_s=32\,\text{mm}
+\]
+Antes de calcular o ângulo, o firmware confirma se os comprimentos \(L_1\), \(L_{2p,k}\) e \(d_k\) conseguem formar um triângulo:
+\[
+  L_{2p,k}-L_1 < d_k < L_1+L_{2p,k}
+\]
+Se esta condição falhar, a posição pretendida fica fora do alcance geométrico daquele braço e a função de cinemática inversa devolve erro.
+
+Com a geometria validada, o ângulo interno \(\phi_k\) é obtido pela lei dos cossenos, enquanto \(\omega_k\) corresponde à inclinação da reta entre o pivô do servo e a articulação projetada:
+\[
+  \phi_k=
+  \arccos\!\left(
+    \frac{L_1^2+d_k^2-L_{2p,k}^2}{2L_1d_k}
+  \right)
+  \qquad
+  \omega_k=
+  \operatorname{atan2}\!\left(z'_k,\;d_s-x_{arm,k}\right)
+\]
+O ângulo enviado ao servo é então:
+\[
+  \theta_k=\phi_k+\omega_k
+  \qquad
+  45^\circ \le \theta_k \le 225^\circ
+\]
+O intervalo de \(45^\circ\) a \(225^\circ\) é o limite angular definido no firmware por \texttt{SERVO\_ANGLE\_MIN} e \texttt{SERVO\_ANGLE\_MAX}. Se algum dos três ângulos calculados ficar fora deste intervalo, a posição é rejeitada e os servos não são atualizados.
+
+Por fim, cada \(\theta_k\) é convertido para largura de pulso PWM por interpolação linear:
+\[
+  PWM_k =
+  PWM_{k,min}+
+  \frac{\theta_k-\theta_{min}}{\theta_{max}-\theta_{min}}
+  \left(PWM_{k,max}-PWM_{k,min}\right)
+\]
+Considerando os valores de referência \(PWM_{min}=500\,\mu s\) e \(PWM_{max}=2500\,\mu s\), a relação é crescente no Manipulador Delta 1 e invertida no Manipulador Delta 2, devido à montagem mecânica oposta dos servos. Esta inversão é feita no arranque do firmware, quando os limites \texttt{thetaMinPulse} e \texttt{thetaMaxPulse} do segundo manipulador são trocados.
 
 \begin{figure}[htbp]
   \centering
   \resizebox{\textwidth}{!}{%
   \begin{tikzpicture}[
-    state/.style={draw, circle, align=center, minimum size=1.75cm, font=\small},
-    arrow/.style={-Latex, thick}
+    x=0.035cm,
+    y=0.0026cm,
+    axis/.style={->, thick},
+    curve/.style={thick, blue!70!black},
+    invcurve/.style={thick, orange!80!black},
+    guide/.style={dashed, gray!60},
+    lab/.style={font=\small},
+    tick/.style={font=\scriptsize}
   ]
-    \node[state] (r0) {0\\INIT\\contador=0};
-    \node[state, right=1.2cm of r0] (r1) {1\\CH\_Bus\\=Serial.read()};
-    \node[state, right=1.2cm of r1] (r2) {2\\CH\_Command\\=CH\_Bus};
-    \node[state, below=1.0cm of r2] (r3) {3\\CH\_Bus\\=0};
-    \node[state, below=1.0cm of r3] (r5) {5\\modo\\Single};
-    \node[state, left=1.2cm of r5] (r6) {6\\C = Serial\\begin};
-    \node[state, below=1.0cm of r6] (r7) {7\\guardar\\ST\_Bus[m]};
-    \node[state, left=1.2cm of r7] (r8) {8\\ST\_Command\\=ST\_Bus};
-    \node[state, below=1.0cm of r7] (r9) {9\\limpar\\buffer};
-    \node[state, above=1.0cm of r6] (r4) {4\\modo\\Multiple};
+    % Delta 1
+    \begin{scope}
+      \draw[axis] (35,0) -- (238,0) node[lab, below right] {\(\theta_k\) [graus]};
+      \draw[axis] (45,380) -- (45,2720) node[lab, above] {PWM [\(\mu s\)]};
+      \draw[guide] (45,500) -- (225,500);
+      \draw[guide] (45,2500) -- (225,2500);
+      \draw[guide] (45,500) -- (45,0);
+      \draw[guide] (225,2500) -- (225,0);
+      \draw[curve] (45,500) -- (225,2500);
+      \fill[curve] (45,500) circle (2.5pt);
+      \fill[curve] (225,2500) circle (2.5pt);
+      \node[lab, align=center] at (135,2860) {Manipulador Delta 1};
+      \node[tick, below] at (45,0) {\(45^\circ\)};
+      \node[tick, below] at (225,0) {\(225^\circ\)};
+      \node[tick, left] at (45,500) {\(500\)};
+      \node[tick, left] at (45,2500) {\(2500\)};
+      \node[tick, above left] at (45,500) {min};
+      \node[tick, above right] at (225,2500) {max};
+    \end{scope}
 
-    \draw[arrow] (r0) -- node[above]{Serial.available} (r1);
-    \draw[arrow] (r1) -- node[above]{CH\_Bus válido} (r2);
+    % Delta 2
+    \begin{scope}[xshift=9.2cm]
+      \draw[axis] (35,0) -- (238,0) node[lab, below right] {\(\theta_k\) [graus]};
+      \draw[axis] (45,380) -- (45,2720) node[lab, above] {PWM [\(\mu s\)]};
+      \draw[guide] (45,500) -- (225,500);
+      \draw[guide] (45,2500) -- (225,2500);
+      \draw[guide] (45,2500) -- (45,0);
+      \draw[guide] (225,500) -- (225,0);
+      \draw[invcurve] (45,2500) -- (225,500);
+      \fill[invcurve] (45,2500) circle (2.5pt);
+      \fill[invcurve] (225,500) circle (2.5pt);
+      \node[lab, align=center] at (135,2860) {Manipulador Delta 2};
+      \node[tick, below] at (45,0) {\(45^\circ\)};
+      \node[tick, below] at (225,0) {\(225^\circ\)};
+      \node[tick, left] at (45,500) {\(500\)};
+      \node[tick, left] at (45,2500) {\(2500\)};
+      \node[tick, above right] at (45,2500) {max};
+      \node[tick, above left] at (225,500) {min};
+    \end{scope}
+  \end{tikzpicture}
+  }
+  \caption{Relação linear de referência entre o ângulo calculado pela cinemática inversa e o pulso PWM aplicado aos servos nos dois manipuladores.}
+  \label{fig:pwm-servo-delta}
+\end{figure}
+
+Os limites de PWM usados no código não foram assumidos apenas a partir de valores teóricos do servo. Estes valores foram calibrados experimentalmente, começando pelo alinhamento da patilha de cada servo com a base onde estava acoplado. O objetivo deste alinhamento era garantir que as posições físicas de \(0^\circ\) e \(180^\circ\) ficavam paralelas à superfície da base. Depois desse alinhamento mecânico, era feita a transição manual da referência física para o intervalo usado pela cinemática: no Manipulador Delta 1, de \(0^\circ\) para \(45^\circ\); no Manipulador Delta 2, devido à orientação oposta dos servos, de \(180^\circ\) para \(45^\circ\). Por fim, foi necessário repetir ensaios de calibração para confirmar que os impulsos PWM correspondiam aos limites de \(45^\circ\) e \(225^\circ\), admitindo uma tolerância aproximada de \(\pm 5^\circ\).
+
+\[
+\text{Manipulador Delta 1 - Calibrado -}
+\left\{
+\begin{array}{lcc}
+& \text{Mínimo} & \text{Máximo}\\
+\text{Servo } \theta_1: & 520\,\mu s & 2520\,\mu s\\
+\text{Servo } \theta_2: & 550\,\mu s & 2550\,\mu s\\
+\text{Servo } \theta_3: & 560\,\mu s & 2560\,\mu s
+\end{array}
+\right.
+\]
+
+\[
+\text{Manipulador Delta 2 - Calibrado -}
+\left\{
+\begin{array}{lcc}
+& \text{Mínimo} & \text{Máximo}\\
+\text{Servo } \theta_1: & 460\,\mu s & 2460\,\mu s\\
+\text{Servo } \theta_2: & 470\,\mu s & 2470\,\mu s\\
+\text{Servo } \theta_3: & 420\,\mu s & 2420\,\mu s
+\end{array}
+\right.
+\]
+
+No arranque, o firmware mantém estes intervalos físicos para associar cada servo ao seu canal PWM, mas inverte a correspondência entre \texttt{thetaMinPulse} e \texttt{thetaMaxPulse} no Manipulador Delta 2. Assim, a cinemática inversa continua a gerar os mesmos três ângulos lógicos, enquanto a conversão final para PWM respeita a montagem, o sentido de rotação e a calibração individual de cada servo.
+
+\section{Comunicação série e comandos}
+A comunicação série é organizada por duas máquinas de estados principais. A primeira é a \texttt{FSM\_Serial\_reader()}, responsável apenas pela receção dos dados que chegam pela porta série. A segunda é a \texttt{FSM\_Serial\_Command()}, que interpreta esses dados e altera o comportamento do sistema. Esta separação foi usada para evitar que a leitura da porta série ficasse misturada com a lógica de controlo dos movimentos.
+
+A \texttt{FSM\_Serial\_reader()} funciona como uma camada de aquisição. Quando o sistema está em modo simples, lê um único caracter e coloca esse valor em \texttt{CH\_Command}. Quando é ativado o modo de comando longo, através do comando \texttt{W}, passa a preencher o vetor \texttt{ST\_Bus} até receber o fim da mensagem. Só depois de a mensagem estar completa é que ativa a flag de linha pronta. Assim, a máquina de comandos nunca precisa de ler diretamente da porta série; apenas consome comandos já preparados.
+
+A \texttt{FSM\_Serial\_Command()} funciona como a camada de decisão. Esta máquina verifica se existe um comando disponível, interpreta o caracter ou a cadeia recebida, atualiza flags como \texttt{start\_comand}, \texttt{Safe\_comand} e \texttt{sinal\_tossir}, seleciona que movimentos ficam ativos e, nos comandos longos, altera parâmetros das estruturas \texttt{MotionStorage}. Usar duas máquinas de estados torna o comportamento mais previsível: a receção pode continuar a ser tratada passo a passo, enquanto a interpretação dos comandos fica concentrada numa rotina própria.
+
+Os principais comandos simples disponíveis são:
+
+\begin{table}[htbp]
+  \centering
+  \caption{Comandos simples disponíveis na comunicação série.}
+  \label{tab:comandos-simples}
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Comando & Função\\
+    \midrule
+    \texttt{S} & Inicia a execução do ciclo de movimentos.\\
+    \texttt{P} & Para a execução e calcula a duração do ensaio.\\
+    \texttt{L} & Entra no menu de leitura, teste e depuração.\\
+    \texttt{M} & Entra no menu de seleção do modo fisiológico.\\
+    \texttt{W} & Ativa o modo de comandos com vários caracteres.\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+No menu \texttt{L}, o segundo caracter define a ação a executar:
+
+\begin{table}[htbp]
+  \centering
+  \caption{Subcomandos do menu de leitura, teste e depuração.}
+  \label{tab:comandos-leitura}
+  \begin{tabular}{@{}>{\ttfamily}lp{10.2cm}@{}}
+    \toprule
+    \normalfont Comando & Função\\
+    \midrule
+    L1 & Ativa o comando de segurança definido por \texttt{Safe\_comand = 1}.\\
+    L2 & Desativa esse comando de segurança, colocando \texttt{Safe\_comand = 0}.\\
+    L3 & Ativa o sinal de tosse, através de \texttt{sinal\_tossir = 1}.\\
+    Lr & Imprime os dados de respiração, \texttt{Resp\_move} e \texttt{Resp\_inst}.\\
+    Lb & Imprime os dados de batimento, \texttt{Bat\_move} e \texttt{Bat\_inst}.\\
+    Lt & Reservado para leitura dos dados de tosse.\\
+    La & Imprime em conjunto os dados principais de respiração e batimento.\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+No menu \texttt{M}, o segundo caracter escolhe que movimentos ficam ativos:
+
+\begin{table}[htbp]
+  \centering
+  \caption{Subcomandos de seleção do modo fisiológico.}
+  \label{tab:comandos-modo}
+  \begin{tabular}{@{}>{\ttfamily}lp{10.2cm}@{}}
+    \toprule
+    \normalfont Comando & Modo selecionado\\
+    \midrule
+    Ma & Ativa respiração, batimento e tosse.\\
+    Mh & Ativa o modo humano, com respiração e batimento.\\
+    Mr & Ativa apenas a respiração.\\
+    Mb & Ativa apenas o batimento.\\
+    Ms & Desativa os movimentos, deixando o sistema em modo estático.\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Os comandos longos começam por \texttt{W} e permitem enviar uma cadeia de caracteres para alterar parâmetros numéricos. No estado atual do firmware, a estrutura implementada permite selecionar o movimento de destino com \texttt{R}, \texttt{B} ou \texttt{T}, correspondentes a respiração, batimento e tosse, e depois alterar o período com o campo \texttt{T[valor]}. Por exemplo, uma mensagem do tipo \texttt{WdRT[4.0]} é interpretada como uma alteração do período da respiração para \(4,0\,s\), de acordo com o formato que a máquina de estados procura no vetor \texttt{ST\_Command}. Os campos para pausa e alteração de pontos de movimento aparecem previstos na máquina, mas ainda não estão totalmente desenvolvidos no código.
+
+\begin{figure}[p]
+  \centering
+  \resizebox{0.98\textwidth}{!}{%
+  \begin{tikzpicture}[
+    state/.style={draw, circle, align=center, minimum size=1.55cm, font=\scriptsize},
+    arrow/.style={-Latex, thick},
+    lab/.style={font=\scriptsize, fill=white, inner sep=1pt}
+  ]
+    \node[state] (r0) at (0,0) {0\\INIT\\contador=0};
+    \node[state] (r1) at (4.1,0) {1\\CH\_Bus\\=Serial.read()};
+    \node[state] (r2) at (8.2,0) {2\\CH\_Command\\=CH\_Bus};
+    \node[state] (r3) at (8.2,-2.6) {3\\CH\_Bus\\=0};
+    \node[state] (r5) at (8.2,-5.2) {5\\modo\\Single};
+    \node[state] (r4) at (4.1,-2.6) {4\\modo\\Multiple};
+    \node[state] (r6) at (4.1,-5.2) {6\\ler\\ST\_Bus[m]};
+    \node[state] (r7) at (4.1,-7.8) {7\\guardar\\caracter};
+    \node[state] (r8) at (0,-7.8) {8\\ST\_Command\\=ST\_Bus};
+    \node[state] (r9) at (0,-5.2) {9\\limpar\\buffer};
+
+    \draw[arrow] (r0) -- node[lab, above]{dados disponíveis} (r1);
+    \draw[arrow] (r1) -- node[lab, above]{válido} (r2);
     \draw[arrow] (r2) -- (r3);
-    \draw[arrow] (r3) -- node[right]{LineReady} (r5);
+    \draw[arrow] (r3) -- node[lab, right]{LineReady} (r5);
     \draw[arrow] (r5) -- (r6);
-    \draw[arrow] (r6) -- node[right]{caracteres} (r7);
-    \draw[arrow] (r7) -- node[below]{fim linha} (r8);
+    \draw[arrow] (r6) -- node[lab, right]{caracter} (r7);
+    \draw[arrow] (r7) -- node[lab, below]{fim} (r8);
     \draw[arrow] (r8) -- (r9);
-    \draw[arrow] (r9) to[bend left=22] node[right]{LineReady=true} (r0);
-    \draw[arrow] (r1) to[bend left=25] node[above]{CH\_Bus=M} (r4);
-    \draw[arrow] (r4) to[bend left=20] node[left]{modo M} (r6);
-    \draw[arrow] (r6) to[loop left] node{ST\_Bus[m]\(\neq\) fim} (r6);
+    \draw[arrow] (r9) to[bend left=18] node[lab, left]{LineReady=true} (r0);
+    \draw[arrow] (r1) to[bend right=20] node[lab, left]{W} (r4);
+    \draw[arrow] (r4) -- node[lab, above]{modo M} (r6);
+    \draw[arrow] (r6) to[loop left, min distance=1.4cm] node[lab, left]{continua} (r6);
   \end{tikzpicture}}
   \caption{FSM\_Serial\_Read redesenhada a partir do esquema da página 44 das notas de projeto.}
   \label{fig:fsm-serial-reader}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[p]
   \centering
-  \resizebox{\textwidth}{!}{%
+  \resizebox{0.98\textwidth}{!}{%
   \begin{tikzpicture}[
-    state/.style={draw, circle, align=center, minimum size=1.65cm, font=\scriptsize},
-    hub/.style={draw, circle, align=center, minimum size=1.85cm, font=\small},
+    state/.style={draw, circle, align=center, minimum size=1.35cm, font=\scriptsize},
+    hub/.style={draw, circle, align=center, minimum size=1.6cm, font=\scriptsize},
     arrow/.style={-Latex, thick},
-    cmd/.style={-Latex, thick, orange}
+    cmd/.style={-Latex, thick, orange!85!black},
+    lab/.style={font=\scriptsize, fill=white, inner sep=1pt}
   ]
-    \node[state] (c0) {0\\INIT};
-    \node[state, below=0.8cm of c0] (c1) {1\\LineReady\\out=false};
-    \node[state, below left=0.9cm and 1.0cm of c1] (c2) {2\\LED verde\\LineReady};
-    \node[state, below right=0.9cm and 1.0cm of c1] (c3) {3\\LED off\\LineReady};
-    \node[state, below=1.1cm of c1] (c4) {4\\monitor\\line=false};
-    \node[state, right=1.1cm of c4] (c5) {5\\LED azul\\LineReady};
-    \node[state, below=0.9cm of c5] (c6) {6\\LineReady\\false};
-    \node[hub, below=1.0cm of c6] (c27) {27\\distribuição\\comando};
+    \node[state] (c0) at (0,0) {0\\INIT};
+    \node[state] (c1) at (0,-2.0) {1\\LineReady\\out=false};
+    \node[state] (c2) at (-4.0,-4.2) {2\\Start\\ativo};
+    \node[state] (c3) at (4.0,-4.2) {3\\Stop\\desativo};
+    \node[state] (c4) at (0,-6.4) {4\\menu\\principal};
+    \node[state] (c5) at (-4.0,-8.8) {5\\menu L};
+    \node[state] (c14) at (0,-8.8) {14\\menu M};
+    \node[state] (c23) at (4.0,-8.8) {23\\modo W};
+    \node[hub] (c27) at (4.0,-11.3) {27\\distribuição\\comando};
 
-    \node[state, right=1.2cm of c27, yshift=1.0cm] (c28) {28\\Resp\\Move/Inst};
-    \node[state, right=1.2cm of c27] (c29) {29\\Bat\\Move/Inst};
-    \node[state, right=1.2cm of c27, yshift=-1.0cm] (c30) {30\\Tosse\\Move/Inst};
-    \node[state, below=0.9cm of c27] (c34) {34\\posição\\nPoints};
-    \node[state, left=1.2cm of c34] (c35) {35\\copiar\\ST\_Copia};
-    \node[state, left=1.2cm of c35] (c36) {36\\Period=atof\\LineReady};
-    \node[state, right=1.2cm of c34] (c38) {38\\Pausa\\INI};
-    \node[state, right=1.2cm of c38] (c39) {39\\Pausa\\End};
-    \node[state, below=0.9cm of c38] (c40) {40\\copiar\\parâmetro};
-    \node[state, below=0.9cm of c40] (c41) {41\\Pausa=atof\\LineReady};
-    \node[state, below=0.9cm of c36] (c37) {37\\Mode=S};
+    \node[state] (c28) at (8.6,-8.6) {28\\Resp\\Move/Inst};
+    \node[state] (c29) at (8.6,-11.3) {29\\Bat\\Move/Inst};
+    \node[state] (c30) at (8.6,-14.0) {30\\Tosse\\Move/Inst};
+    \node[state] (c31) at (4.0,-16.0) {31\\tipo\\parâmetro};
+    \node[state] (c32) at (0,-16.0) {32\\período\\T[ ]};
+    \node[state] (c35) at (-4.0,-16.0) {35\\copiar\\valor};
+    \node[state] (c36) at (-8.0,-16.0) {36\\atof\\LineReady};
+    \node[state] (c37) at (-8.0,-12.6) {37\\Mode=S};
 
     \draw[arrow] (c0) -- (c1);
-    \draw[cmd] (c1) -- node[left]{V} (c2);
-    \draw[cmd] (c1) -- node[right]{W} (c3);
+    \draw[cmd] (c1) -- node[lab, left]{S} (c2);
+    \draw[cmd] (c1) -- node[lab, right]{P} (c3);
     \draw[arrow] (c2) -- (c4);
     \draw[arrow] (c3) -- (c4);
-    \draw[arrow] (c4) -- (c5);
-    \draw[arrow] (c5) -- (c6);
-    \draw[arrow] (c6) -- (c27);
-    \draw[cmd] (c27) -- node[above]{R} (c28);
-    \draw[cmd] (c27) -- node[above]{B} (c29);
-    \draw[cmd] (c27) -- node[below]{T} (c30);
-    \draw[cmd] (c27) -- node[left]{P} (c34);
-    \draw[arrow] (c28) |- (c34);
-    \draw[arrow] (c29) |- (c34);
-    \draw[arrow] (c30) |- (c34);
-    \draw[arrow] (c34) -- (c35);
+    \draw[cmd] (c4) -- node[lab, above left]{L} (c5);
+    \draw[cmd] (c4) -- node[lab, right]{M} (c14);
+    \draw[cmd] (c4) -- node[lab, above right]{W} (c23);
+    \draw[arrow] (c5) to[bend right=16] (c4);
+    \draw[arrow] (c14) to[bend right=12] (c4);
+    \draw[arrow] (c23) -- node[lab, right]{ST\_Command} (c27);
+    \draw[cmd] (c27) -- node[lab, above]{R} (c28);
+    \draw[cmd] (c27) -- node[lab, above]{B} (c29);
+    \draw[cmd] (c27) -- node[lab, below]{T} (c30);
+    \draw[arrow] (c28) to[bend left=10] (c31);
+    \draw[arrow] (c29) to[bend left=6] (c31);
+    \draw[arrow] (c30) to[bend right=8] (c31);
+    \draw[cmd] (c31) -- node[lab, above]{T[valor]} (c32);
+    \draw[arrow] (c32) -- (c35);
     \draw[arrow] (c35) -- (c36);
-    \draw[cmd] (c27) -- node[above]{I} (c38);
-    \draw[cmd] (c27) -- node[above]{J} (c39);
-    \draw[arrow] (c38) -- (c40);
-    \draw[arrow] (c39) -- (c40);
-    \draw[arrow] (c40) -- (c41);
-    \draw[cmd] (c36) -- node[left]{S} (c37);
-    \draw[arrow] (c37) to[bend left=28] (c1);
-    \draw[arrow] (c41) to[bend right=24] (c1);
+    \draw[arrow] (c36) -- node[lab, left]{LineReady} (c37);
+    \draw[arrow] (c37) to[bend right=28] node[lab, below]{modo simples} (c4);
   \end{tikzpicture}}
   \caption{FSM\_Serial\_Command redesenhada a partir dos esquemas das páginas 46 e 47 das notas de projeto.}
   \label{fig:fsm-serial-command}
 \end{figure}
+
+\clearpage
 
 \section{Preparação e sincronização da tosse}
 A função de preparação da tosse é responsável por transformar um pedido de tosse num evento fisiológico sobreposto à respiração. Quando o sinal de tosse é ativado, a rotina guarda os parâmetros normais da respiração, reduz temporariamente o período, ajusta as pausas e aumenta a amplitude em \(Z\). Em paralelo, ativa a instância de vibração ou perturbação da tosse.
@@ -258,6 +642,13 @@ A função de preparação da tosse é responsável por transformar um pedido de
 Quando o ciclo respiratório atinge o estado apropriado para terminar o evento, a rotina repõe o período original, as pausas e o multiplicador de amplitude. Esta estratégia permite que a tosse não seja apenas uma trajetória independente, mas uma alteração temporária do comportamento respiratório, mais coerente com o fenómeno fisiológico que se pretende simular.
 
 \section{Depuração e validação interna}
-Durante o desenvolvimento foram usadas funções de depuração para imprimir a configuração dos movimentos, os pontos carregados, os índices atuais, o estado das instâncias e os ponteiros para as estruturas de definição. Foram também realizados testes específicos aos servos e ao LED RGB para separar problemas de hardware de problemas lógicos no firmware.
+A validação interna do firmware foi feita em paralelo com o desenvolvimento das máquinas de estados. Como o sistema junta comunicação série, geração de trajetórias, cinemática inversa e acionamento de seis servos, foi necessário criar pontos de observação que permitissem perceber em que parte da cadeia surgia um erro. Para isso foram usadas mensagens enviadas pela porta série e funções auxiliares de impressão, principalmente \texttt{debugPrintMove()} e \texttt{debugPrintInstance()}.
 
-Um ponto identificado durante os testes foi o comportamento da porta série ao abrir scripts Python ou o monitor série. A abertura da porta pode provocar reset no ESP32 devido aos sinais DTR/RTS, levando a nova execução do \texttt{setup()} e a reposicionamento dos servos. Este comportamento deve ser considerado nos testes e documentado no procedimento de operação.
+A função \texttt{debugPrintMove()} permite confirmar os dados guardados numa estrutura \texttt{MotionStorage}: número de pontos, período, intervalo temporal entre pontos e coordenadas \(X\), \(Y\) e \(Z\) de cada posição. Esta verificação foi importante para confirmar se os movimentos de respiração, batimento e tosse estavam a ser carregados com os valores esperados antes de serem usados pela interpolação. A função \texttt{debugPrintInstance()} foi usada para observar o estado de execução de cada movimento, incluindo se a instância estava ativa, qual o índice atual e qual a estrutura de movimento associada.
+
+Foram também mantidos testes isolados para componentes específicos. Os testes ao LED RGB permitiam confirmar rapidamente o estado dos comandos recebidos, uma vez que diferentes comandos alteravam a cor do LED. Os testes aos servos, por sua vez, ajudavam a verificar se os canais PWM estavam corretamente associados, se os limites calibrados eram respeitados e se os servos respondiam no sentido esperado. Esta validação por partes foi essencial para distinguir erros de software, como uma transição incorreta numa máquina de estados, de problemas de montagem ou calibração.
+
+Outro aspeto observado durante os ensaios foi o comportamento da porta série no ESP32-S3. Ao abrir o monitor série ou alguns scripts Python, os sinais DTR/RTS podem provocar o reset da placa. Quando isso acontece, o \texttt{setup()} volta a ser executado, os servos são novamente associados aos canais PWM e o sistema regressa ao estado inicial. Por este motivo, durante os testes é necessário ter em conta que a abertura da porta série pode alterar temporariamente o estado do sistema, mesmo sem ter sido enviado um comando de movimento.
+
+Assim, a depuração não foi usada apenas para imprimir valores no terminal, mas como uma ferramenta de validação do fluxo completo: receção do comando, interpretação pela máquina de estados, atualização das estruturas de movimento, cálculo da posição intermédia, aplicação da cinemática inversa e envio final dos impulsos PWM para os servos.
+

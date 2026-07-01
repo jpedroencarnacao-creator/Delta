@@ -49,6 +49,10 @@
 \renewcommand{\listfigurename}{Lista de Figuras}
 \renewcommand{\listtablename}{Lista de Tabelas}
 
+\makeatletter
+\renewcommand*\l@chapter{\@dottedtocline{0}{0em}{1.8em}}
+\makeatother
+
 \begin{document}
 
 \hypersetup{pageanchor=false}
@@ -77,6 +81,7 @@
 \begin{titlepage}
   \centering
   \thispagestyle{plain}
+  \setcounter{page}{2}
   \vspace*{2.0cm}
 
   {\Large João Pedro Coelho Encarnação\par}
@@ -104,26 +109,28 @@
 \setcounter{page}{3}
 
 \chapter*{Dedicatória}
-\addcontentsline{toc}{chapter}{Dedicatória}
 \vspace*{4cm}
 \begin{flushright}
 A preencher na versão final.
 \end{flushright}
 
 \chapter*{Agradecimentos}
-\addcontentsline{toc}{chapter}{Agradecimentos}
 A preencher na versão final.
 
 \chapter*{Resumo}
-\addcontentsline{toc}{chapter}{Resumo}
 Este relatório descreve o desenvolvimento de um modelo articulado de uma árvore brônquica para simulação de videobroncofibroscopia. O trabalho enquadra-se na necessidade de criar plataformas de treino acessíveis, realistas e repetíveis para procedimentos broncoscópicos, integrando impressão 3D, atuação mecânica, controlo eletrónico e software embarcado.
 
 \chapter*{Abstract}
-\addcontentsline{toc}{chapter}{Abstract}
 This report describes the development of an articulated bronchial tree model for flexible bronchoscopy simulation. The project addresses the need for accessible, realistic and repeatable training platforms by combining 3D printing, mechanical actuation, electronic control and embedded software.
 
-\chapter*{Abreviaturas, Siglas e Termos}
-\addcontentsline{toc}{chapter}{Abreviaturas, Siglas e Termos}
+\cleardoublepage
+\addtocontents{toc}{\protect\noindent\protect\hfill\textbf{Página}\protect\par\protect\vspace{0.3em}}
+\tableofcontents
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Lista de Abreviaturas e Termos}
+\chapter*{Lista de Abreviaturas e Termos}
 \begin{description}
   \item[ESP32-S3] Microcontrolador usado para executar o firmware, interpretar comandos e gerar os sinais de controlo.
   \item[GPIO] \textit{General Purpose Input/Output}; pinos digitais usados para ligação a periféricos.
@@ -138,13 +145,11 @@ This report describes the development of an articulated bronchial tree model for
   \item[TPU] Filamento de impressão 3D de poliuretano termoplástico, usado em peças flexíveis e elásticas.
   \item[TPE] Filamento de impressão 3D de elastómero termoplástico, família de materiais com comportamento elástico semelhante a borracha.
   \item[TPC] Filamento de impressão 3D de copoliéster termoplástico, material flexível usado em peças elásticas e funcionais.
-  \item[PP] Filamento de impressão 3D de polipropileno, polímero termoplástico leve e com boa resistência à fadiga.
-  \item[UPS HAT] Placa de gestão de alimentação usada para suporte energético do Raspberry Pi.
+  \item[UPS] \textit{Uninterruptible Power Supply}; sistema de alimentação que mantém o equipamento ligado durante falhas ou interrupções temporárias da alimentação principal.
+  \item[HAT] \textit{Hardware Attached on Top}; placa de expansão para Raspberry Pi, acoplada aos pinos GPIO para adicionar ferramentas, periféricos ou capacidade de processamento.
   \item[Manipulador delta] Mecanismo paralelo usado para transformar o movimento dos servos no deslocamento da plataforma móvel.
 \end{description}
 
-\cleardoublepage
-\tableofcontents
 \cleardoublepage
 \phantomsection
 \addcontentsline{toc}{chapter}{Lista de Figuras}

@@ -48,48 +48,53 @@ O sistema de alimentação foi definido considerando pelo menos dois níveis: \S
 
 Foi considerada a utilização de uma UPS/HAT para o Raspberry Pi, permitindo alimentação pelos pinos de \SI{5}{\volt} e transição para bateria em caso de falha. A opção analisada foi um HAT de gestão de energia do tipo Suptronics X1209, por combinar alimentação, bateria e gestão de entrada no mesmo módulo. O ESP32 pode ser alimentado pelo Raspberry Pi através de USB-C, mantendo simultaneamente a ligação série necessária à comunicação.
 
+\section{Integração mecânica e segurança}
+A integração mecânica deve garantir que o movimento é transmitido à árvore brônquica sem esforços excessivos, folgas significativas ou interferência com a passagem do broncoscópio. A estrutura deve ainda permitir acesso para manutenção, limpeza e substituição de peças. Do ponto de vista de segurança, os limites de curso do manipulador e os limites angulares dos servos devem ser definidos no firmware, evitando posições impossíveis ou capazes de danificar o modelo.
+
+Como melhoria futura, a estrutura poderá incluir sensores de fim de curso, deteção de contacto ou medição de corrente dos atuadores. Estes elementos permitiriam aumentar a segurança e abrir caminho para simulação de resistência ao avanço do broncoscópio ou contacto com as paredes internas.
+
 \begin{figure}[htbp]
   \centering
   \resizebox{\textwidth}{!}{%
   \begin{tikzpicture}[
-    block/.style={draw, rounded corners=2pt, align=center, minimum width=2.7cm, minimum height=0.95cm},
-    small/.style={draw, rounded corners=2pt, align=center, minimum width=1.7cm, minimum height=0.75cm},
-    servo/.style={draw, rounded corners=2pt, align=center, minimum width=1.55cm, minimum height=0.8cm},
-    group/.style={draw, dashed, rounded corners=3pt, inner sep=7pt},
-    power/.style={-Latex, thick, red},
-    serial/.style={Latex-Latex, thick, blue},
-    pwm/.style={-Latex, thick, orange}
+    block/.style={draw, rounded corners=4pt, align=center, minimum width=2.8cm, minimum height=1.0cm, font=\small, thick},
+    small/.style={draw, rounded corners=4pt, align=center, minimum width=1.8cm, minimum height=0.85cm, font=\small, thick},
+    servo/.style={draw, rounded corners=4pt, align=center, minimum width=1.6cm, minimum height=0.85cm, font=\small, thick},
+    group/.style={draw, dashed, rounded corners=5pt, inner sep=9pt},
+    power/.style={-Latex, thick, red!75!black},
+    serial/.style={Latex-Latex, thick, blue!70!black},
+    pwm/.style={-Latex, thick, orange!85!black}
   ]
-    \node[block] (fonte) {Fonte de\\Alimentação\\5 V -- 10 A};
-    \node[block, left=2.5cm of fonte] (ups) {UPS/HAT\\Power\\Management};
-    \node[block, left=2.5cm of ups] (pi) {Raspberry\\Pi 4B};
-    \node[small, below=1.0cm of pi, xshift=-1.2cm] (esp) {ESP32-S3};
-    \node[small, below=1.0cm of pi, xshift=1.25cm] (monitor) {Monitor};
+    \node[block, fill=gray!14] (fonte) {Fonte de\\Alimentação\\5\,V -- 10\,A};
+    \node[block, left=2.5cm of fonte, fill=gray!10] (ups) {UPS/HAT\\Power\\Management};
+    \node[block, left=2.5cm of ups, fill=blue!12] (pi) {Raspberry\\Pi 4B};
+    \node[small, below=1.0cm of pi, xshift=-1.25cm, fill=green!12] (esp) {ESP32-S3};
+    \node[small, below=1.0cm of pi, xshift=1.3cm, fill=gray!8] (monitor) {Monitor};
 
-    \node[block, below=1.7cm of esp, xshift=-3.3cm] (drv1) {Driver};
-    \node[servo, below=0.8cm of drv1, xshift=-1.65cm] (s1) {Servo-\\Motores};
-    \node[servo, below=0.8cm of drv1] (s2) {Servo-\\Motores};
-    \node[servo, below=0.8cm of drv1, xshift=1.65cm] (s3) {Servo-\\Motores};
+    \node[block, below=1.8cm of esp, xshift=-3.4cm, fill=orange!12] (drv1) {Driver 1};
+    \node[servo, below=0.9cm of drv1, xshift=-1.7cm, fill=orange!7] (s1) {Servo\\Motor};
+    \node[servo, below=0.9cm of drv1, fill=orange!7] (s2) {Servo\\Motor};
+    \node[servo, below=0.9cm of drv1, xshift=1.7cm, fill=orange!7] (s3) {Servo\\Motor};
 
-    \node[block, below=1.7cm of esp, xshift=3.5cm] (drv2) {Driver};
-    \node[servo, below=0.8cm of drv2, xshift=-1.65cm] (s4) {Servo-\\Motores};
-    \node[servo, below=0.8cm of drv2] (s5) {Servo-\\Motores};
-    \node[servo, below=0.8cm of drv2, xshift=1.65cm] (s6) {Servo-\\Motores};
+    \node[block, below=1.8cm of esp, xshift=3.6cm, fill=orange!12] (drv2) {Driver 2};
+    \node[servo, below=0.9cm of drv2, xshift=-1.7cm, fill=orange!7] (s4) {Servo\\Motor};
+    \node[servo, below=0.9cm of drv2, fill=orange!7] (s5) {Servo\\Motor};
+    \node[servo, below=0.9cm of drv2, xshift=1.7cm, fill=orange!7] (s6) {Servo\\Motor};
 
-    \node[group, fit=(drv1)(s1)(s2)(s3), label=below:{Manipulador Delta 1}] (delta1) {};
-    \node[group, fit=(drv2)(s4)(s5)(s6), label=below:{Manipulador Delta 2}] (delta2) {};
+    \node[group, fit=(drv1)(s1)(s2)(s3), label=below:{\small Manipulador Delta 1}] (delta1) {};
+    \node[group, fit=(drv2)(s4)(s5)(s6), label=below:{\small Manipulador Delta 2}] (delta2) {};
 
-    \draw[power] ($(fonte.north)+(0,0.75)$) -- node[right]{230 V} (fonte.north);
-    \draw[power] (fonte) -- node[above]{5 V} (ups);
-    \draw[power] (ups) -- node[above]{5 V} (pi);
-    \draw[power] (pi.south west) to[bend right=18] node[left]{5 V} (esp.north);
-    \draw[serial] (pi.south) to[bend left=10] node[right]{série} (esp.north east);
-    \draw[power] (pi.south east) to[bend left=18] node[right]{5 V} (monitor.north);
-    \draw[power] (ups.south) -- ++(0,-3.05) coordinate (dist5v) node[midway,right]{5 V};
+    \draw[power] ($(fonte.north)+(0,0.75)$) -- node[right]{\small 230\,V CA} (fonte.north);
+    \draw[power] (fonte) -- node[above]{\small 5\,V} (ups);
+    \draw[power] (ups) -- node[above]{\small 5\,V} (pi);
+    \draw[power] (pi.south west) to[bend right=18] node[left]{\small 5\,V} (esp.north);
+    \draw[serial] (pi.south) to[bend left=10] node[right]{\small série} (esp.north east);
+    \draw[power] (pi.south east) to[bend left=18] node[right]{\small 5\,V} (monitor.north);
+    \draw[power] (ups.south) -- ++(0,-3.1) coordinate (dist5v) node[midway,right]{\small 5\,V};
     \draw[power] (dist5v) -| (drv1.north);
     \draw[power] (dist5v) -| (drv2.north);
-    \draw[pwm] (esp) -- node[above left]{PWM} (drv1);
-    \draw[pwm] (esp) -- node[above right]{PWM} (drv2);
+    \draw[pwm] (esp) -- node[above left]{\small PWM} (drv1);
+    \draw[pwm] (esp) -- node[above right]{\small PWM} (drv2);
     \draw[pwm] (drv1) -- (s1);
     \draw[pwm] (drv1) -- (s2);
     \draw[pwm] (drv1) -- (s3);
@@ -97,11 +102,11 @@ Foi considerada a utilização de uma UPS/HAT para o Raspberry Pi, permitindo al
     \draw[pwm] (drv2) -- (s5);
     \draw[pwm] (drv2) -- (s6);
 
-    \node[align=left, below=1.1cm of $(delta1.south)!0.5!(delta2.south)$] {
-      \textbf{Esquema de ligações elétricas e de comunicação}\\
-      \textcolor{red}{vermelho: alimentação 5 V}\\
-      \textcolor{blue}{azul: comunicação série bidirecional}\\
-      \textcolor{orange}{laranja: comando/PWM dos servo-motores}
+    \node[draw, rounded corners=3pt, fill=white, align=left, inner sep=7pt,
+          below=1.3cm of $(delta1.south)!0.5!(delta2.south)$, font=\small] {%
+      \textcolor{red!75!black}{$\longrightarrow$}\;alimentação 5\,V\quad
+      \textcolor{blue!70!black}{$\longleftrightarrow$}\;comunicação série\quad
+      \textcolor{orange!85!black}{$\longrightarrow$}\;sinal PWM / comando%
     };
   \end{tikzpicture}}
   \caption{Esquema consolidado de alimentação, comunicação e comando dos dois manipuladores delta.}
@@ -115,20 +120,18 @@ Foi considerada a utilização de uma UPS/HAT para o Raspberry Pi, permitindo al
   \footnotesize
   \begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.8cm}>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{5.4cm}@{}}
     \toprule
-    Componente & Função & Observações \\
+    \textbf{Componente} & \textbf{Função} & \textbf{Observações} \\
     \midrule
     Raspberry Pi 4B & Interface e coordenação & Envia comandos ou posições para o ESP32 \\
+    \rowcolor{gray!12}
     ESP32-S3 & Controlo dos atuadores & Executa FSMs e gera comandos para servos \\
     Servo-motores & Atuação mecânica & Seis unidades distribuídas pelos dois manipuladores delta \\
+    \rowcolor{gray!12}
     Driver Servo-motores & Interface de potência/comando & Cada driver comanda três servo-motores de um manipulador delta \\
     UPS/HAT & Gestão de energia & Alimentação do Raspberry Pi e transição para bateria \\
-    Fonte de Alimentação 5 V--10 A & Alimentação principal & Recebe 230 V e fornece 5 V ao sistema \\
-    LiPo Battery 2100 mA 3,7 V & Alimentação de reserva & Bateria associada ao sistema UPS/HAT \\
+    \rowcolor{gray!12}
+    Fonte de Alimentação 5\,V--10\,A & Alimentação principal & Recebe 230\,V e fornece 5\,V ao sistema \\
+    LiPo Battery 2100\,mA 3,7\,V & Alimentação de reserva & Bateria associada ao sistema UPS/HAT \\
     \bottomrule
   \end{tabular}
 \end{table}
-
-\section{Integração mecânica e segurança}
-A integração mecânica deve garantir que o movimento é transmitido à árvore brônquica sem esforços excessivos, folgas significativas ou interferência com a passagem do broncoscópio. A estrutura deve ainda permitir acesso para manutenção, limpeza e substituição de peças. Do ponto de vista de segurança, os limites de curso do manipulador e os limites angulares dos servos devem ser definidos no firmware, evitando posições impossíveis ou capazes de danificar o modelo.
-
-Como melhoria futura, a estrutura poderá incluir sensores de fim de curso, deteção de contacto ou medição de corrente dos atuadores. Estes elementos permitiriam aumentar a segurança e abrir caminho para simulação de resistência ao avanço do broncoscópio ou contacto com as paredes internas.
