@@ -1,9 +1,9 @@
 ﻿\chapter{Desenvolvimentos do Software e Configurações}
 
 \section{Arquitetura geral do software}
-O software foi organizado para separar a definição dos movimentos, o estado de execução, a comunicação série, a cinemática inversa e o acionamento dos servos. Esta separação permite que os mesmos mecanismos de execução sejam usados para diferentes fenómenos fisiológicos, como respiração, batimento cardíaco e tosse.
+O software foi organizado para separar a definição dos movimentos, o estado de execução, a comunicação série, a cinemática inversa, o acionamento dos servos e a interface HMI. Esta separação permite que os mesmos mecanismos de execução sejam usados para diferentes fenómenos fisiológicos, como respiração, batimento cardíaco e tosse, mantendo a interface de utilizador independente da lógica de baixo nível executada no ESP32-S3.
 
-A arquitetura global, representada na \cref{fig:arquitetura-software}, segue a estrutura desenhada nas notas de projeto. O Raspberry Pi envia comandos por comunicação série. O ESP32-S3 lê esses dados, interpreta comandos, atualiza estruturas de movimento, prepara eventos como a tosse e calcula as posições finais que serão convertidas pela cinemática inversa.
+A arquitetura global, representada na \cref{fig:arquitetura-software}, organiza o controlo em blocos independentes de HMI, comunicação, interpretação de comandos, atualização de movimento e cálculo cinemático. O Raspberry Pi executa a interface gráfica e envia comandos por comunicação série. O ESP32-S3 lê esses dados, interpreta comandos, atualiza estruturas de movimento, prepara eventos como a tosse e calcula as posições finais que serão convertidas pela cinemática inversa.
 
 \begin{figure}[htbp]
   \centering
@@ -73,7 +73,7 @@ A arquitetura global, representada na \cref{fig:arquitetura-software}, segue a e
     \draw[arrow] (ease2) -- (s22);
     \draw[arrow] (ease2) -- (s23);
   \end{tikzpicture}}
-  \caption{Estrutura global das máquinas de estados e blocos de controlo, baseada no esquema da página 37 das notas de projeto.}
+  \caption{Estrutura global das máquinas de estados e blocos de controlo.}
   \label{fig:arquitetura-software}
 \end{figure}
 
@@ -81,6 +81,8 @@ A arquitetura global, representada na \cref{fig:arquitetura-software}, segue a e
 O firmware foi desenvolvido em C++ para a plataforma ESP32, usando o ecossistema Arduino/PlatformIO. Para controlo dos servos foi usada a biblioteca \texttt{ESP32Servo}. Para indicação visual de estados por LED RGB foi referida a biblioteca \texttt{Adafruit\_NeoPixel}.
 
 O ESP32 comunica com o computador ou com o Raspberry Pi 4B por porta série a 115200 baud. Durante o desenvolvimento, foram também usados scripts Python para leitura da porta série, depuração de mensagens e validação de comandos enviados pelo microcontrolador.
+
+Antes da construção da HMI final, foram criados testes simples de comunicação série em Python. Estes testes permitiam abrir a porta série, controlar os sinais DTR/RTS, ler mensagens enviadas pelo ESP32 e introduzir comandos manualmente no terminal. Esta etapa foi importante para confirmar que o backbone de comunicação entre o computador/Raspberry Pi e o ESP32 estava funcional antes de se acrescentar uma interface gráfica. Em paralelo, foram usados códigos de cálculo de movimentos para validar a geração de pontos, curvas e gráficos que mais tarde passariam a ser integrados na interface.
 
 \section{Estruturas de dados}
 A estrutura \texttt{Manipulador\_Config} concentra os parâmetros geométricos e de calibração. Entre os parâmetros principais encontram-se os comprimentos \(L1\), \(L2\) e \(L3\), os offsets do servo nos eixos \(X\) e \(Z\), os limites angulares e os valores mínimos e máximos de pulso para cada servo.
@@ -135,10 +137,146 @@ A estrutura \texttt{MotionStorage} guarda a definição de uma trajetória. Cada
 \end{figure}
 
 \section{Perfis de movimento}
-Foram definidos três perfis principais. O perfil de respiração utiliza uma trajetória cíclica e bidirecional, com período relativamente longo e possibilidade de pausas. O perfil de batimento cardíaco utiliza movimentos de menor amplitude e maior frequência. O perfil de tosse utiliza uma sequência curta, abrupta e não necessariamente bidirecional, podendo ser sobreposta à respiração.
+Foram definidos três perfis principais, procurando transformar a descrição qualitativa dos movimentos observáveis durante a broncoscopia em trajetórias discretas que pudessem ser executadas pelo modelo. A respiração foi descrita como um movimento lento, cíclico e dominante, associado à expansão e relaxamento do conjunto. O batimento cardíaco foi tratado como uma perturbação de menor amplitude e maior frequência, sobreposta ao movimento principal. A tosse foi interpretada como um evento curto e abrupto, composto por uma alteração rápida da trajetória respiratória e por uma vibração localizada de curta duração.
 
-\section{Máquina de estados de movimento}
-A função genérica de atualização de movimento percorre qualquer trajetória associada a uma \texttt{MotionInstance}. No desenvolvimento, esta rotina foi referida como \texttt{FSM\_Motion\_Update}. A \cref{fig:fsm-motion} reorganiza a máquina desenhada na página 38 das notas de projeto, mantendo os estados principais, as pausas inicial/final, a inversão de direção e o tratamento do movimento bidirecional.
+\subsection{Geração de trajetórias na HMI (Python/Raspberry Pi)}
+No Raspberry Pi, a parte escrita em Python tem uma função diferente: transformar parâmetros configuráveis em curvas, pontos e gráficos para a HMI. Este cálculo foi desenvolvido inicialmente fora da interface, para validar as curvas, os pontos e as coordenadas antes de os integrar na aplicação. Na versão para Raspberry Pi, o cálculo é feito pelo módulo \texttt{calculo\_movimentos.py}. A interface permite alterar parâmetros geométricos, número de pontos e parâmetros temporais; depois, o módulo calcula os pontos de passagem e devolve gráficos 2D e 3D para visualização. Estes pontos são guardados como coordenadas \(X\), \(Y\) e \(Z\), podendo servir de base para atualizar posteriormente as estruturas de movimento usadas pelo firmware.
+
+De forma geral, cada movimento é definido por uma curva contínua \(\mathbf{p}(u)\) e por um conjunto discreto de \(N\) pontos:
+\begin{equation}
+  \mathbf{p}_i =
+  \begin{bmatrix}
+    X_i\\Y_i\\Z_i
+  \end{bmatrix}
+  =
+  \mathbf{p}(u_i),
+  \qquad i=0,1,\ldots,N-1.
+\end{equation}
+
+O batimento cardíaco foi representado por uma elipse rotacionada no plano \(XY\). Esta escolha permite produzir uma perturbação fechada, suave e de pequena amplitude, coerente com a ideia de oscilação periódica provocada pelo batimento. A curva é definida por:
+\begin{align}
+  X(u) &= x_c + a\cos(u)\cos(\alpha) - b\sin(u)\sin(\alpha),\\
+  Y(u) &= y_c + a\cos(u)\sin(\alpha) + b\sin(u)\cos(\alpha),\\
+  Z(u) &= 0,
+\end{align}
+em que \(a\) e \(b\) são os semi-eixos da elipse, \((x_c,y_c)\) é o centro da curva e \(\alpha\) é o ângulo de rotação. O sentido de percurso pode ser horário ou anti-horário. No conjunto de parâmetros usado nos testes da interface, foram considerados \(a=5\,mm\), \(b=2\,mm\), \(x_c=y_c=3,6\,mm\), \(\alpha=45^\circ\), \(N=10\) pontos e sentido horário.
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{movimentos/movimento_batimento.png}
+  \caption{Trajetória calculada para o movimento de batimento cardíaco, com representação 2D e 3D dos pontos de passagem.}
+  \label{fig:movimento-batimento}
+\end{figure}
+
+Para a respiração foi usada uma parábola no plano \(ZX\), por ser uma forma simples de representar uma subida progressiva com variação lenta no início e mais acentuada no final do deslocamento. Esta curva permite simular um movimento respiratório principal, controlando diretamente a altura máxima e a largura da trajetória. A mesma família de curva também pode ser usada como deslocamento rápido associado à tosse, alterando sobretudo o período e a forma como o evento é ativado. A curva base é:
+\begin{align}
+  X(u) &= u,\\
+  Z(u) &= \frac{H}{L^2}u^2,\\
+  Y(u) &= 0,
+  \qquad 0 \leq u \leq L,
+\end{align}
+em que \(H\) é a altura máxima e \(L\) é a largura máxima. Quando se pretende inclinar a curva no espaço, o valor \(Z(u)\) pode ser projetado por uma rotação em torno do eixo \(X\):
+\begin{align}
+  X_{3D}(u) &= X(u),\\
+  Y_{3D}(u) &= Z(u)\sin(\theta),\\
+  Z_{3D}(u) &= Z(u)\cos(\theta).
+\end{align}
+Nos valores usados nos testes, foram considerados \(H=20\,mm\), \(L=12\,mm\), \(N=10\) pontos e \(\theta=0^\circ\). Para a respiração, o período usado foi \(T=4\,s\), com pausa inicial de \(0,6\,s\), pausa final de \(0,1\,s\) e ponto inicial igual a 5, de modo a iniciar a trajetória a partir de uma posição intermédia.
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{movimentos/movimento_respiracao.png}
+  \caption{Trajetória calculada para o movimento respiratório, com representação 2D no plano \(ZX\) e visualização 3D.}
+  \label{fig:movimento-respiracao}
+\end{figure}
+
+Além da alteração do movimento respiratório, a tosse inclui uma vibração curta em torno da posição de referência. Esta vibração foi representada por uma circunferência no plano \(XY\), por permitir uma perturbação fechada e rápida, sem deslocamento vertical adicional:
+\begin{align}
+  X(u) &= r\cos(u),\\
+  Y(u) &= r\sin(u),\\
+  Z(u) &= 0.
+\end{align}
+O raio \(r\) controla a amplitude da vibração, o número de pontos controla a resolução da trajetória e o período define a rapidez do evento. No caso apresentado, foi usado \(r=2\,mm\), \(N=10\) pontos, sentido horário e período de \(0,5\,s\).
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{movimentos/movimento_vibracao_tosse.png}
+  \caption{Trajetória calculada para a vibração associada à tosse, com representação 2D e 3D dos pontos de passagem.}
+  \label{fig:movimento-vibracao-tosse}
+\end{figure}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Parâmetros ajustáveis usados no cálculo dos movimentos na HMI.}
+  \label{tab:parametros-calculo-movimentos}
+  \small
+  \begin{tabular}{p{3.0cm} p{5.7cm} p{5.3cm}}
+    \toprule
+    Movimento & Parâmetros geométricos & Parâmetros temporais e de execução\\
+    \midrule
+    Batimento cardíaco & \(a\), \(b\), \(x_c\), \(y_c\), \(\alpha\), número de pontos e sentido da elipse & Período, pausa inicial, pausa final e ponto inicial\\
+    Respiração & Altura \(H\), largura \(L\), ângulo \(\theta\) e número de pontos da parábola & Período, pausa inicial, pausa final, ponto inicial e modo bidirecional\\
+    Vibração da tosse & Raio \(r\), número de pontos e sentido da circunferência & Período, pausa inicial, pausa final e ponto inicial\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[p]
+  \centering
+  \caption{Pontos calculados para os movimentos usados nos testes da interface.}
+  \label{tab:pontos-calculados-movimentos}
+  \scriptsize
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{c rrr rrr rrr}
+    \toprule
+    Ponto &
+    \multicolumn{3}{c}{Batimento cardíaco} &
+    \multicolumn{3}{c}{Respiração} &
+    \multicolumn{3}{c}{Vibração da tosse}\\
+    \cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}
+    & \(X\) & \(Y\) & \(Z\) & \(X\) & \(Y\) & \(Z\) & \(X\) & \(Y\) & \(Z\)\\
+    \midrule
+    0 & 0,06 & 0,06 & 0,00 & 0,00 & 0,00 & 0,00 & 2,00 & 0,00 & 0,00\\
+    1 & -0,09 & 1,57 & 0,00 & 1,33 & 0,00 & 0,25 & 1,62 & -1,18 & 0,00\\
+    2 & 1,16 & 3,85 & 0,00 & 2,67 & 0,00 & 0,99 & 0,62 & -1,90 & 0,00\\
+    3 & 3,35 & 6,04 & 0,00 & 4,00 & 0,00 & 2,22 & -0,62 & -1,90 & 0,00\\
+    4 & 5,63 & 7,29 & 0,00 & 5,33 & 0,00 & 3,95 & -1,62 & -1,18 & 0,00\\
+    5 & 7,14 & 7,14 & 0,00 & 6,67 & 0,00 & 6,17 & -2,00 & 0,00 & 0,00\\
+    6 & 7,29 & 5,63 & 0,00 & 8,00 & 0,00 & 8,89 & -1,62 & 1,18 & 0,00\\
+    7 & 6,04 & 3,35 & 0,00 & 9,33 & 0,00 & 12,10 & -0,62 & 1,90 & 0,00\\
+    8 & 3,85 & 1,16 & 0,00 & 10,67 & 0,00 & 15,80 & 0,62 & 1,90 & 0,00\\
+    9 & 1,57 & -0,09 & 0,00 & 12,00 & 0,00 & 20,00 & 1,62 & 1,18 & 0,00\\
+    \bottomrule
+  \end{tabular}}
+\end{table}
+
+\subsection{Execução dos perfis no modelo dinâmico (C++/ESP32)}
+No ESP32, o firmware não tem como função principal desenhar ou recalcular as curvas geométricas dos movimentos. A sua função é gerir a execução, em tempo real, de pontos de trajetória já definidos. Estes pontos são guardados em arrays de coordenadas \(X\), \(Y\) e \(Z\), associados a uma estrutura \texttt{MotionStorage}. Para cada movimento são ainda guardados o número de pontos, o período total, as pausas no início e no fim, o ponto inicial e a indicação de o movimento ser, ou não, bidirecional.
+
+A separação entre \texttt{MotionStorage} e \texttt{MotionInstance} permite distinguir a definição do movimento do seu estado de execução. A primeira estrutura contém os dados fixos da trajetória; a segunda guarda o estado temporário usado durante o funcionamento, incluindo índices atuais, direção de movimento, temporizadores e estado da máquina de estados. Assim, a mesma lógica de execução pode ser aplicada à respiração, ao batimento cardíaco e à vibração da tosse.
+
+Durante a execução, a máquina de estados percorre a sequência de pontos e atualiza os índices \(i\) e \(j\), que representam, respetivamente, o ponto de partida e o ponto de chegada do segmento atual. Entre estes dois pontos, a posição instantânea é obtida por interpolação linear:
+\begin{equation}
+  \mathbf{p}(t) =
+  (1-\lambda)\,\mathbf{p}_i + \lambda\,\mathbf{p}_j,
+  \qquad
+  \lambda = \frac{t-t_i}{\Delta t},
+  \qquad 0 \leq \lambda \leq 1.
+\end{equation}
+O intervalo temporal entre pontos é calculado a partir do período total do movimento. Para movimentos bidirecionais, como a respiração, considera-se a ida e o regresso sobre a mesma trajetória:
+\begin{equation}
+  N_{\mathrm{seg}} =
+  \begin{cases}
+    2(N-1), & \text{movimento bidirecional},\\
+    N-1, & \text{movimento não bidirecional},
+  \end{cases}
+  \qquad
+  \Delta t = \frac{T}{N_{\mathrm{seg}}}.
+\end{equation}
+Depois de calculada a posição intermédia, essa coordenada segue para a etapa de fusão dos movimentos e para a cinemática inversa dos manipuladores delta. Desta forma, a lógica em C++ trata sobretudo da execução temporal, sincronização, pausas, inversão de direção e combinação dos movimentos no modelo dinâmico.
+
+\section{Máquina de estados de execução dos movimentos}
+A função genérica de atualização de movimento percorre qualquer trajetória associada a uma \texttt{MotionInstance}. No desenvolvimento, esta rotina foi referida como \texttt{FSM\_Motion\_Update}. A \cref{fig:fsm-motion} representa a sequência lógica desta máquina, mantendo os estados principais, as pausas inicial/final, a inversão de direção e o tratamento do movimento bidirecional.
 
 A \texttt{FSM\_Motion\_Update()} recebe a cada ciclo de execução o sinal global de arranque \texttt{start}, a referência da instância de movimento \texttt{inst} e o instante de tempo atual \texttt{nowMs}. A função não calcula posições --- essa responsabilidade pertence à etapa seguinte --- mas mantém atualizados os índices de trajetória e o cronómetro interno que a função de posição instantânea vai consumir.
 
@@ -574,7 +712,7 @@ Os comandos longos começam por \texttt{W} e permitem enviar uma cadeia de carac
     \draw[arrow] (r4) -- node[lab, above]{modo M} (r6);
     \draw[arrow] (r6) to[loop left, min distance=1.4cm] node[lab, left]{continua} (r6);
   \end{tikzpicture}}
-  \caption{FSM\_Serial\_Read redesenhada a partir do esquema da página 44 das notas de projeto.}
+  \caption{FSM\_Serial\_Read responsável pela leitura e validação dos dados recebidos por comunicação série.}
   \label{fig:fsm-serial-reader}
 \end{figure}
 
@@ -630,11 +768,34 @@ Os comandos longos começam por \texttt{W} e permitem enviar uma cadeia de carac
     \draw[arrow] (c36) -- node[lab, left]{LineReady} (c37);
     \draw[arrow] (c37) to[bend right=28] node[lab, below]{modo simples} (c4);
   \end{tikzpicture}}
-  \caption{FSM\_Serial\_Command redesenhada a partir dos esquemas das páginas 46 e 47 das notas de projeto.}
+  \caption{FSM\_Serial\_Command responsável pela interpretação dos comandos recebidos por comunicação série.}
   \label{fig:fsm-serial-command}
 \end{figure}
 
 \clearpage
+
+\section{Interface HMI no Raspberry Pi}
+A interface homem-máquina foi desenvolvida para transformar os comandos de baixo nível do firmware numa utilização mais simples e natural. Sem esta camada, o utilizador teria de memorizar comandos como \texttt{S}, \texttt{P}, \texttt{Mr}, \texttt{Mb}, \texttt{Mh} ou \texttt{Ma}, escrevendo-os diretamente no monitor série. Com a HMI, essas ações passam a estar disponíveis através de botões, menus e páginas de configuração, reduzindo a probabilidade de erro e tornando o modelo mais adequado para demonstração e treino.
+
+Na versão para Raspberry Pi, o ficheiro principal da interface é \texttt{RB\_PI4B\_Main\_PI.py}. A aplicação usa Flask para servir as páginas web e Flask-SocketIO para enviar atualizações em tempo real aos browsers ligados. Esta arquitetura permite ter uma interface local no monitor do Raspberry Pi e, ao mesmo tempo, uma interface móvel acessível por telemóvel ou tablet na mesma rede. Para facilitar esse acesso, a aplicação gera um endereço local e um código QR que aponta para a rota \texttt{/mobile}.
+
+A comunicação com o ESP32 é feita por uma porta série a 115200 baud. A interface tenta detetar automaticamente a porta mais provável no Linux, dando prioridade a dispositivos em \texttt{/dev/serial/by-id}, \texttt{/dev/ttyUSB*} e \texttt{/dev/ttyACM*}. A leitura e a escrita série são executadas em threads separadas: uma thread lê continuamente as mensagens recebidas do ESP32 e atualiza o histórico, enquanto outra consome uma fila de transmissão e envia os comandos pedidos pela interface. Esta separação evita que a interface fique bloqueada durante leituras ou esperas da porta série.
+
+O estado da aplicação é guardado numa estrutura partilhada que contém, entre outros campos, o modo de desenvolvimento, o histórico da comunicação série, o estado de arranque/paragem e o modo fisiológico ativo. Sempre que algum destes valores muda, a função de atualização emite um evento SocketIO para todos os browsers ligados. Assim, se o utilizador abrir simultaneamente a interface no Raspberry Pi e no telemóvel, ambos os ecrãs podem refletir o mesmo estado de funcionamento.
+
+As ações principais da HMI são:
+\begin{itemize}
+  \item \textbf{Start/Stop:} os botões de arranque e paragem enviam, respetivamente, os comandos \texttt{s} e \texttt{p} para o ESP32, alterando também o estado visual da interface;
+  \item \textbf{Seleção de modo:} o menu de modos converte escolhas como estático, respiração, coração, humano e completo nos comandos série \texttt{Ms}, \texttt{Mr}, \texttt{Mb}, \texttt{Mh} e \texttt{Ma};
+  \item \textbf{Ligação série:} a interface permite ligar, desligar e tentar reconectar a comunicação com o ESP32, mostrando o estado como desligado, a ligar, ligado ou erro;
+  \item \textbf{Monitor série:} em modo de desenvolvimento, o utilizador pode observar as mensagens recebidas do ESP32 e enviar comandos manuais, o que mantém uma via de depuração direta;
+  \item \textbf{Modo cliente e modo DEV:} o modo cliente apresenta apenas as ações necessárias à utilização normal, enquanto o modo DEV, protegido por palavra-passe, revela ferramentas de depuração, envio manual de comandos e encerramento completo da aplicação;
+  \item \textbf{Configurações de movimentos:} a interface permite editar parâmetros associados à respiração, batimento e tosse, guardar configurações em ficheiro JSON e gerar pontos de movimento a partir do módulo \texttt{calculo\_movimentos.py}.
+\end{itemize}
+
+A página de configurações de movimentos usa parâmetros geométricos para gerar curvas de referência. A curva elíptica é usada para representar o batimento cardíaco, a curva parabólica no plano \(ZX\) é usada para movimentos de respiração/tosse e a circunferência no plano \(XY\) é usada para vibração da tosse. O módulo de cálculo devolve gráficos 2D e 3D em formato de imagem codificada em base64, permitindo que os resultados sejam apresentados diretamente na interface web sem abrir janelas externas. Os pontos calculados são guardados nas configurações e podem servir de base para a atualização posterior dos movimentos no firmware.
+
+O desenvolvimento da HMI foi feito depois de validadas duas camadas de suporte. A primeira foi a comunicação série elementar, testada com scripts Python que liam mensagens do ESP32, enviavam comandos escritos no terminal e confirmavam o efeito dos sinais DTR/RTS no reset da placa. A segunda foi o cálculo isolado das trajetórias, testando a geração de pontos e gráficos antes da sua integração na aplicação Flask. Esta ordem de desenvolvimento reduziu a incerteza: quando a interface foi construída, já estava confirmado que o canal série e a lógica de geração de movimentos funcionavam de forma independente.
 
 \section{Preparação e sincronização da tosse}
 A função de preparação da tosse é responsável por transformar um pedido de tosse num evento fisiológico sobreposto à respiração. Quando o sinal de tosse é ativado, a rotina guarda os parâmetros normais da respiração, reduz temporariamente o período, ajusta as pausas e aumenta a amplitude em \(Z\). Em paralelo, ativa a instância de vibração ou perturbação da tosse.

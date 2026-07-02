@@ -1,9 +1,11 @@
 \chapter{Desenvolvimento do Hardware}
 
 \section{Requisitos do sistema}
-O protótipo deve permitir o treino de videobroncofibroscopia com um modelo físico de baixo custo, robusto, lavável e fácil de montar. A partir dos documentos de trabalho produzidos durante o projeto, os requisitos principais foram agrupados em quatro eixos: realismo anatómico, facilidade de utilização, movimento fisiológico controlado e possibilidade de evolução futura.
+O protótipo deve permitir o treino de videobroncofibroscopia com um modelo físico de baixo custo, robusto, lavável e fácil de montar. Os requisitos principais foram agrupados em quatro eixos: realismo anatómico, facilidade de utilização, movimento fisiológico controlado e possibilidade de evolução futura.
 
 No plano anatómico, o modelo deve representar a árvore brônquica com dimensões, ângulos de ramificação e características compatíveis com dados obtidos por tomografia computorizada. No plano mecânico, deve permitir a introdução de movimentos de respiração, batimento cardíaco e tosse sem comprometer a estabilidade do conjunto. No plano pedagógico, deve permitir repetição de exercícios e adaptação da dificuldade. No plano técnico, deve manter a solução acessível, evitando materiais, atuadores ou processos de fabrico que tornem o sistema demasiado caro para o objetivo do projeto.
+
+Do ponto de vista funcional, o sistema foi separado em dois blocos. O primeiro é o modelo dinâmico, constituído pela árvore brônquica impressa em 3D, pelos manipuladores delta, pelos servo-motores, pelos drivers e pelo ESP32-S3. Este bloco executa fisicamente os movimentos e deve manter comportamento previsível mesmo quando recebe comandos externos. O segundo bloco é a HMI, suportada pelo Raspberry Pi 4B e pelo monitor ou browser associado. Este bloco apresenta ao utilizador comandos de alto nível, como iniciar, parar, escolher modo fisiológico ou ajustar parâmetros, ficando a tradução desses comandos para mensagens série a cargo do software.
 
 \section{Modelo físico da árvore brônquica}
 O ponto de partida do projeto é um modelo tridimensional da árvore brônquica obtido a partir de dados de imagem médica. Os ficheiros recebidos descreviam essencialmente a superfície interna da árvore brônquica, ou seja, a ``casca'' do volume. Por esse motivo, foi necessário atribuir espessura ao modelo antes da impressão 3D. Numa fase inicial, essa operação foi feita de forma expedita no Tinkercad, com o objetivo de realizar um teste rápido em PLA e validar a viabilidade geométrica da impressão.
@@ -42,9 +44,9 @@ A tosse foi caracterizada como um evento abrupto, irregular e de maior amplitude
 \end{table}
 
 \section{Eletrónica de controlo e alimentação}
-A arquitetura prevista separa a interface de utilizador e o cálculo de alto nível do controlo direto dos atuadores. O Raspberry Pi 4B fica responsável pela interface, monitorização e envio de comandos ou posições. O ESP32-S3 atua como microcontrolador de tempo real, recebendo dados por comunicação série e convertendo-os em comandos para os servos.
+A arquitetura prevista separa a interface de utilizador e o cálculo de alto nível do controlo direto dos atuadores. O Raspberry Pi 4B fica responsável pela HMI, pela monitorização e pelo envio de comandos ou posições. O ESP32-S3 atua como microcontrolador de tempo real, recebendo dados por comunicação série e convertendo-os em comandos para os servos.
 
-O sistema de alimentação foi definido considerando pelo menos dois níveis: \SI{5}{\volt} para o Raspberry Pi 4B e o ESP32-S3, e \SI{5}{\volt} a \SI{6}{\volt} para os servos. Nas notas de projeto também foi considerada a possibilidade de utilizar motores de passo, que exigiriam tensões superiores, por exemplo \SI{8}{\volt} a \SI{12}{\volt}. Para os servos, foram estimados consumos nominais de cerca de 150 a \SI{250}{\milli\ampere} por unidade, com valores superiores em bloqueio.
+O sistema de alimentação foi definido considerando pelo menos dois níveis: \SI{5}{\volt} para o Raspberry Pi 4B e o ESP32-S3, e \SI{5}{\volt} a \SI{6}{\volt} para os servos. Durante a seleção dos atuadores também foi considerada a possibilidade de utilizar motores de passo, que exigiriam tensões superiores, por exemplo \SI{8}{\volt} a \SI{12}{\volt}. Para os servos, foram estimados consumos nominais de cerca de 150 a \SI{250}{\milli\ampere} por unidade, com valores superiores em bloqueio.
 
 Foi considerada a utilização de uma UPS/HAT para o Raspberry Pi, permitindo alimentação pelos pinos de \SI{5}{\volt} e transição para bateria em caso de falha. A opção analisada foi um HAT de gestão de energia do tipo Suptronics X1209, por combinar alimentação, bateria e gestão de entrada no mesmo módulo. O ESP32 pode ser alimentado pelo Raspberry Pi através de USB-C, mantendo simultaneamente a ligação série necessária à comunicação.
 

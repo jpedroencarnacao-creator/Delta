@@ -5,6 +5,8 @@ A broncoscopia flexível é um procedimento essencial em Pneumologia, Anestesiol
 
 O projeto apresentado neste relatório tem como objetivo desenvolver um modelo articulado de uma árvore brônquica capaz de reproduzir, de forma controlada, alguns movimentos observáveis durante uma broncoscopia. A proposta parte da utilidade dos modelos físicos impressos em 3D e acrescenta uma componente dinâmica, procurando aproximar a experiência de treino das condições reais de observação endoscópica \parencite{Pedersen2017,Fu2023}.
 
+Desde o início, o projeto foi dividido em duas secções complementares. A primeira corresponde ao modelo dinâmico, que inclui o microcontrolador, os atuadores, os manipuladores delta e o próprio modelo 3D da árvore brônquica. Esta parte é responsável por transformar comandos e trajetórias em movimento físico. A segunda corresponde à HMI, ou interface homem-máquina, executada no Raspberry Pi 4B. A função da HMI é permitir que o utilizador controle o modelo dinâmico de forma mais natural, selecionando modos e enviando ordens através de botões e menus, sem necessidade de decorar todos os comandos da comunicação série.
+
 \section{Motivação}
 Os simuladores comerciais de broncoscopia podem apresentar custos elevados, o que limita a sua disponibilidade em contextos de ensino e treino. Em alternativa, a impressão 3D permite criar modelos anatómicos acessíveis, personalizáveis e adaptáveis a diferentes níveis de dificuldade \parencite{Pedersen2017,Fu2023}. Contudo, muitos modelos físicos permanecem estáticos, não representando fenómenos como a deslocação respiratória das vias aéreas, a variação de calibre dos brônquios, pequenas oscilações induzidas pelo coração ou perturbações rápidas associadas à tosse \parencite{Heinbecker1927,Ellis1936,Chen2015,Gunatilaka2020}.
 
@@ -19,12 +21,13 @@ Os objetivos específicos são:
   \item desenvolver uma estrutura física compatível com impressão 3D e atuação mecânica;
   \item integrar sensores ou atuadores, eletrónica de controlo e alimentação;
   \item implementar firmware e configurações de controlo para diferentes perfis de movimento;
+  \item desenvolver uma interface HMI para controlo simples do modelo dinâmico e monitorização da comunicação;
   \item definir uma estratégia de testes para avaliar amplitude, repetibilidade, robustez e usabilidade;
   \item documentar limitações, decisões de projeto e melhorias futuras.
 \end{itemize}
 
 \section{Metodologia}
-A metodologia do trabalho combina revisão bibliográfica, análise de documentos de desenvolvimento produzidos ao longo do projeto, definição de requisitos, desenvolvimento iterativo de hardware, desenvolvimento de software embarcado e preparação de testes funcionais. A revisão bibliográfica orienta os conceitos de treino, simulação e movimento das vias aéreas. As notas de projeto e os documentos internos servem para consolidar decisões técnicas, requisitos e detalhes de implementação, sendo usados como base de escrita do corpo do relatório, mas não como bibliografia formal.
+A metodologia do trabalho combina revisão bibliográfica, definição de requisitos, desenvolvimento iterativo de hardware, desenvolvimento de software embarcado e preparação de testes funcionais. A revisão bibliográfica orienta os conceitos de treino, simulação e movimento das vias aéreas. As decisões técnicas, requisitos e detalhes de implementação foram consolidados ao longo do desenvolvimento e integrados diretamente no corpo do relatório.
 
 \section{Organização do relatório}
-O relatório está organizado em seis capítulos. O primeiro apresenta o enquadramento, a motivação e os objetivos. O segundo revê o estado da arte, incluindo treino por simulação, impressão 3D e movimentos observáveis durante a broncoscopia. O terceiro descreve o desenvolvimento do hardware. O quarto apresenta o software, as configurações e as máquinas de estados. O quinto reúne o plano de testes e identifica a informação experimental ainda em falta. O sexto sintetiza as conclusões e o trabalho futuro.
+O relatório está organizado em seis capítulos. O primeiro apresenta o enquadramento, a motivação e os objetivos. O segundo revê o estado da arte, incluindo treino por simulação, impressão 3D e movimentos observáveis durante a broncoscopia. O terceiro descreve o desenvolvimento do hardware. O quarto apresenta o software, as configurações, as máquinas de estados e a HMI. O quinto reúne o plano de testes e identifica a informação experimental ainda em falta. O sexto sintetiza as conclusões e o trabalho futuro.

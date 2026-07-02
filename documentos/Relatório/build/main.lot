@@ -2,12 +2,14 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {3.1}{\ignorespaces Movimentos considerados para a primeira versão do protótipo.}}{10}{table.caption.12}%
-\contentsline {table}{\numberline {3.2}{\ignorespaces Componentes principais previstos para o sistema.}}{12}{table.caption.14}%
+\contentsline {table}{\numberline {3.1}{\ignorespaces Movimentos considerados para a primeira versão do protótipo.}}{11}{table.caption.12}%
+\contentsline {table}{\numberline {3.2}{\ignorespaces Componentes principais previstos para o sistema.}}{13}{table.caption.14}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {4.1}{\ignorespaces Comandos simples disponíveis na comunicação série.}}{22}{table.caption.23}%
-\contentsline {table}{\numberline {4.2}{\ignorespaces Subcomandos do menu de leitura, teste e depuração.}}{22}{table.caption.24}%
-\contentsline {table}{\numberline {4.3}{\ignorespaces Subcomandos de seleção do modo fisiológico.}}{22}{table.caption.25}%
+\contentsline {table}{\numberline {4.1}{\ignorespaces Parâmetros ajustáveis usados no cálculo dos movimentos na HMI.}}{21}{table.caption.20}%
+\contentsline {table}{\numberline {4.2}{\ignorespaces Pontos calculados para os movimentos usados nos testes da interface.}}{21}{table.caption.21}%
+\contentsline {table}{\numberline {4.3}{\ignorespaces Comandos simples disponíveis na comunicação série.}}{30}{table.caption.28}%
+\contentsline {table}{\numberline {4.4}{\ignorespaces Subcomandos do menu de leitura, teste e depuração.}}{30}{table.caption.29}%
+\contentsline {table}{\numberline {4.5}{\ignorespaces Subcomandos de seleção do modo fisiológico.}}{30}{table.caption.30}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

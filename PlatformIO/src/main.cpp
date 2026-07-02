@@ -2,11 +2,10 @@
 #include <Adafruit_NeoPixel.h>
 #include <ESP32Servo.h>
 #include <math.h>
+#include <EEPROM.h>   // biblioteca EEPROM
+#include <string.h>
 
-// declarar no topo do ficheiro (globais)
-int last_delta2_s1 = 0;
-int last_delta2_s2 = 0;
-int last_delta2_s3 = 0;
+
 
 struct Manipulador_Config {
     // geometria
@@ -102,6 +101,7 @@ Manipulador_Config delta_2_Cfg = {
     .servo3Pulse = 0
 };
 
+/*
 //Motion_test -> Arrays of points for testing the motion functions
 float X_test_calibration[] = {0.0,  0.0,  0.0,  0.0,  5.0, 10.0, 15.0, 0.0, 0.0};
 float Y_test_calibration[] = {0.0,  0.0,  0.0,  0.0,  0.0, 0.0,  0.0,  5.0, 15.0};          // -> teste de movimento linear dos 3 eixos
@@ -110,39 +110,31 @@ const int N_test_calibration = 9;
 
 //bat
 float X_test[] = {15.607,  14.923,  13.995,  12.845,  11.503, 10.000,  6.665,  1.464,  -2.965,  -5.000, -5.659, -6.056, -6.180, -6.029, -5.607, -4.923, -3.995, -2.845, -1.503,  0.000,   3.335,  8.536,  12.965,  15.000, 15.659, 16.056, 16.180, 16.029};
-//float Y_test[] = {  0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,    0.0};
 float Y_test[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8.536,   3.335,   0.000, -1.503, -2.845, -3.995, -4.923, -5.607, -6.029, -6.180, -6.056, -5.659, -5.000,  -2.965,  1.464,   6.665,  10.000, 11.503, 12.845, 13.995, 14.923};
-//float Z_test[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8.536,   3.335,   0.000, -1.503, -2.845, -3.995, -4.923, -5.607, -6.029, -6.180, -6.056, -5.659, -5.000,  -2.965,  1.464,   6.665,  10.000, 11.503, 12.845, 13.995, 14.923};
-//float Z_test[] = {  40.0,    40.0,    40.0,    40.0,    40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,   40.0,   40.0,   40.0,   40.0,   40.0,   40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,    40.0,   40.0,    40.0};
 float Z_test[] = {  0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,    0.0};
 const int N_test = 28;
 float T_period = 0.3f; 
 float T_pausedt = 0.6f; 
 
 //resp
-//float X_test2[] = {0.000, 1.333, 2.667, 4.000, 5.333, 6.667, 8.000, 9.333, 10.667, 12.000, 10.667, 9.333, 8.000, 6.667, 5.333, 4.000, 2.667,   1.333 };
-//float Y_test2[] = {  0.0,   0.0,   0.0,    0.0,  0.0,   0.0,   0.0,   0.0,   0.0,     0.0,    0.0,    0.0,   0.0,   0.0,  0.0,    0.0,   0.0,  0.0 };
-//float Z_test2[] = {0.000, 0.247, 0.988, 2.222, 3.951, 6.173, 8.889, 12.099, 15.802, 20.000, 15.802, 12.099, 8.889, 6.173, 3.951, 2.222, 0.988, 0.247};
 float X_test2[] = {0.000, 1.333, 2.667, 4.000, 5.333, 6.667, 8.000, 9.333, 10.667, 12.000};
 float Y_test2[] = {  0.0,   0.0,   0.0,    0.0,  0.0,   0.0,   0.0,   0.0,   0.0,     0.0};
 float Z_test2[] = {0.000, 0.247, 0.988, 2.222, 3.951, 6.173, 8.889, 12.099, 15.802, 20.000};
-
-//const int N_test2 = 18;
 const int N_test2 = 10;
 float T_period2 = 4.0f; 
 float T_pausedt2_Ini = 0.6f; 
 float T_pausedt2_End = 0.1f; 
 
-
+//tosse vibração
 float X_tosse_vibracao[] = {2.000, 1.618, 0.618, -0.618, -1.618, -2.000, -1.618, -0.618, 0.618, 1.618};
 float Y_tosse_vibracao[] = {0.000, -1.176, -1.902, -1.902, -1.176, 0.000, 1.176, 1.902, 1.902, 1.176};
 float Z_tosse_vibracao[] = {0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000};
-
-//const int N_test2 = 18;
 const int N_tosse_vibracao = 10;
 float T_period_tosse_vibracao = 0.5f; 
 float T_pausedt_tosse_vibracao_Ini = 0.0f; 
 float T_pausedt_tosse_vibracao_End = 0.0f; 
+
+*/
 
 //Link lengths (mm)
 #define L1 35
@@ -153,7 +145,7 @@ float T_pausedt_tosse_vibracao_End = 0.0f;
 #define SERVO_OFFSET_X 32
 #define SERVO_OFFSET_Y 0
 #define SERVO_OFFSET_Z (0.0 + END_EFFECTOR_Z_OFFSET)
-//#define SERVO_OFFSET_Z_INVERTED -293
+
 
 
 //#define SERVO_ANGLE_MIN (100.0f * PI / 180.0f)
@@ -167,44 +159,16 @@ float T_pausedt_tosse_vibracao_End = 0.0f;
 #define ROTATION_OFFSET_Z_Delta1 (-75.0f * PI / 180.0f)
 #define ROTATION_OFFSET_Z_Delta2 (-45.0f * PI / 180.0f)
 
-#define MIN 'm'
-#define MAX 'M'
 
 //Servo microsecond pulse limits (Calibration)-------Valores normais: Min = 500 ; Max = 2500]--------------------------
-#define SERVO_1_MIN 620
-#define SERVO_1_MAX 2520
-#define SERVO_2_MIN 615
-#define SERVO_2_MAX 2480
-#define SERVO_3_MIN 620
-#define SERVO_3_MAX 2550
   //Servo_1 -> thetta3 min 550, max 2450
   //Servo_2 -> thetta1 min 545, max 2410
   //Servo_3 -> thetta2 min 520, max 2450
 
-  // variáveis globais para valores suavizados
-int servo_1_pulse_smooth = 0;
-int servo_2_pulse_smooth = 0;
-int servo_3_pulse_smooth = 0;
-
-// fator de suavização [0 - 1]. tipo 0.2 para começar
-const float SERVO_SMOOTH_ALPHA = 0.2f;
 
 
-
-#define SERVO_4_MIN 550
-#define SERVO_4_MAX 2400
-#define SERVO_5_MIN 550
-#define SERVO_5_MAX 2400
-#define SERVO_6_MIN 550
-#define SERVO_6_MAX 2400
-
-  // variáveis globais para valores suavizados
-int servo_4_pulse_smooth = 0;
-int servo_5_pulse_smooth = 0;
-int servo_6_pulse_smooth = 0;
 //-----------------------------------------------------------------------------------------
 
-#define INVERTED -1
 bool Tosse_signal = 0;
 bool sinal_tossir = false;  
 bool Tosse_em_preparacao = false; 
@@ -302,9 +266,9 @@ MotionStorage Resp_move; //Declaração de objetos para utilizar com as structur
 MotionInstance Resp_inst;
 MotionStorage Tosse_move; //Declaração de objetos para utilizar com as structures de movimento
 MotionInstance Tosse_inst;
-MotionStorage* currentMove = nullptr;
-MotionInstance* currentInst = nullptr;
-
+//MotionStorage* currentMove = nullptr;
+//MotionInstance* currentInst = nullptr;
+/*
 void Iniciate_Bat_Move() { //Serve para copiar os valores definidos mais acima para o objeto Bat_move, que é do tipo MotionStorage. 
                         // ->    Isto é só para facilitar a criação de movimentos de teste, ou seja, para não ter que copiar os valores manualmente para o Bat_move cada vez que quiseres testar algo.
                         // ->    No futuro será utilizado para copiar os movimentos pré definidos da EPPROM ou do PI
@@ -370,7 +334,7 @@ void Iniciate_Tosse_Move() { //Serve para copiar os valores definidos mais acima
     //Serial.print("RESP N_point ->global: ");
     //Serial.println(Resp_move.N_points);
 }
-    
+   */ 
 void Iniciate_Bat_Instance() { //Serve para arrancar a structure de temporaria de runtime
     Bat_inst.def           = &Bat_move;
     Bat_inst.currentIndex  = 0;
@@ -432,7 +396,13 @@ void Iniciate_Tosse_Instance() { //Serve para arrancar a structure de temporaria
     Tosse_inst.Situacion     = 'F';
 }
 
+// tamanho reservado de EEPROM (em ESP32 é emulado na flash)
+const int EEPROM_SIZE = 4096;  // ou mesmo 8192, se couber na flash
 
+// Layout dos blocos na EEPROM para os MotionStorage
+const int EEPROM_ADDR_BAT   = 0;
+const int EEPROM_ADDR_RESP  = EEPROM_ADDR_BAT  + sizeof(MotionStorage);
+const int EEPROM_ADDR_TOSSE = EEPROM_ADDR_RESP + sizeof(MotionStorage);
 
 //-------------------Fim Temporario---------------------------------
 
@@ -530,21 +500,6 @@ bool PosicaoValidaParaTosse(const MotionInstance& inst, const MotionStorage& m);
 #define Ecomand_SET_HOME_GRIPPER 'G'
 #define Ecomand_SET_GRIPPER_MIN_MAX 'M'
 
-//EEPROM addresses for the delta robots configuration
-#define EEPROM_ADDRESS_LINK_2 0
-#define EEPROM_ADDRESS_END_EFFECTOR_TYPE 1
-#define EEPROM_ADDRESS_AXIS_DIRECTION 2
-#define EEPROM_ADDRESS_Z_OFFSET 3
-#define EEPROM_ADDRESS_HOME_X 7
-#define EEPROM_ADDRESS_HOME_Y 11
-#define EEPROM_ADDRESS_HOME_Z 15
-#define EEPROM_ADDRESS_HOME_GRIPPER 19
-#define EEPROM_ADDRESS_GRIPPER_ROTATION_MIN 21
-#define EEPROM_ADDRESS_GRIPPER_ROTATION_MAX 23
-#define EEPROM_ADDRESS_GRIPPER_CLAW_MIN 25
-#define EEPROM_ADDRESS_GRIPPER_CLAW_MAX 27
-#define EEPROM_ADDRESS_GRIPPER_VACUUM_MIN 29
-#define EEPROM_ADDRESS_GRIPPER_VACUUM_MAX 31
 
 
 
@@ -763,12 +718,31 @@ switch (state) {
     return;
 }
 
+
+
+
 void FSM_Serial_Command(unsigned long nowMs){
 static short int state;
 state_test2 = state;
 static int n = 0;
 static int m = 0;
 static char ST_copy[100];
+
+static MotionStorage*  currentMove  = nullptr;
+static MotionInstance* currentInst  = nullptr;
+
+
+static void* currentTarget = nullptr;
+static bool  longArray = false;
+static char  targetType    = 'f'; // 'f' float, 'i' int
+
+static char* p = nullptr;
+static int idx = 0;
+static char value[32];
+static int len;
+static char* index1 = nullptr;
+static char* index2 = nullptr;
+
 /*
 Têm em atenção constituição de cada caso:
 case x: 
@@ -777,6 +751,505 @@ case x:
 */
 //Serial.print("Estado atual: ");
 //Serial.println(inst.state);
+
+switch (state) {
+
+    case 0:
+      Serial.println("Escolha um comando:");
+
+      if(1){state = 1;}
+
+    break;
+
+    case 1:
+      LineReady_Out = false;
+
+      if(CH_Command_IN == 'S' || CH_Command_IN == 's'){state = 2;}
+      if(CH_Command_IN == 'P' || CH_Command_IN == 'p'){state = 3;}
+      if(CH_Command_IN == 'L' || CH_Command_IN == 'l'){state = 5;}
+      if(CH_Command_IN == 'M' || CH_Command_IN == 'm'){state = 14;}
+      if(CH_Command_IN == 'W' || CH_Command_IN == 'w'){state = 23;}
+    break;
+
+
+    case 2:
+      Serial.println("Ativo");
+            start_comand = 1;
+            Training_Exame_Starttime = nowMs;
+      LineReady_Out = true;
+      CH_Command_Out = '\0';
+      pixel.setPixelColor(0, pixel.Color(255, 0, 0));
+      pixel.show(); 
+
+      if (1) { state = 4;} 
+    break;
+
+
+    case 3:
+      Serial.println("Desativo");
+            start_comand = 0;
+            Training_Exame_Finishingtime = nowMs;
+            Training_Exame_Durantiontime = Training_Exame_Finishingtime - Training_Exame_Starttime; 
+      if(Training_Exame_Durantiontime > 0){
+        Serial.print("Duração do treino: "); 
+        Serial.print(Training_Exame_Durantiontime/1000.0f); 
+        Serial.println(" Segundos");
+        }    
+      Training_Exame_Finishingtime = 0;
+      Training_Exame_Starttime = 0; 
+      LineReady_Out = true;
+      CH_Command_Out = '\0';
+      pixel.setPixelColor(0, pixel.Color(0, 0, 0));
+      pixel.show();
+      
+      if (1) { state = 4;}
+    break;
+
+
+    case 4: 
+      Serial.println("Escolha um comando:");
+      LineReady_Out = false;
+
+      if(1){state = 1;}
+    break;
+
+    case 5: 
+      Serial.println("ler");
+      LineReady_Out = true;
+      CH_Command_Out = '\0';
+      pixel.setPixelColor(0, pixel.Color(255, 255, 0));
+      pixel.show(); 
+
+      if(1){state = 6;}
+    break;
+
+    case 6: 
+      LineReady_Out = false;
+
+      if(CH_Command_IN == '1'){state = 7;}
+      if(CH_Command_IN == '2'){state = 8;}
+      if(CH_Command_IN == '3'){state = 9;}
+      if(CH_Command_IN == 'r'){state = 10;}
+      if(CH_Command_IN == 'b'){state = 11;}
+      if(CH_Command_IN == 't'){state = 12;}
+      if(CH_Command_IN == 'a'){state = 13;}
+    break;
+
+
+    case 7: 
+      Serial.println("Comando L1");
+      LineReady_Out = true;
+      CH_Command_Out = '\0';
+      pixel.setPixelColor(0, pixel.Color(255, 255, 255));
+      pixel.show();
+      Safe_comand = 1;
+
+      if(1){state = 4;}
+    break;
+
+    case 8: 
+      Serial.println("Comando L2");
+      LineReady_Out = true;
+      CH_Command_Out = '\0';
+      pixel.setPixelColor(0, pixel.Color(0, 255, 255));
+      pixel.show();
+      Safe_comand = 0;
+
+      if(1){state = 4;}
+    break;
+
+    case 9:
+      Serial.println("Comando L3");
+      LineReady_Out = true;
+      CH_Command_Out = '\0';
+      sinal_tossir = 1;
+      //Serial.println("Sem nada");  //Retirar quando estiver implementado  
+        pixel.setPixelColor(0, pixel.Color(255, 0, 255));
+      if(1){state = 4;}
+    break;
+
+    case 10:
+      Serial.println("Comando Lr");
+      LineReady_Out = true;
+      CH_Command_Out = '\0';
+      debugPrintMove(Resp_move, "Resp_move"); 
+      debugPrintInstance(Resp_inst, "Resp_inst");
+      
+      
+      if(1){state = 4;}
+    break;
+
+    case 11:
+      Serial.println("Comando Lb");
+      LineReady_Out = true;
+      CH_Command_Out = '\0';
+      debugPrintMove(Bat_move,  "Bat_move");
+      debugPrintInstance(Bat_inst,  "Bat_inst");
+      
+      if(1){state = 4;}
+    break;
+
+
+    case 12:
+      Serial.println("Comando Lt");
+      LineReady_Out = true;
+      CH_Command_Out = '\0';
+      //debugPrintMove(Bat_move,  "Tosse_move");   //ainda é preciso implementar
+      //debugPrintInstance(Bat_inst,  "Tosse_inst");  //ainda é preciso implementar
+      Serial.println("Sem nada");  //Retirar quando estiver implementado 
+      
+      if(1){state = 4;}
+    break;
+
+
+    case 13:
+      Serial.println("Comando LA");
+      LineReady_Out = true;
+      CH_Command_Out = '\0';
+      debugPrintMove(Bat_move,  "Bat_move");
+      debugPrintMove(Resp_move, "Resp_move"); 
+      debugPrintInstance(Bat_inst,  "Bat_inst");
+      debugPrintInstance(Resp_inst, "Resp_inst");
+      Serial.println("Sem Tosse");  //Retirar quando estiver implementado a tosse
+      
+      if(1){state = 4;}
+    break;
+
+
+    case 14: 
+      Serial.println("Comando Mode"); 
+            start_comand = 0;
+            Training_Exame_Finishingtime = nowMs;
+            Training_Exame_Durantiontime = Training_Exame_Finishingtime - Training_Exame_Starttime; 
+      if(Training_Exame_Durantiontime > 0){
+        Serial.print("Duração do treino: "); 
+        Serial.print(Training_Exame_Durantiontime/1000.0f); 
+        Serial.println(" Segundos");
+        }    
+      Training_Exame_Finishingtime = 0;
+      Training_Exame_Starttime = 0; 
+      LineReady_Out = true;
+
+      if(1){state = 15;}
+    break;
+
+
+    case 15: 
+      LineReady_Out = false;
+
+      if(CH_Command_IN == 'a'){state = 16;}
+      if(CH_Command_IN == 'h'){state = 17;}
+      if(CH_Command_IN == 'r'){state = 18;}
+      if(CH_Command_IN == 'b'){state = 19;}
+      if(CH_Command_IN == 's'){state = 20;}
+    break;
+
+
+    case 16: 
+      Serial.println("Comando Mode ALL"); 
+      LineReady_Out = true;
+      CH_Command_Out = '\0';
+            Bat_inst.active = true;
+            Resp_inst.active = true;
+          Tosse_inst.active = true;
+
+      if(1){state = 21;}
+    break;
+
+
+    case 17: 
+      Serial.println("Comando Mode Human (Bat+Resp)"); 
+      LineReady_Out = true;
+      CH_Command_Out = '\0';
+            Bat_inst.active = true;
+            Resp_inst.active = true;
+            Tosse_inst.active = false;
+
+      if(1){state = 21;}
+    break;
+
+
+    case 18: 
+      Serial.println("Comando Mode Respiração"); 
+      LineReady_Out = true;
+      CH_Command_Out = '\0';
+            Bat_inst.active = false;
+            Resp_inst.active = true;
+            Tosse_inst.active = false;
+
+      if(1){state = 21;}
+    break;
+
+
+    case 19: 
+      Serial.println("Comando Mode Batimento"); 
+      LineReady_Out = true;
+      CH_Command_Out = '\0';
+            Bat_inst.active = true;
+            Resp_inst.active = false;
+            Tosse_inst.active = false;
+
+      if(1){state = 21;}
+    break;
+
+
+    case 20: 
+      Serial.println("Comando Mode Static"); 
+      LineReady_Out = true;
+      CH_Command_Out = '\0';
+            Bat_inst.active = false;
+            Resp_inst.active = false;
+            Tosse_inst.active = false;
+
+      if(1){state = 21;}
+    break;
+
+
+    case 21: 
+      //Serial.println("want to start de cicle? y/n"); 
+      //LineReady_Out = false;
+
+      if(1){state = 4;}
+    break;
+
+    case 22: 
+      if(CH_Command_IN == 'y'){state = 2;}
+      if(CH_Command_IN == 'n'){state = 3;}
+    break;
+
+    case 23: 
+      Mode = 'M';
+      Serial.println("Comando Mode multiple characters");
+      start_comand = 0;
+      LineReady_Out = true;
+      
+
+      if(1){state = 24;}
+    break;
+
+    case 24: 
+      LineReady_Out = false;
+      n = 0;
+
+      if(ST_Command_IN[n] == 'R'){state = 25;}
+      if(ST_Command_IN[n] == 'B'){state = 26;}
+      if(ST_Command_IN[n] == 'T'){state = 27;}
+    break;
+
+    case 25: 
+      currentMove = &Resp_move;
+      currentInst = &Resp_inst;
+
+      if(1){state = 28;}
+    break;
+
+
+    case 26: 
+      currentMove = &Bat_move;
+      currentInst = &Bat_inst;
+
+      if(1){state = 28;}
+    break;
+
+
+    case 27: 
+      currentMove = &Tosse_move;
+      currentInst = &Tosse_inst;
+
+      if(1){state = 28;}
+    break;
+
+    case 28: //procura das Tags
+      n++;
+
+      if(strncmp(&ST_Command_IN[n], "n_pnt", 5) == 0){state = 29;}        //Variavel n_pontos
+      else if(strncmp(&ST_Command_IN[n], "Perid", 5) == 0){state = 30;}   //Variavel Periodo
+      else if(strncmp(&ST_Command_IN[n], "TPini", 5) == 0){state = 31;}   //Variavel T_pausa_INI
+      else if(strncmp(&ST_Command_IN[n], "TPend", 5) == 0){state = 32;}   //Variavel T_pausa_END
+      else if(strncmp(&ST_Command_IN[n], "STInd", 5) == 0){state = 33;}   //Variavel Start_index
+      else if(strncmp(&ST_Command_IN[n], "XYZ_x", 5) == 0){state = 34;}   //Variavel Coordenadas_x
+      else if(strncmp(&ST_Command_IN[n], "XYZ_y", 5) == 0){state = 35;}   //Variavel Coordenadas_y
+      else if(strncmp(&ST_Command_IN[n], "XYZ_z", 5) == 0){state = 36;}   //Variavel Coordenadas_z
+      else {  Serial.println("falha ao ler");
+              LineReady_Out = true; 
+              state = 4;
+            }
+    break;
+
+    case 29: 
+      // configura o ponteiro de destino
+      currentTarget = &currentMove->n_Points;
+      longArray = false;
+      targetType    = 'i';
+
+      if(1){state = 37;}
+    break;
+
+
+    case 30: 
+      // configura o ponteiro de destino
+      currentTarget = &currentMove->period;
+      longArray = false;
+      targetType    = 'f';
+
+      if(1){state = 37;}
+    break;
+
+
+    case 31: 
+      // configura o ponteiro de destino
+      currentTarget = &currentMove->T_pause_Ini;
+      longArray = false;
+      targetType    = 'f';
+
+      if(1){state = 37;}
+    break;
+
+
+    case 32: 
+      // configura o ponteiro de destino
+      currentTarget = &currentMove->T_pause_End;
+      longArray = false;
+      targetType    = 'f';
+
+      if(1){state = 37;}
+    break;
+
+
+    case 33: 
+      // configura o ponteiro de destino
+      currentTarget = &currentMove->start_Index;
+      longArray = false;
+      targetType    = 'i';
+
+      if(1){state = 37;}
+    break;
+
+
+    case 34: 
+      // configura o ponteiro de destino
+      currentTarget = currentMove->X;
+      longArray = true;
+      targetType    = 'f';
+
+      if(1){state = 37;}
+    break;
+
+
+    case 35: 
+      // configura o ponteiro de destino
+      currentTarget = currentMove->Y;
+      longArray = true;
+      targetType    = 'f';
+
+      if(1){state = 37;}
+    break;
+
+
+    case 36: 
+      // configura o ponteiro de destino
+      currentTarget = currentMove->Z;
+      longArray = true;
+      targetType    = 'f';
+
+      if(1){state = 37;}
+    break;
+
+    case 37: 
+      p   = ST_Command_IN + n;  // começa na posição n
+      idx = 0;
+      n  += 5;
+
+      if(1){state = 38;}
+    break;
+
+    case 38: 
+      index1 = strchr(p, '[');
+      if (!index1) { state = 44; break; }
+
+      index2 = strchr(index1 + 1, ']');
+      if (!index2) { state = 44; break; }
+
+      len = index2 - index1 - 1;
+      if (len >= (int)sizeof(value)) len = sizeof(value) - 1;
+
+      strncpy(value, index1 + 1, len);
+      value[len] = '\0';
+
+
+      if(longArray == false && targetType == 'i'){state = 39;}
+      if(longArray == false && targetType == 'f'){state = 40;}
+      if(longArray == true && targetType == 'i'){state = 41;}
+      if(longArray == true && targetType == 'f'){state = 42;}
+    break;
+
+    case 39: 
+      *(int*)currentTarget = atoi(value);
+
+      if(1){state = 43;}
+    break;
+
+    case 40: 
+      *(float*)currentTarget = atof(value);
+
+      if(1){state = 43;}
+    break;
+
+    case 41: 
+      ((int*)currentTarget)[idx] = atoi(value);
+
+      if(1){state = 43;}
+    break;
+
+    case 42: 
+      ((float*)currentTarget)[idx] = atof(value);
+
+      if(1){state = 43;}
+    break;
+
+    case 43: 
+      idx++;
+      p = index2 + 1;
+      currentMove->updateDtMs();
+      currentMove->updateDt_PauseMs();
+
+      if(longArray == false){state = 44;}
+      else if(longArray == true && *p == '\0'){state = 44;}
+      else if(longArray == true && *p != '\0'){state = 38;}
+    break;
+
+    case 44: 
+      LineReady_Out = true;
+      Mode = 'S';
+      //memset(ST_Command_Out, 0, sizeof(ST_Command_Out));
+      //memset(ST_BUS,         0, sizeof(ST_BUS));
+
+      if(1){state = 4;}
+    break;
+    
+    
+    return;
+}
+}
+
+
+/*
+void FSM_Serial_Command(unsigned long nowMs){
+static short int state;
+state_test2 = state;
+static int n = 0;
+static int m = 0;
+static char ST_copy[100];
+
+static MotionStorage*  currentMove  = nullptr;
+static MotionInstance* currentInst  = nullptr;
+
+
+static void* currentTarget = nullptr;
+static bool  longArray = false;
+static char  targetType    = 'f'; // 'f' float, 'i' int
+
+
 
 switch (state) {
 
@@ -1158,9 +1631,41 @@ switch (state) {
     
     return;
 }
+*/
 
+void saveBatToEEPROM() {
+  EEPROM.put(EEPROM_ADDR_BAT, Bat_move);
+  EEPROM.commit();  // em ESP32; em Arduino UNO não é necessário
+}
 
+void saveRespToEEPROM() {
+  EEPROM.put(EEPROM_ADDR_RESP, Resp_move);
+  EEPROM.commit();
+}
 
+void saveTosseToEEPROM() {
+  EEPROM.put(EEPROM_ADDR_TOSSE, Tosse_move);
+  EEPROM.commit();
+}
+
+void loadBatFromEEPROM() {
+  EEPROM.get(EEPROM_ADDR_BAT, Bat_move);
+  // Depois de ler, convém recalcular dtMs e pausas caso só tenhas mudado period/T_pause.
+  Bat_move.updateDtMs();
+  Bat_move.updateDt_PauseMs();
+}
+
+void loadRespFromEEPROM() {
+  EEPROM.get(EEPROM_ADDR_RESP, Resp_move);
+  Resp_move.updateDtMs();
+  Resp_move.updateDt_PauseMs();
+}
+
+void loadTosseFromEEPROM() {
+  EEPROM.get(EEPROM_ADDR_TOSSE, Tosse_move);
+  Tosse_move.updateDtMs();
+  Tosse_move.updateDt_PauseMs();
+}
 
 
 
@@ -1171,8 +1676,9 @@ void setup() {
   setup_counter++;
   Serial.print("setup chamado: ");
   Serial.println(setup_counter);
-  
-  Serial.println("Teste LED RGB");
+
+  EEPROM.begin(EEPROM_SIZE);  // em ESP32;
+
 
   pixel.begin();
   pixel.clear();
@@ -1193,12 +1699,63 @@ void setup() {
   }
   
   //----------------Inicialização do movimento de teste-----------------
-    Iniciate_Bat_Move();
-    Iniciate_Resp_Move();
-    Iniciate_Tosse_Move();
-    Iniciate_Bat_Instance();
-    Iniciate_Resp_Instance();
-    Iniciate_Tosse_Instance();
+
+  Serial.println("Antes do load da eeprom");
+  debugPrintMove(Resp_move, "Resp_move"); 
+  debugPrintMove(Bat_move, "Bat_move"); 
+  debugPrintMove(Tosse_move, "Tosse_move");
+
+  
+  // 1ª vez: inicializa movimentos em RAM
+  //Iniciate_Bat_Move();
+  //Iniciate_Resp_Move();
+  //Iniciate_Tosse_Move();
+
+  //Serial.println(" ");
+  // Serial.println(" ");
+  // Serial.println("Antes do save_eeprom");
+  //debugPrintMove(Resp_move, "Resp_move ANTES do save");
+  //debugPrintMove(Bat_move, "Bat_move ANTES do save");
+  //debugPrintMove(Tosse_move, "Tosse_move ANTES do save");
+
+  // Opcional: se EEPROM ainda não tiver sido usada, grava defaults
+  // saveBatToEEPROM();
+  // saveRespToEEPROM();
+  // saveTosseToEEPROM();
+  // Serial.println(" ");
+   //Serial.println(" ");
+  //Serial.print("sizeof(MotionStorage) = ");
+  //Serial.println(sizeof(MotionStorage));
+   
+
+  // Nas execuções seguintes, podes preferir:
+   loadBatFromEEPROM();
+   loadRespFromEEPROM();
+   loadTosseFromEEPROM();
+   Serial.println(" ");
+   Serial.println(" ");
+   Serial.println("eeprom carregado");
+
+  Iniciate_Bat_Instance();
+  Iniciate_Resp_Instance();
+  Iniciate_Tosse_Instance();
+
+  Serial.println(" ");
+  debugPrintMove(Resp_move, "Resp_move"); 
+  debugPrintInstance(Resp_inst, "Resp_inst");
+  Serial.println(" ");
+  debugPrintMove(Bat_move, "Bat_move"); 
+  debugPrintInstance(Bat_inst, "Bat_inst");
+  Serial.println(" ");
+  debugPrintMove(Tosse_move, "Tosse_move"); 
+  debugPrintInstance(Tosse_inst, "Tosse_inst");
+
+  //  Iniciate_Bat_Move();
+  //  Iniciate_Resp_Move();
+  //  Iniciate_Tosse_Move();
+  //  Iniciate_Bat_Instance();
+  //  Iniciate_Resp_Instance();
+  //  Iniciate_Tosse_Instance();
     Calcular_Index0(Resp_move, Index0);
     //Serial.println("Setup completo, pronto para correr Sequence.");
     
@@ -1338,21 +1895,21 @@ bool inverse_kinematics(Manipulador_Config& cfg, float xt, float yt, float zt){
     cfg.servo1Pulse = round(mapNumber(servo_Theta1_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, cfg.theta1MinPulse, cfg.theta1MaxPulse));
     cfg.servo2Pulse = round(mapNumber(servo_Theta2_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, cfg.theta2MinPulse, cfg.theta2MaxPulse));
     cfg.servo3Pulse = round(mapNumber(servo_Theta3_angle, SERVO_ANGLE_MIN, SERVO_ANGLE_MAX, cfg.theta3MinPulse, cfg.theta3MaxPulse));
-    int new4 = cfg.servo1Pulse;
-    int new5 = cfg.servo2Pulse;
-    int new6 = cfg.servo3Pulse;
+    //int new4 = cfg.servo1Pulse;
+    //int new5 = cfg.servo2Pulse;
+    //int new6 = cfg.servo3Pulse;
 
 
-    if (new4 != last_delta2_s1) {
+    //if (new4 != last_delta2_s1) {
     //Serial.print("-----------------------------------------------------------D2: ");
     //Serial.print(last_delta2_s1); Serial.print("->"); Serial.print(new4);
     //Serial.println("");
     
 
     // atualizar “anteriores”
-    last_delta2_s1 = new4;
+    //last_delta2_s1 = new4;
     
-}
+//}
 
     // só se houve mesmo alteração é que consideramos “novo”
 
@@ -1532,30 +2089,8 @@ void move_servos(const Manipulador_Config& d1, const Manipulador_Config& d2){
     //mg90s_6.writeMicroseconds(420);
 }
 
-/*
-void move_servos(void){ //Função V1 de atualização do PWM dos Servos com um filtro de suavização
-    // primeira vez, inicia suavizados nos atuais
-    static bool initialized = false;
-    if (!initialized) {
-        servo_1_pulse_smooth = servo_1_pulse_count;
-        servo_2_pulse_smooth = servo_2_pulse_count;
-        servo_3_pulse_smooth = servo_3_pulse_count;
-        initialized = true;
-    }
 
-    // filtro exponencial simples (low-pass) //basicamente faz uma pequena media das ultimas posições para suavizar o movimento, 
-    servo_1_pulse_smooth = servo_1_pulse_smooth
-                           + SERVO_SMOOTH_ALPHA * (servo_1_pulse_count - servo_1_pulse_smooth);
-    servo_2_pulse_smooth = servo_2_pulse_smooth
-                           + SERVO_SMOOTH_ALPHA * (servo_2_pulse_count - servo_2_pulse_smooth);
-    servo_3_pulse_smooth = servo_3_pulse_smooth
-                           + SERVO_SMOOTH_ALPHA * (servo_3_pulse_count - servo_3_pulse_smooth);
 
-    mg90s_1.writeMicroseconds(servo_1_pulse_smooth);
-    mg90s_2.writeMicroseconds(servo_2_pulse_smooth);
-    mg90s_3.writeMicroseconds(servo_3_pulse_smooth);
-}
-*/
 //-----------------Funções_Uteis_no_Dia_a_Dia------------
 double mapNumber(double x, double in_min, double in_max, double out_min, double out_max) {//Remaps a number to a given range
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;

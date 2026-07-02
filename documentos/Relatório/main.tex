@@ -48,9 +48,32 @@
 \renewcommand{\contentsname}{Índice Geral}
 \renewcommand{\listfigurename}{Lista de Figuras}
 \renewcommand{\listtablename}{Lista de Tabelas}
+\addto\captionsportuguese{\renewcommand{\contentsname}{Índice Geral}}
 
 \makeatletter
-\renewcommand*\l@chapter{\@dottedtocline{0}{0em}{1.8em}}
+\renewcommand{\tableofcontents}{%
+  \chapter*{\centering\contentsname\\[-0.2em]\rule{\textwidth}{0.4pt}}%
+  \@starttoc{toc}%
+}
+\renewcommand*\l@chapter[2]{%
+  \ifnum \c@tocdepth >\m@ne
+    \addpenalty{-\@highpenalty}%
+    \vskip 0.45em \@plus\p@
+    \setlength\@tempdima{2.4em}%
+    \begingroup
+      \parindent \z@ \rightskip \@pnumwidth
+      \parfillskip -\@pnumwidth
+      \leavevmode \bfseries
+      \advance\leftskip\@tempdima
+      \hskip -\leftskip
+      #1\nobreak\leaders\hbox{$\m@th
+        \mkern \@dotsep mu\hbox{.}\mkern \@dotsep
+        mu$}\hfill \nobreak\hb@xt@\@pnumwidth{\hss #2}\par
+      \penalty\@highpenalty
+    \endgroup
+  \fi}
+\renewcommand*\l@section{\@dottedtocline{1}{2.4em}{3.2em}}
+\renewcommand*\l@subsection{\@dottedtocline{2}{5.6em}{4.2em}}
 \makeatother
 
 \begin{document}
@@ -60,7 +83,7 @@
 \begin{titlepage}
   \centering
   \thispagestyle{empty}
-  \vspace*{2.0cm}
+  \vspace*{1.0cm}
 
   {\Large João Pedro Coelho Encarnação\par}
 
@@ -68,8 +91,11 @@
   {\LARGE\bfseries Modelo Articulado de uma Árvore Brônquica\par}
 
   \vfill
+  \includegraphics[width=0.48\textwidth]{Logo_ISE/ISE_Cor.png}\par
+  \vspace{0.5cm}
   {\large Universidade do Algarve\par}
   {\large Instituto Superior de Engenharia\par}
+  \vspace{0.5cm}
   {\large 2025/2026\par}
 \end{titlepage}
 
@@ -82,7 +108,7 @@
   \centering
   \thispagestyle{plain}
   \setcounter{page}{2}
-  \vspace*{2.0cm}
+  \vspace*{1.0cm}
 
   {\Large João Pedro Coelho Encarnação\par}
 
@@ -95,13 +121,16 @@
   {\large Licenciatura em Engenharia de Eletrotecnia e Computadores\par}
 
   \vspace{1.4cm}
-  {\large Trabalho efetuado sob orientação do\par}
+  {\large Trabalho efetuado sob orientação do:\par}
   {\large Professor Jorge Semião\par}
   \end{flushright}
 
   \vfill
+  \includegraphics[width=0.48\textwidth]{Logo_ISE/ISE_Cor.png}\par
+  \vspace{0.5cm}
   {\large Universidade do Algarve\par}
   {\large Instituto Superior de Engenharia\par}
+  \vspace{0.5cm}
   {\large 2025/2026\par}
 \end{titlepage}
 
@@ -118,10 +147,14 @@ A preencher na versão final.
 A preencher na versão final.
 
 \chapter*{Resumo}
-Este relatório descreve o desenvolvimento de um modelo articulado de uma árvore brônquica para simulação de videobroncofibroscopia. O trabalho enquadra-se na necessidade de criar plataformas de treino acessíveis, realistas e repetíveis para procedimentos broncoscópicos, integrando impressão 3D, atuação mecânica, controlo eletrónico e software embarcado.
+Este relatório descreve o desenvolvimento de um modelo articulado de uma árvore brônquica para apoio à simulação de videobroncofibroscopia. O trabalho parte da necessidade de criar uma plataforma física de treino que permita representar, de forma controlada e repetível, alguns movimentos internos observáveis durante o procedimento, combinando impressão 3D, atuação mecânica, controlo eletrónico, software embarcado e uma interface homem-máquina. A solução foi organizada em dois blocos principais: o modelo dinâmico, constituído pela árvore brônquica impressa em 3D, pelos manipuladores delta, pelos servo-motores e pelo microcontrolador ESP32-S3; e a HMI, executada no Raspberry Pi 4B, responsável por permitir ao utilizador comandar o sistema de forma simples e intuitiva, sem necessidade de memorizar comandos série.
+
+No modelo dinâmico foram implementados perfis de movimento associados à respiração, ao batimento cardíaco e à tosse, recorrendo a estruturas de trajetória, máquinas de estados, comunicação série e cinemática inversa para converter posições desejadas nos ângulos dos manipuladores. A interface gráfica permite selecionar modos de funcionamento, iniciar ou interromper o ensaio, acompanhar a comunicação com o ESP32 e preparar parâmetros de movimento a partir de uma camada de controlo mais acessível. Ao longo do desenvolvimento foram também validados os blocos fundamentais do sistema, nomeadamente a arquitetura de alimentação e comunicação, os testes iniciais de comunicação série e o cálculo dos movimentos, identificando-se no final as principais limitações do protótipo e possíveis melhorias futuras.
 
 \chapter*{Abstract}
-This report describes the development of an articulated bronchial tree model for flexible bronchoscopy simulation. The project addresses the need for accessible, realistic and repeatable training platforms by combining 3D printing, mechanical actuation, electronic control and embedded software.
+This report describes the development of an articulated bronchial tree model intended to support flexible bronchoscopy simulation. The project addresses the need for a physical training platform capable of reproducing, in a controlled and repeatable way, some of the internal movements observed during the procedure, combining 3D printing, mechanical actuation, electronic control, embedded software and a human-machine interface. The solution was organised into two main blocks: the dynamic model, composed of the 3D-printed bronchial tree, the delta manipulators, the servomotors and the ESP32-S3 microcontroller; and the HMI, running on a Raspberry Pi 4B, which allows the user to control the system in a simple and intuitive way without memorising serial commands.
+
+The dynamic model implements motion profiles associated with breathing, heartbeat and coughing, using trajectory structures, finite-state machines, serial communication and inverse kinematics to convert desired positions into manipulator angles. The graphical interface allows the user to select operating modes, start or stop a training session, monitor communication with the ESP32 and prepare movement parameters through a more accessible control layer. During development, the main functional blocks were also validated, namely the power and communication architecture, the initial serial communication tests and the movement calculation process, leading to the identification of the current prototype limitations and possible future improvements.
 
 \cleardoublepage
 \addtocontents{toc}{\protect\noindent\protect\hfill\textbf{Página}\protect\par\protect\vspace{0.3em}}
@@ -136,6 +169,7 @@ This report describes the development of an articulated bronchial tree model for
   \item[GPIO] \textit{General Purpose Input/Output}; pinos digitais usados para ligação a periféricos.
   \item[PWM] \textit{Pulse Width Modulation}; técnica usada para controlar os servos através da largura de pulso.
   \item[UART] \textit{Universal Asynchronous Receiver/Transmitter}; interface de comunicação série usada entre o Raspberry Pi e o ESP32-S3.
+  \item[HMI] \textit{Human Machine Interface}; interface homem-máquina usada para permitir ao utilizador controlar o modelo dinâmico através do Raspberry Pi.
   \item[FSM] \textit{Finite State Machine}; máquina de estados finitos usada para organizar a lógica de movimento, leitura série e interpretação de comandos.
   \item[IK] \textit{Inverse Kinematics}; cinemática inversa, usada para converter coordenadas cartesianas em ângulos dos servos.
   \item[LiPo] Bateria de polímero de lítio.

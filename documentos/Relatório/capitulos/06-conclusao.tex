@@ -1,9 +1,9 @@
 \chapter{Conclusão}
 
 \section{Síntese do trabalho}
-Este projeto tem como objetivo desenvolver um modelo articulado de uma árvore brônquica para treino de videobroncofibroscopia. A solução proposta combina impressão 3D, atuação mecânica, controlo por ESP32, comunicação com Raspberry Pi 4B e perfis de movimento inspirados em fenómenos fisiológicos.
+Este projeto tem como objetivo desenvolver um modelo articulado de uma árvore brônquica para treino de videobroncofibroscopia. A solução proposta combina impressão 3D, atuação mecânica, controlo por ESP32, comunicação com Raspberry Pi 4B, interface HMI e perfis de movimento inspirados em fenómenos fisiológicos.
 
-A análise dos documentos de trabalho permitiu consolidar os requisitos do sistema. O modelo deve ser acessível, modular, fácil de montar e capaz de reproduzir movimentos relevantes durante uma broncoscopia flexível. Para esta versão, foram priorizados três fenómenos: respiração, batimento cardíaco e tosse. Outros efeitos, como deformação localizada do lúmen, estenose e resistência ao contacto com o broncoscópio, foram identificados como importantes, mas ficaram reservados para trabalho futuro devido à maior complexidade mecânica.
+O desenvolvimento realizado permitiu consolidar os requisitos do sistema. O modelo deve ser acessível, modular, fácil de montar e capaz de reproduzir movimentos relevantes durante uma broncoscopia flexível. Para esta versão, foram priorizados três fenómenos: respiração, batimento cardíaco e tosse. Outros efeitos, como deformação localizada do lúmen, estenose e resistência ao contacto com o broncoscópio, foram identificados como importantes, mas ficaram reservados para trabalho futuro devido à maior complexidade mecânica.
 
 \section{Principais contributos}
 Os principais contributos do trabalho são:
@@ -13,6 +13,7 @@ Os principais contributos do trabalho são:
   \item escolha de uma arquitetura mecânica baseada em manipuladores delta;
   \item definição da arquitetura eletrónica com Raspberry Pi 4B, ESP32-S3, servos e sistema de alimentação;
   \item desenvolvimento de uma arquitetura de firmware baseada em estruturas de trajetória, instâncias de execução e máquinas de estados;
+  \item desenvolvimento de uma HMI para seleção de modos, envio de comandos, monitorização da comunicação série e configuração de movimentos;
   \item integração lógica da tosse como evento temporário sobreposto ao movimento respiratório.
 \end{itemize}
 
@@ -22,6 +23,6 @@ O protótipo ainda apresenta limitações importantes. O realismo material é li
 Outra limitação é a ausência, nesta fase, de feedback sensorial. Sem sensores de contacto, força ou posição externa, o sistema depende essencialmente do comando aberto dos servos e das validações geométricas implementadas no firmware. Isto é aceitável para uma primeira prova de conceito, mas limita a simulação de resistência ao avanço do broncoscópio.
 
 \section{Trabalho futuro}
-Como trabalho futuro, devem ser realizados testes quantitativos do manipulador e da árvore brônquica em movimento. A seleção de materiais flexíveis deve ser aprofundada, comparando TPU, TPE e outros filamentos quanto à impressão, elasticidade e durabilidade. A interface gráfica no Raspberry Pi deve evoluir para permitir configuração simples de perfis, escolha de cenários e monitorização do estado do sistema.
+Como trabalho futuro, devem ser realizados testes quantitativos do manipulador e da árvore brônquica em movimento. A seleção de materiais flexíveis deve ser aprofundada, comparando TPU, TPE e outros filamentos quanto à impressão, elasticidade e durabilidade. A interface gráfica no Raspberry Pi deve evoluir para permitir maior personalização de cenários, envio completo de trajetórias para o ESP32, armazenamento de perfis de treino e monitorização mais detalhada do estado do sistema.
 
 Também se recomenda explorar sensores de contacto, medição de corrente dos servos, fim de curso e possível feedback de posição. Estes elementos permitiriam aumentar a segurança e introduzir novas funcionalidades, como resistência ao avanço, deteção de contacto com paredes internas e simulação de patologias específicas. Por fim, a validação com profissionais de saúde será essencial para avaliar o realismo, a utilidade pedagógica e o impacto do modelo no treino de videobroncofibroscopia.

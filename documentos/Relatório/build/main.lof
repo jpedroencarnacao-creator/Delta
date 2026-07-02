@@ -2,15 +2,18 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {3.1}{\ignorespaces Esquema consolidado de alimentação, comunicação e comando dos dois manipuladores delta.}}{11}{figure.caption.13}%
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Esquema consolidado de alimentação, comunicação e comando dos dois manipuladores delta.}}{12}{figure.caption.13}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {4.1}{\ignorespaces Estrutura global das máquinas de estados e blocos de controlo, baseada no esquema da página 37 das notas de projeto.}}{13}{figure.caption.15}%
-\contentsline {figure}{\numberline {4.2}{\ignorespaces Relação entre as estruturas de dados principais do firmware.}}{14}{figure.caption.16}%
-\contentsline {figure}{\numberline {4.3}{\ignorespaces Esquema da FSM\_Motion\_Update.}}{16}{figure.caption.18}%
-\contentsline {figure}{\numberline {4.4}{\ignorespaces Representação lateral das variáveis usadas na cinemática inversa do manipulador delta.}}{18}{figure.caption.21}%
-\contentsline {figure}{\numberline {4.5}{\ignorespaces Relação linear de referência entre o ângulo calculado pela cinemática inversa e o pulso PWM aplicado aos servos nos dois manipuladores.}}{20}{figure.caption.22}%
-\contentsline {figure}{\numberline {4.6}{\ignorespaces FSM\_Serial\_Read redesenhada a partir do esquema da página 44 das notas de projeto.}}{23}{figure.caption.26}%
-\contentsline {figure}{\numberline {4.7}{\ignorespaces FSM\_Serial\_Command redesenhada a partir dos esquemas das páginas 46 e 47 das notas de projeto.}}{24}{figure.caption.27}%
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Estrutura global das máquinas de estados e blocos de controlo.}}{14}{figure.caption.15}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Relação entre as estruturas de dados principais do firmware.}}{15}{figure.caption.16}%
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Trajetória calculada para o movimento de batimento cardíaco, com representação 2D e 3D dos pontos de passagem.}}{18}{figure.caption.17}%
+\contentsline {figure}{\numberline {4.4}{\ignorespaces Trajetória calculada para o movimento respiratório, com representação 2D no plano \(ZX\) e visualização 3D.}}{19}{figure.caption.18}%
+\contentsline {figure}{\numberline {4.5}{\ignorespaces Trajetória calculada para a vibração associada à tosse, com representação 2D e 3D dos pontos de passagem.}}{20}{figure.caption.19}%
+\contentsline {figure}{\numberline {4.6}{\ignorespaces Esquema da FSM\_Motion\_Update.}}{24}{figure.caption.23}%
+\contentsline {figure}{\numberline {4.7}{\ignorespaces Representação lateral das variáveis usadas na cinemática inversa do manipulador delta.}}{26}{figure.caption.26}%
+\contentsline {figure}{\numberline {4.8}{\ignorespaces Relação linear de referência entre o ângulo calculado pela cinemática inversa e o pulso PWM aplicado aos servos nos dois manipuladores.}}{28}{figure.caption.27}%
+\contentsline {figure}{\numberline {4.9}{\ignorespaces FSM\_Serial\_Read responsável pela leitura e validação dos dados recebidos por comunicação série.}}{31}{figure.caption.31}%
+\contentsline {figure}{\numberline {4.10}{\ignorespaces FSM\_Serial\_Command responsável pela interpretação dos comandos recebidos por comunicação série.}}{32}{figure.caption.32}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.6.13)  1 JUL 2026 00:53
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.6.13)  1 JUL 2026 13:38
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1106,8 +1106,8 @@ Package csquotes Info: Checking for multilingual support...
 Package csquotes Info: ... found 'babel' package.
 Package csquotes Info: Adjusting default style.
 Package csquotes Info: Redefining alias 'default' -> 'portuguese'.
-LaTeX Font Info:    Trying to load font information for OT1+lmr on input line 5
-6.
+LaTeX Font Info:    Trying to load font information for OT1+lmr on input line 7
+9.
  (C:\Users\jpedr\AppData\Local\Programs\MiKTeX\tex/latex/lm\ot1lmr.fd
 File: ot1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
@@ -1117,24 +1117,24 @@ Package babel Info: 'portuguese' activates 'portuges' shorthands.
 )
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 79.
+LaTeX Font Info:    ... okay on input line 79.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 79.
+LaTeX Font Info:    ... okay on input line 79.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 79.
+LaTeX Font Info:    ... okay on input line 79.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 79.
+LaTeX Font Info:    ... okay on input line 79.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 79.
+LaTeX Font Info:    ... okay on input line 79.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 79.
+LaTeX Font Info:    ... okay on input line 79.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 79.
+LaTeX Font Info:    ... okay on input line 79.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 79.
+LaTeX Font Info:    ... okay on input line 79.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 79.
+LaTeX Font Info:    ... okay on input line 79.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -1197,11 +1197,11 @@ fg
 File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
 ))
 Package translations Info: no dictionary file `translations-basic-dictionary-po
-rtuges.trsl' found. on input line 56.
+rtuges.trsl' found. on input line 79.
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: hyperref package is loaded.
 Package caption Info: End \AtBeginDocument code.
-Package hyperref Info: Link coloring ON on input line 56.
+Package hyperref Info: Link coloring ON on input line 79.
  (main.out) (main.out)
 \@outlinefile=\write5
 \openout5 = `main.out'.
@@ -1221,14 +1221,24 @@ Package biblatex Info: Automatic encoding selection.
 Package biblatex Info: Trying to load bibliographic data...
 Package biblatex Info: ... file 'main.bbl' found.
  (main.bbl)
-Package biblatex Info: Reference section=0 on input line 56.
-Package biblatex Info: Reference segment=0 on input line 56.
-Package hyperref Info: Option `pageanchor' set `false' on input line 58.
+Package biblatex Info: Reference section=0 on input line 79.
+Package biblatex Info: Reference segment=0 on input line 79.
+Package hyperref Info: Option `pageanchor' set `false' on input line 81.
+<figuras/Logo_ISE/ISE_Cor.png, id=262, 848.23944pt x 445.83464pt>
+File: figuras/Logo_ISE/ISE_Cor.png Graphic file (type png)
+<use figuras/Logo_ISE/ISE_Cor.png>
+Package pdftex.def Info: figuras/Logo_ISE/ISE_Cor.png  used on input line 94.
+(pdftex.def)             Requested size: 218.51521pt x 114.8462pt.
  [1
 
 {C:/Users/jpedr/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}{C:/Users/jped
-r/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-rm.enc}]
-Package hyperref Info: Option `pageanchor' set `true' on input line 77.
+r/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-rm.enc} <./figuras/Logo_I
+SE/ISE_Cor.png>]
+Package hyperref Info: Option `pageanchor' set `true' on input line 103.
+File: figuras/Logo_ISE/ISE_Cor.png Graphic file (type png)
+<use figuras/Logo_ISE/ISE_Cor.png>
+Package pdftex.def Info: figuras/Logo_ISE/ISE_Cor.png  used on input line 129.
+(pdftex.def)             Requested size: 218.51521pt x 114.8462pt.
  [2
 
 ] [3
@@ -1273,22 +1283,23 @@ LaTeX Font Info:    External font `lmex10' loaded for size
 \openout6 = `main.toc'.
 
 
-[8] [9
+[8] [9] [10
 
 
 {C:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathsy.enc}
-] [10] (main.lof)
+] [11] (main.lof)
 \tf@lof=\write7
 \openout7 = `main.lof'.
 
- [11
+ [12
 
 
+{C:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathit.enc}
 ] (main.lot)
 \tf@lot=\write8
 \openout8 = `main.lot'.
 
- [12
+ [13
 
 
 ] (capitulos/01-introducao.tex
@@ -1297,102 +1308,140 @@ Cap\'{\i }tulo 1.
 
 
 ]
-LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 1
-8.
+LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 2
+0.
  (C:\Users\jpedr\AppData\Local\Programs\MiKTeX\tex/latex/lm\ts1lmr.fd
 File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 ))
 (capitulos/02-estado-da-arte.tex [2{C:/Users/jpedr/AppData/Local/Programs/MiKTe
-X/fonts/enc/dvips/lm/lm-ts1.enc}]
+X/fonts/enc/dvips/lm/lm-ts1.enc}] [3]
 Cap\'{\i }tulo 2.
-[3
+[4
 
-] [4] [5] [6]) (capitulos/03-desenvolvimento-hardware.tex [7]
+] [5] [6] [7]) (capitulos/03-desenvolvimento-hardware.tex [8]
 Cap\'{\i }tulo 3.
-[8
+[9
 
-] [9{C:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathit.
-enc}]
-Underfull \hbox (badness 4001) in paragraph at lines 35--35
+] [10]
+Underfull \hbox (badness 4001) in paragraph at lines 37--37
 []|\OT1/lmr/m/n/12 Amplitude pre-
  []
 
 
-Underfull \hbox (badness 1796) in paragraph at lines 37--38
+Underfull \hbox (badness 1796) in paragraph at lines 39--40
 []|\OT1/lmr/m/n/12 C^^S^^Pclico, com pe-que-nas
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 38--38
+Underfull \hbox (badness 10000) in paragraph at lines 40--40
 []|\OT1/lmr/m/n/12 Batimento
  []
 
-[10]
+[11]
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10.95> on input line 111.
+(Font)              <10.95> on input line 113.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 121.
+(Font)              <10> on input line 123.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 121.
+(Font)              <7> on input line 123.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 121.
-) (capitulos/04-desenvolvimento-software-configuracoes.tex [11] [12]
+(Font)              <5> on input line 123.
+) (capitulos/04-desenvolvimento-software-configuracoes.tex [12] [13]
 Cap\'{\i }tulo 4.
 LaTeX Font Info:    Trying to load font information for OT1+lmtt on input line 
 81.
 (C:\Users\jpedr\AppData\Local\Programs\MiKTeX\tex/latex/lm\ot1lmtt.fd
 File: ot1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
-) [13
+) [14
 
-{C:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-rmtt.enc}]
+]
 LaTeX Font Info:    Font shape `OT1/lmtt/bx/n' in size <10.95> not available
-(Font)              Font shape `OT1/lmtt/b/n' tried instead on input line 132.
+(Font)              Font shape `OT1/lmtt/b/n' tried instead on input line 134.
 
-[14]
-Overfull \hbox (4.91786pt too wide) in paragraph at lines 146--147
+[15{C:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-rmtt.enc
+}] [16{C:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathe
+x.enc}]
+<figuras/movimentos/movimento_batimento.png, id=556, 634.662pt x 790.6995pt>
+File: figuras/movimentos/movimento_batimento.png Graphic file (type png)
+<use figuras/movimentos/movimento_batimento.png>
+Package pdftex.def Info: figuras/movimentos/movimento_batimento.png  used on in
+put line 166.
+(pdftex.def)             Requested size: 439.98965pt x 548.16516pt.
+<figuras/movimentos/movimento_respiracao.png, id=557, 385.659pt x 754.236pt>
+File: figuras/movimentos/movimento_respiracao.png Graphic file (type png)
+<use figuras/movimentos/movimento_respiracao.png>
+Package pdftex.def Info: figuras/movimentos/movimento_respiracao.png  used on i
+nput line 188.
+(pdftex.def)             Requested size: 280.3047pt x 548.1939pt.
+<figuras/movimentos/movimento_vibracao_tosse.png, id=558, 647.145pt x 792.342pt
+>
+File: figuras/movimentos/movimento_vibracao_tosse.png Graphic file (type png)
+<use figuras/movimentos/movimento_vibracao_tosse.png>
+Package pdftex.def Info: figuras/movimentos/movimento_vibracao_tosse.png  used 
+on input line 203.
+(pdftex.def)             Requested size: 447.72536pt x 548.17949pt.
+
+Underfull \hbox (badness 6542) in paragraph at lines 215--216
+[]|\OT1/lmr/m/n/10.95 Par^ametros tem-po-rais e de
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 217--217
+[]|\OT1/lmr/m/n/10.95 Batimento
+ []
+
+[17] [18 <./figuras/movimentos/movimento_batimento.png>] [19 <./figuras/movimen
+tos/movimento_respiracao.png>] [20 <./figuras/movimentos/movimento_vibracao_tos
+se.png>] [21] [22]
+Overfull \hbox (4.91786pt too wide) in paragraph at lines 284--285
  []\OT1/lmr/bx/n/12 Intera^^Xc~ao com as es-tru-tu-ras de da-dos.[] \OT1/lmr/m/
 n/12 A cada cha-mada, a FSM l^e da \OT1/lmtt/m/n/12 MotionStorage
  []
 
-[15]
-Overfull \hbox (68.326pt too wide) in paragraph at lines 152--247
+[23]
+Overfull \hbox (68.326pt too wide) in paragraph at lines 290--385
  [][] 
  []
 
-[16] [17
+[24] [25
 
 
 ]
-<figuras/Imagem lateral do Manipulador Delta.png, id=527, 558.28575pt x 325.817
+<figuras/Imagem lateral do Manipulador Delta.png, id=617, 558.28575pt x 325.817
 25pt>
 File: figuras/Imagem lateral do Manipulador Delta.png Graphic file (type png)
 <use figuras/Imagem lateral do Manipulador Delta.png>
 Package pdftex.def Info: figuras/Imagem lateral do Manipulador Delta.png  used 
-on input line 288.
+on input line 426.
 (pdftex.def)             Requested size: 373.3035pt x 217.85892pt.
- [18{C:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathex.
-enc} <./figuras/Imagem lateral do Manipulador Delta.png>] [19]
-[20]
-Underfull \hbox (badness 10000) in paragraph at lines 514--515
+ [26 <./figuras/Imagem lateral do Manipulador Delta.png>] [27]
+[28]
+Underfull \hbox (badness 10000) in paragraph at lines 652--653
 []|\OT1/lmr/m/n/12 Desativa esse co-mando de se-gu-ran^^Xca, co-lo-cando
  []
 
-[21] [22] [23] [24] [25
+[29] [30] [31] [32]
+Overfull \hbox (4.89624pt too wide) in paragraph at lines 780--781
+[]\OT1/lmr/m/n/12 Na vers~ao para Rasp-berry Pi, o fi-cheiro prin-ci-pal da in-
+ter-face ^^Se \OT1/lmtt/m/n/12 RB[]PI4B[]Main[]PI.py\OT1/lmr/m/n/12 .
+ []
 
-]) (capitulos/05-testes-analise-resultados.tex [26]
+[33
+
+] [34]) (capitulos/05-testes-analise-resultados.tex [35]
 Cap\'{\i }tulo 5.
-[27
+[36
 
-] [28] [29]) (capitulos/06-conclusao.tex [30]
+] [37] [38]) (capitulos/06-conclusao.tex [39]
 Cap\'{\i }tulo 6.
-[31
+[40
 
-]) [32] [33
+]) [41] [42
 
 {C:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-rmsc.enc}] 
-(anexos/anexos.tex [34]
+(anexos/anexos.tex [43]
 Ap\^endice A.
-) [35
+) [44
 
 ] (main.aux)
  ***********
@@ -1400,19 +1449,19 @@ LaTeX2e <2025-11-01>
 L3 programming layer <2025-12-24>
  ***********
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 9B5542E07C2F5F8E71F99C34B62C315D;11567.
+(rerunfilecheck)             Checksum: 700BA98E5BB48DB0488ED08029CC7973;12557.
 Package logreq Info: Writing requests to 'main.run.xml'.
 \openout1 = `main.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 38771 strings out of 467871
- 796475 string characters out of 5418376
- 1589369 words of memory out of 5000000
- 66986 multiletter control sequences out of 15000+600000
- 694477 words of font info for 81 fonts, out of 8000000 for 9000
+ 38863 strings out of 467871
+ 799031 string characters out of 5418376
+ 1590268 words of memory out of 5000000
+ 67042 multiletter control sequences out of 15000+600000
+ 703292 words of font info for 84 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 84i,15n,104p,998b,2728s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,15n,104p,998b,2732s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx10.pf
 b><C:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx12.pf
 b><C:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmcsc10.p
@@ -1432,9 +1481,9 @@ sers/jpedr/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtk10.pfb><C:/U
 sers/jpedr/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt10.pfb><C:/U
 sers/jpedr/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt12.pfb><C:/U
 sers/jpedr/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtti10.pfb>
-Output written on main.pdf (47 pages, 656742 bytes).
+Output written on main.pdf (57 pages, 1690217 bytes).
 PDF statistics:
- 741 PDF objects out of 1000 (max. 8388607)
- 143 named destinations out of 1000 (max. 500000)
- 506 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 840 PDF objects out of 1000 (max. 8388607)
+ 176 named destinations out of 1000 (max. 500000)
+ 550 words of extra memory for PDF output out of 10000 (max. 10000000)
 
