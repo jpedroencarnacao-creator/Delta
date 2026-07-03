@@ -140,7 +140,7 @@ body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text)
 .keypad-head {
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
     font-size: 13px; font-weight: bold; color: #4a4a4a;
-    cursor: grab; user-select: none;
+    cursor: grab; user-select: none; touch-action: none;
 }
 .numeric-keypad.dragging .keypad-head { cursor: grabbing; }
 .keypad-close {
@@ -360,10 +360,10 @@ hr { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
     <h3 style="margin-bottom:8px">Acesso DEV</h3>
     <p>Introduza a password DEV:</p>
     <input id="passwordInput" type="password" placeholder="Password"
-           inputmode="none" autocomplete="current-password" readonly>
+           autocomplete="current-password">
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px">
-      <button class="btn-ctrl gray" onclick="document.getElementById('passwordModal').style.display='none'; hideNumericKeypad()">Cancelar</button>
-      <button class="btn-ctrl blue" onclick="confirmPassword()">Entrar</button>
+      <button class="btn-ctrl gray" onclick="document.getElementById('passwordModal').style.display='none'; hideNumericKeypad()" onpointerdown="event.stopPropagation()" onmousedown="event.stopPropagation()">Cancelar</button>
+      <button class="btn-ctrl blue" onclick="confirmPassword()" onpointerdown="event.stopPropagation()" onmousedown="event.stopPropagation()">Entrar</button>
     </div>
   </div>
 </div>
@@ -420,7 +420,7 @@ hr { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
     <button class="keypad-key danger wide" type="button" onclick="keypadClear()">Limpar</button>
     <button class="keypad-key space" type="button" onclick="keypadPress(' ')">Espaço</button>
     <button class="keypad-key" type="button" onclick="keypadPress('.')">.</button>
-    <button class="keypad-key ok wide" type="button" onclick="confirmPassword()">OK</button>
+    <button class="keypad-key ok wide" type="button" onclick="confirmPassword()" onpointerdown="event.stopPropagation()" onmousedown="event.stopPropagation()">OK</button>
   </div>
 </div>
 
@@ -622,6 +622,43 @@ function closeWindowAfterShutdown() {
 let activeKeypadInput = null;
 let activeKeypadKind = null;
 let keypadDragState = null;
+let pendingMovSendAllAction = null;
+
+function startKeypadDrag(keypad, clientX, clientY) {
+    if (!keypad) return;
+    const rect = keypad.getBoundingClientRect();
+    keypad.classList.add('dragging');
+    keypad.style.position = 'fixed';
+    keypad.style.left = rect.left + 'px';
+    keypad.style.top = rect.top + 'px';
+    keypad.style.right = 'auto';
+    keypad.style.bottom = 'auto';
+    keypad.style.transform = 'none';
+    keypadDragState = {
+        keypad,
+        offsetX: clientX - rect.left,
+        offsetY: clientY - rect.top,
+    };
+}
+
+function moveKeypadDrag(clientX, clientY) {
+    if (!keypadDragState) return;
+    const {keypad, offsetX, offsetY} = keypadDragState;
+    const minLeft = -keypad.offsetWidth + 48;
+    const minTop = 0;
+    const maxLeft = window.innerWidth - 48;
+    const maxTop = window.innerHeight - 48;
+    const left = Math.min(Math.max(minLeft, clientX - offsetX), maxLeft);
+    const top = Math.min(Math.max(minTop, clientY - offsetY), maxTop);
+    keypad.style.left = left + 'px';
+    keypad.style.top = top + 'px';
+}
+
+function stopKeypadDrag() {
+    if (!keypadDragState) return;
+    keypadDragState.keypad.classList.remove('dragging');
+    keypadDragState = null;
+}
 
 function keypadDisplayEl() {
     if (activeKeypadKind === 'password') return document.getElementById('passwordKeypadDisplay');
@@ -649,10 +686,11 @@ function updateKeypadDisplay() {
 }
 
 function showNumericKeypad(input, kind) {
+    const sameInput = activeKeypadInput === input && activeKeypadKind === kind;
     activeKeypadInput = input;
     activeKeypadKind = kind;
     if (typeof input.focus === 'function') input.focus({preventScroll: true});
-    if (kind === 'movement' || kind === 'clientMovement') {
+    if ((kind === 'movement' || kind === 'clientMovement') && !sameInput) {
         setTimeout(() => {
             try { input.select(); } catch (e) {}
         }, 0);
@@ -661,6 +699,12 @@ function showNumericKeypad(input, kind) {
     document.getElementById('movementKeypad').classList.toggle('visible', kind === 'movement');
     document.getElementById('clientMovementKeypad').classList.toggle('visible', kind === 'clientMovement');
     document.getElementById('passwordModal').classList.toggle('keyboard-open', kind === 'password');
+    const keypad = kind === 'movement'
+        ? document.getElementById('movementKeypad')
+        : (kind === 'clientMovement' ? document.getElementById('clientMovementKeypad') : document.getElementById('passwordKeypad'));
+    if (keypad && keypad.parentElement !== document.body) {
+        document.body.appendChild(keypad);
+    }
 
     if (kind === 'movement' || kind === 'clientMovement') {
         const label = input.closest('.mov-field, .client-mov-field')?.querySelector('label')?.textContent || 'Valor numérico';
@@ -782,40 +826,48 @@ document.querySelectorAll('.numeric-keypad .keypad-head').forEach(head => {
         if (e.target.closest('button')) return;
         const keypad = head.closest('.numeric-keypad');
         if (!keypad) return;
-        const rect = keypad.getBoundingClientRect();
-        keypad.classList.add('dragging');
-        keypad.style.position = 'fixed';
-        keypad.style.left = rect.left + 'px';
-        keypad.style.top = rect.top + 'px';
-        keypad.style.right = 'auto';
-        keypad.style.bottom = 'auto';
-        keypad.style.transform = 'none';
-        keypadDragState = {
-            keypad,
-            offsetX: e.clientX - rect.left,
-            offsetY: e.clientY - rect.top,
-        };
-        head.setPointerCapture(e.pointerId);
+        startKeypadDrag(keypad, e.clientX, e.clientY);
+        try { head.setPointerCapture(e.pointerId); } catch (err) {}
+        e.preventDefault();
+    });
+    head.addEventListener('mousedown', e => {
+        if (e.target.closest('button')) return;
+        startKeypadDrag(head.closest('.numeric-keypad'), e.clientX, e.clientY);
         e.preventDefault();
     });
 });
 
+window.addEventListener('pointermove', e => {
+    if (!keypadDragState) return;
+    moveKeypadDrag(e.clientX, e.clientY);
+    e.preventDefault();
+});
 document.addEventListener('pointermove', e => {
     if (!keypadDragState) return;
-    const {keypad, offsetX, offsetY} = keypadDragState;
-    const maxLeft = Math.max(8, window.innerWidth - keypad.offsetWidth - 8);
-    const maxTop = Math.max(8, window.innerHeight - keypad.offsetHeight - 8);
-    const left = Math.min(Math.max(8, e.clientX - offsetX), maxLeft);
-    const top = Math.min(Math.max(8, e.clientY - offsetY), maxTop);
-    keypad.style.left = left + 'px';
-    keypad.style.top = top + 'px';
-});
+    moveKeypadDrag(e.clientX, e.clientY);
+    e.preventDefault();
+}, true);
 
-document.addEventListener('pointerup', () => {
-    if (!keypadDragState) return;
-    keypadDragState.keypad.classList.remove('dragging');
-    keypadDragState = null;
+window.addEventListener('pointerup', () => {
+    stopKeypadDrag();
 });
+document.addEventListener('pointerup', stopKeypadDrag, true);
+
+window.addEventListener('mousemove', e => {
+    if (!keypadDragState) return;
+    moveKeypadDrag(e.clientX, e.clientY);
+    e.preventDefault();
+});
+document.addEventListener('mousemove', e => {
+    if (!keypadDragState) return;
+    moveKeypadDrag(e.clientX, e.clientY);
+    e.preventDefault();
+}, true);
+
+window.addEventListener('mouseup', () => {
+    stopKeypadDrag();
+});
+document.addEventListener('mouseup', stopKeypadDrag, true);
 
 function onModeBtn() {
     const isDev = document.getElementById('modeBtn')
@@ -1060,6 +1112,13 @@ fetch('/state').then(r => r.json()).then(applyState);
     outline: none; border-color: #4a7c59;
     box-shadow: 0 0 0 2px rgba(74,124,89,.2);
 }
+.mov-field-inline { display: flex; gap: 6px; align-items: center; }
+.mov-field-inline input { flex: 1; min-width: 0; }
+.mov-auto-clear {
+    display: none; width: 28px; height: 28px; border: none; border-radius: 7px;
+    background: #d9534f; color: white; font-weight: bold; cursor: pointer;
+}
+.mov-auto-clear.visible { display: inline-flex; align-items: center; justify-content: center; }
 
 /* Gráficos por secção */
 .mov-grafico-pair {
@@ -1227,8 +1286,8 @@ fetch('/state').then(r => r.json()).then(applyState);
           <div class="mov-fields">
             <div class="mov-field"><label>Semi-eixo maior (a)</label><input type="number" step="0.1" id="c1_a"></div>
             <div class="mov-field"><label>Semi-eixo menor (b)</label><input type="number" step="0.1" id="c1_b"></div>
-            <div class="mov-field"><label>Centro X (xc)</label><input type="number" step="0.1" id="c1_xc"></div>
-            <div class="mov-field"><label>Centro Y (yc)</label><input type="number" step="0.1" id="c1_yc"></div>
+            <div class="mov-field"><label>Centro X (xc)</label><div class="mov-field-inline"><input type="number" step="0.1" id="c1_xc"><button class="mov-auto-clear" id="c1_xc_auto_clear" type="button" onclick="movResetAutoCenter('xc')">X</button></div></div>
+            <div class="mov-field"><label>Centro Y (yc)</label><div class="mov-field-inline"><input type="number" step="0.1" id="c1_yc"><button class="mov-auto-clear" id="c1_yc_auto_clear" type="button" onclick="movResetAutoCenter('yc')">X</button></div></div>
             <div class="mov-field"><label>Rotação α (°)</label><input type="number" step="1" id="c1_alpha_deg"></div>
             <div class="mov-field"><label>Nº pontos</label><input type="number" step="1" min="2" id="c1_n_pontos"></div>
             <div class="mov-field"><label>Sentido</label>
@@ -1394,6 +1453,8 @@ let _movDirtyGroups = {};
 let _movPointDirty = {};
 let _movDirtyLevels = {};
 let _movConfigLoaded = false;
+let _movManualCenter = {xc: false, yc: false};
+let _movApplyingAutoCenter = false;
 
 const MOV_CHAVES = ['respiracao', 'batimento', 'tosse', 'vibracao_tosse'];
 const MOV_LABELS = {
@@ -1458,11 +1519,22 @@ document.getElementById('movClientModal').addEventListener('click', function(e) 
 
 document.querySelectorAll('#movDevModal input[type="number"]').forEach(input => {
     input.type = 'text';
-    input.setAttribute('readonly', 'readonly');
-    input.setAttribute('inputmode', 'none');
+    input.setAttribute('inputmode', 'decimal');
     input.addEventListener('focus', () => showNumericKeypad(input, 'movement'));
     input.addEventListener('click', () => showNumericKeypad(input, 'movement'));
-    input.addEventListener('input', movRefreshDirty);
+    input.addEventListener('input', () => {
+        updateKeypadDisplay();
+        if ((input.id === 'c1_xc' || input.id === 'c1_yc') && !_movApplyingAutoCenter) {
+            _movManualCenter[input.id === 'c1_xc' ? 'xc' : 'yc'] = true;
+            movUpdateAutoCenterButtons();
+        }
+        if (['c1_a', 'c1_b', 'c1_alpha_deg', 'c1_n_pontos'].includes(input.id) && !_movApplyingAutoCenter) {
+            movApplyAutoCenters();
+        }
+        movRefreshDirty();
+    });
+    input.addEventListener('keyup', updateKeypadDisplay);
+    input.addEventListener('select', updateKeypadDisplay);
 });
 
 document.querySelectorAll('#movDevModal select').forEach(input => {
@@ -1712,16 +1784,107 @@ function clientMovEnviar() {
     clientMovSetStatus('Envio para o ESP32 ainda não está configurado. Usa Guardar para gravar no ficheiro interno.', '#b8860b');
 }
 
+function clientMovAmpChanged(key) {
+    const def = CLIENT_MOVEMENTS[key];
+    const current = def.readAmp(_clientMovConfig || {});
+    const saved = def.readAmp(_clientMovSaved || {});
+    return !movSameValue(current.x, saved.x) || !movSameValue(current.y, saved.y);
+}
+
+function clientMovApplyCalcResult(res) {
+    if (res.curva1) {
+        _clientMovConfig.curva1 = {...(_clientMovConfig.curva1 || {}), ...res.curva1};
+    }
+    if (res.pontos_c1) {
+        _clientMovConfig.batimento = _clientMovConfig.batimento || {};
+        _clientMovConfig.batimento.pontos_x = res.pontos_c1.x || [];
+        _clientMovConfig.batimento.pontos_y = res.pontos_c1.y || [];
+        _clientMovConfig.batimento.pontos_z = res.pontos_c1.z || [];
+    }
+    if (res.pontos_c2) {
+        _clientMovConfig.respiracao = _clientMovConfig.respiracao || {};
+        _clientMovConfig.respiracao.pontos_x = res.pontos_c2.x || [];
+        _clientMovConfig.respiracao.pontos_y = res.pontos_c2.y || [];
+        _clientMovConfig.respiracao.pontos_z = res.pontos_c2.z || [];
+    }
+    if (res.pontos_c3) {
+        _clientMovConfig.vibracao_tosse = _clientMovConfig.vibracao_tosse || {};
+        _clientMovConfig.vibracao_tosse.pontos_x = res.pontos_c3.x || [];
+        _clientMovConfig.vibracao_tosse.pontos_y = res.pontos_c3.y || [];
+        _clientMovConfig.vibracao_tosse.pontos_z = res.pontos_c3.z || [];
+    }
+}
+
+function clientMovEnviar(sendAll=false) {
+    clientMovReadFieldsIntoConfig();
+    clientMovRefreshDirty();
+
+    const hasDirty = Object.values(_clientMovDirty).some(Boolean);
+    if (!sendAll && !hasDirty) {
+        openMovSendAllDialog(() => clientMovEnviar(true));
+        return;
+    }
+
+    const coordKeys = {};
+    Object.keys(CLIENT_MOVEMENTS).forEach(key => {
+        const movKey = CLIENT_MOVEMENTS[key].movKey;
+        coordKeys[movKey] = sendAll || clientMovAmpChanged(key);
+    });
+
+    const afterCalc = () => {
+        const commands = movBuildCommandsFromConfig(_clientMovConfig, _clientMovSaved, sendAll, coordKeys);
+        if (!commands.length) {
+            clientMovSetStatus('Nenhum comando para enviar.', '#b8860b');
+            return;
+        }
+        clientMovSetStatus(`A enviar ${commands.length} comando(s)...`, '#b8860b');
+        fetch('/movements/send_to_esp', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({commands}),
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (!res.ok) {
+                clientMovSetStatus('Erro no envio: ' + ((res.errors || [res.error || 'desconhecido']).join(', ')), '#d9534f');
+                return;
+            }
+            clientMovSetStatus(`Enviado para o ESP32 (${(res.sent || []).length} comando(s)).`, '#28a745');
+        })
+        .catch(() => clientMovSetStatus('Erro de comunicação ao enviar.', '#d9534f'));
+    };
+
+    if (Object.values(coordKeys).some(Boolean)) {
+        clientMovSetStatus('A recalcular coordenadas antes de enviar...', '#b8860b');
+        fetch('/movements/calcular', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(_clientMovConfig),
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (!res.ok) throw new Error(res.error || 'Erro ao calcular.');
+            clientMovApplyCalcResult(res);
+            afterCalc();
+        })
+        .catch(() => clientMovSetStatus('Erro ao recalcular antes do envio.', '#d9534f'));
+    } else {
+        afterCalc();
+    }
+}
+
 document.querySelectorAll('#movClientModal input[type="number"]').forEach(input => {
     input.type = 'text';
-    input.setAttribute('readonly', 'readonly');
-    input.setAttribute('inputmode', 'none');
+    input.setAttribute('inputmode', 'decimal');
     input.addEventListener('focus', () => showNumericKeypad(input, 'clientMovement'));
     input.addEventListener('click', () => showNumericKeypad(input, 'clientMovement'));
     input.addEventListener('input', () => {
+        updateKeypadDisplay();
         clientMovRefreshDirty();
         clientMovScheduleDraftSave();
     });
+    input.addEventListener('keyup', updateKeypadDisplay);
+    input.addEventListener('select', updateKeypadDisplay);
 });
 
 function movSetStatus(msg, cor) {
@@ -1859,6 +2022,47 @@ function movDevSelect(key) {
     movRefreshDirty();
 }
 
+function movAutoCenterValues() {
+    const a = Number(String(document.getElementById('c1_a')?.value || 0).replace(',', '.')) || 0;
+    const b = Number(String(document.getElementById('c1_b')?.value || 0).replace(',', '.')) || 0;
+    const alphaDeg = Number(String(document.getElementById('c1_alpha_deg')?.value || 0).replace(',', '.')) || 0;
+    const alpha = alphaDeg * Math.PI / 180;
+    const apices = [Math.PI];
+    if (b > a) apices[0] = Math.PI * 1.5;
+    const u = apices[0];
+    const baseX = a * Math.cos(u) * Math.cos(alpha) - b * Math.sin(u) * Math.sin(alpha);
+    const baseY = a * Math.cos(u) * Math.sin(alpha) + b * Math.sin(u) * Math.cos(alpha);
+    return {xc: -baseX, yc: -baseY};
+}
+
+function movSetCenterValue(field, value) {
+    const el = document.getElementById(`c1_${field}`);
+    if (!el) return;
+    el.value = movFormatValue(value, 3);
+    el.dispatchEvent(new Event('input', {bubbles: true}));
+}
+
+function movUpdateAutoCenterButtons() {
+    ['xc', 'yc'].forEach(field => {
+        document.getElementById(`c1_${field}_auto_clear`)?.classList.toggle('visible', !!_movManualCenter[field]);
+    });
+}
+
+function movApplyAutoCenters() {
+    const values = movAutoCenterValues();
+    _movApplyingAutoCenter = true;
+    if (!_movManualCenter.xc) movSetCenterValue('xc', values.xc);
+    if (!_movManualCenter.yc) movSetCenterValue('yc', values.yc);
+    _movApplyingAutoCenter = false;
+    movUpdateAutoCenterButtons();
+}
+
+function movResetAutoCenter(field) {
+    _movManualCenter[field] = false;
+    movApplyAutoCenters();
+    movRefreshDirty();
+}
+
 function movCarregarConfig() {
     movSetStatus('A carregar...', '#888');
     fetch('/movements/config')
@@ -1870,6 +2074,11 @@ function movCarregarConfig() {
             _movConfigLoaded = true;
             movPreencherCampos(config);
             movCriarSeccoesMovimentos(config);
+            _movManualCenter = {
+                xc: !!config.curva1?.xc_manual,
+                yc: !!config.curva1?.yc_manual,
+            };
+            movApplyAutoCenters();
             movDevSelect(_movDevActive);
             movCalcular();
             movSetStatus('Configurações carregadas.', '#28a745');
@@ -1924,6 +2133,8 @@ function movLerCampos() {
             a: num('c1_a'), b: num('c1_b'), xc: num('c1_xc'), yc: num('c1_yc'),
             alpha_deg: num('c1_alpha_deg'), n_pontos: int('c1_n_pontos'),
             sentido: str('c1_sentido'),
+            xc_manual: !!_movManualCenter.xc,
+            yc_manual: !!_movManualCenter.yc,
         },
         curva2: {
             altura: num('c2_altura'), largura: num('c2_largura'),
@@ -1959,6 +2170,7 @@ function movMergeCurrentFieldsIntoConfig(base) {
 
 function movCalcular(options={}) {
     const silent = !!options.silent;
+    movApplyAutoCenters();
     if (!silent) movSetStatus('A calcular...', '#b8860b');
 
     // mostra "a calcular" em todos os placeholders
@@ -1995,6 +2207,13 @@ function movCalcular(options={}) {
         if (res.pontos_c2) _movAtualizarPontos('tosse',          res.pontos_c2);
 
         _movConfig = movMergeCurrentFieldsIntoConfig(_movConfig);
+        if (res.curva1) {
+            _movConfig.curva1 = {...(_movConfig.curva1 || {}), ...res.curva1};
+            _movApplyingAutoCenter = true;
+            if (!_movManualCenter.xc) movSetCenterValue('xc', _movConfig.curva1.xc);
+            if (!_movManualCenter.yc) movSetCenterValue('yc', _movConfig.curva1.yc);
+            _movApplyingAutoCenter = false;
+        }
         if (res.pontos_c1) {
             _movConfig.batimento = _movConfig.batimento || {};
             _movConfig.batimento.pontos_x = res.pontos_c1.x || [];
@@ -2078,6 +2297,11 @@ function movRecarregarESP() {
                 _movSentConfig = cloneConfig(_movConfig);
                 movPreencherCampos(_movConfig);
                 movCriarSeccoesMovimentos(_movConfig);
+                _movManualCenter = {
+                    xc: !!_movConfig.curva1?.xc_manual,
+                    yc: !!_movConfig.curva1?.yc_manual,
+                };
+                movApplyAutoCenters();
                 movDevSelect(_movDevActive);
                 movSetStatus('Dados do ESP32 carregados ✓', '#28a745');
             } else {
@@ -2102,14 +2326,15 @@ function movScalarCommand(mode, tag, value, isInt=false) {
     return `W${mode}${tag}[${text}];`;
 }
 
-function movBuildCommands(sendAll=false) {
-    const cfg = cloneConfig(_movConfig || {});
+function movBuildCommandsFromConfig(cfg, sentCfg, sendAll=false, coordKeys={}) {
+    cfg = cloneConfig(cfg || {});
+    sentCfg = sentCfg || {};
     const commands = [];
 
     Object.entries(MOV_DEV_SEND).forEach(([key, def]) => {
         const mov = cfg[key] || {};
-        const sentMov = (_movSentConfig || {})[key] || {};
-        const sendCoords = sendAll || movCurveRedForMovement(key);
+        const sentMov = (sentCfg || {})[key] || {};
+        const sendCoords = sendAll || !!coordKeys[key];
 
         if (sendCoords) {
             const xs = mov.pontos_x || [];
@@ -2133,18 +2358,30 @@ function movBuildCommands(sendAll=false) {
     return commands;
 }
 
-function openMovSendAllDialog() {
+function movBuildCommands(sendAll=false) {
+    const coordKeys = {};
+    Object.keys(MOV_DEV_SEND).forEach(key => {
+        coordKeys[key] = movCurveRedForMovement(key);
+    });
+    return movBuildCommandsFromConfig(_movConfig, _movSentConfig, sendAll, coordKeys);
+}
+
+function openMovSendAllDialog(onConfirm) {
+    pendingMovSendAllAction = onConfirm || null;
     document.getElementById('movSendAllModal').style.display = 'flex';
 }
 
 function closeMovSendAllDialog() {
+    pendingMovSendAllAction = null;
     document.getElementById('movSendAllModal').style.display = 'none';
     movSetStatus('Envio cancelado.', '#777');
 }
 
 function confirmMovSendAll() {
     document.getElementById('movSendAllModal').style.display = 'none';
-    movEnviar(true);
+    const action = pendingMovSendAllAction;
+    pendingMovSendAllAction = null;
+    if (typeof action === 'function') action();
 }
 
 function movEnviar(sendAll=false) {
@@ -2153,7 +2390,7 @@ function movEnviar(sendAll=false) {
 
     const hasDirty = Object.values(_movDirtyLevels).some(level => level === 'red');
     if (!sendAll && !hasDirty) {
-        openMovSendAllDialog();
+        openMovSendAllDialog(() => movEnviar(true));
         return;
     }
 

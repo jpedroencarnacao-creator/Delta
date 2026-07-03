@@ -947,6 +947,13 @@ def route_movements_calcular():
         params_c3 = {**config.get('curva3', {}), **data.get('curva3', {})}
 
         resultado = cm.gerar_graficos(params_c1, params_c2, params_c3)
+        config['curva1'] = {**config.get('curva1', {}), **params_c1}
+        if not params_c1.get('xc_manual', False) or not params_c1.get('yc_manual', False):
+            auto_xc, auto_yc = cm.calcular_centro_auto_curva1(params_c1)
+            if not params_c1.get('xc_manual', False):
+                config['curva1']['xc'] = auto_xc
+            if not params_c1.get('yc_manual', False):
+                config['curva1']['yc'] = auto_yc
 
         # guarda os pontos calculados nas configurações dos movimentos
         config['respiracao']['pontos_x'] = resultado['pontos_c2']['x']
@@ -966,6 +973,7 @@ def route_movements_calcular():
 
         return jsonify({'ok': True,
                         'graficos':  resultado['graficos'],
+                        'curva1':    config['curva1'],
                         'pontos_c1': resultado['pontos_c1'],
                         'pontos_c2': resultado['pontos_c2'],
                         'pontos_c3': resultado['pontos_c3']})

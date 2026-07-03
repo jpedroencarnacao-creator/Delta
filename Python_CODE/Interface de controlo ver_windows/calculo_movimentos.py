@@ -58,6 +58,16 @@ DEFAULTS_CURVA3 = {
 # FUNÇÕES DE CÁLCULO
 # ===========================================================================
 
+def calcular_centro_auto_curva1(params=None):
+    """Calcula o centro que coloca o apice principal da elipse em X=0, Y=0."""
+    p = {**DEFAULTS_CURVA1, **(params or {})}
+    alpha = np.radians(p['alpha_deg'])
+    u = np.pi if p['a'] >= p['b'] else 1.5 * np.pi
+    base_x = p['a'] * np.cos(u) * np.cos(alpha) - p['b'] * np.sin(u) * np.sin(alpha)
+    base_y = p['a'] * np.cos(u) * np.sin(alpha) + p['b'] * np.sin(u) * np.cos(alpha)
+    return -base_x, -base_y
+
+
 def calcular_curva1(params=None):
     """Curva 1: elipse rotacionada no plano XY.
     Devolve (x_curva, y_curva, x_pontos, y_pontos)."""
@@ -76,7 +86,9 @@ def calcular_curva1(params=None):
     x_pontos, y_pontos = elipse(u_pontos)
 
     # ponto de início = o mais próximo da origem
-    idx = np.argmin(x_pontos ** 2 + y_pontos ** 2)
+    n_pontos = len(x_pontos)
+    apex_candidates = [0, int(round(n_pontos / 2)) % n_pontos]
+    idx = min(apex_candidates, key=lambda i: x_pontos[i] ** 2 + y_pontos[i] ** 2)
     x_pontos = np.roll(x_pontos, -idx)
     y_pontos = np.roll(y_pontos, -idx)
 
@@ -212,6 +224,12 @@ def gerar_graficos(params_c1=None, params_c2=None, params_c3=None):
     p1 = {**DEFAULTS_CURVA1, **(params_c1 or {})}
     p2 = {**DEFAULTS_CURVA2, **(params_c2 or {})}
     p3 = {**DEFAULTS_CURVA3, **(params_c3 or {})}
+    if not p1.get('xc_manual', False) or not p1.get('yc_manual', False):
+        auto_xc, auto_yc = calcular_centro_auto_curva1(p1)
+        if not p1.get('xc_manual', False):
+            p1['xc'] = auto_xc
+        if not p1.get('yc_manual', False):
+            p1['yc'] = auto_yc
 
     # --- calcular curvas ---
     x_c1, y_c1, xp1, yp1   = calcular_curva1(p1)

@@ -325,8 +325,18 @@ def serial_writer():
         serial_tx_queue.task_done()
 
 
+def _command_with_terminator(command):
+    command = str(command).strip()
+    if not command:
+        return ''
+    return command if command.endswith(';') else f'{command};'
+
+
 def send_serial(command):
     """Envia um comando ao ESP32 e regista-o no histórico."""
+    command = _command_with_terminator(command)
+    if not command:
+        return
     serial_tx_queue.put(command)
     append_history(f'PI4B: {command}')
 
@@ -652,19 +662,40 @@ def _send_and_wait(command, timeout=6.0):
             except queue.Empty:
                 break
 
-        if _ser and _ser.is_open:
+        command = _command_with_terminator(command)
+        if _ser and _ser.is_open and command:
             _ser.write(command.encode('utf-8'))
 
         deadline = time.time() + timeout
         while time.time() < deadline:
             line = _serial_read_response(timeout=0.5)
             if line is None:
-                break
+                continue
             lines.append(line)
             if 'Escolha um comando:' in line or line.strip() == '':
                 break
 
     return lines
+
+
+def send_serial_sequence(commands, timeout=8.0):
+    """Envia comandos em sequencia e espera pelo prompt do ESP32 entre eles."""
+    if serial_status['stage'] != 'connected':
+        return False, ['ESP32 nao esta ligado.']
+
+    errors = []
+    sent = []
+    for command in commands:
+        command = _command_with_terminator(command)
+        if not command:
+            continue
+        append_history(f'PI4B: {command}')
+        lines = _send_and_wait(command, timeout=timeout)
+        sent.append(command)
+        if not lines:
+            errors.append(f'Sem resposta para {command}')
+
+    return len(errors) == 0, errors if errors else sent
 
 
 # ===========================================================================
@@ -899,7 +930,7 @@ def route_movements_reload():
     ]
 
     for cmd, chave in comandos:
-        append_history(f'PI4B: {cmd}')
+        append_history(f'PI4B: {_command_with_terminator(cmd)}')
         linhas = _send_and_wait(cmd, timeout=6.0)
 
         if not linhas:
@@ -955,6 +986,20 @@ def route_movements_reload():
     })
 
 
+@app.route('/movements/send_to_esp', methods=['POST'])
+def route_movements_send_to_esp():
+    """Envia comandos W... para atualizar parametros dos movimentos no ESP32."""
+    data = request.get_json(force=True, silent=True) or {}
+    commands = data.get('commands') or []
+    if not isinstance(commands, list) or not commands:
+        return jsonify({'ok': False, 'error': 'Nenhum comando para enviar.'}), 400
+
+    ok, result = send_serial_sequence(commands, timeout=8.0)
+    if not ok:
+        return jsonify({'ok': False, 'errors': result}), 400
+    return jsonify({'ok': True, 'sent': result})
+
+
 @app.route('/movements/calcular', methods=['POST'])
 def route_movements_calcular():
     """Executa o calculo_movimentos.py com os parâmetros atuais e
@@ -969,6 +1014,13 @@ def route_movements_calcular():
         params_c3 = {**config.get('curva3', {}), **data.get('curva3', {})}
 
         resultado = cm.gerar_graficos(params_c1, params_c2, params_c3)
+        config['curva1'] = {**config.get('curva1', {}), **params_c1}
+        if not params_c1.get('xc_manual', False) or not params_c1.get('yc_manual', False):
+            auto_xc, auto_yc = cm.calcular_centro_auto_curva1(params_c1)
+            if not params_c1.get('xc_manual', False):
+                config['curva1']['xc'] = auto_xc
+            if not params_c1.get('yc_manual', False):
+                config['curva1']['yc'] = auto_yc
 
         # guarda os pontos calculados nas configurações dos movimentos
         config['respiracao']['pontos_x'] = resultado['pontos_c2']['x']
@@ -988,6 +1040,7 @@ def route_movements_calcular():
 
         return jsonify({'ok': True,
                         'graficos':  resultado['graficos'],
+                        'curva1':    config['curva1'],
                         'pontos_c1': resultado['pontos_c1'],
                         'pontos_c2': resultado['pontos_c2'],
                         'pontos_c3': resultado['pontos_c3']})

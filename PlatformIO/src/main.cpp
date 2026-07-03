@@ -62,8 +62,8 @@ Manipulador_Config delta_1_Cfg = {
     .servo2MinPulse = 550,
     .servo2MaxPulse = 2550,
 
-    .servo3MinPulse = 560,
-    .servo3MaxPulse = 2560,
+    .servo3MinPulse = 600,
+    .servo3MaxPulse = 2600,
 
     // estado atual (pulsos gerados pela IK)
     .servo1Pulse = 0,
@@ -86,8 +86,8 @@ Manipulador_Config delta_2_Cfg = {
     //Servo_1 -> thetta3
     //Servo_2 -> thetta1
     //Servo_3 -> thetta2
-    .servo1MinPulse = 460,
-    .servo1MaxPulse = 2460,
+    .servo1MinPulse = 490,
+    .servo1MaxPulse = 2490, //2460
 
     .servo2MinPulse = 470,
     .servo2MaxPulse = 2470,
@@ -1708,10 +1708,12 @@ void move_servos(const Manipulador_Config& d1, const Manipulador_Config& d2){
     mg90s_1.writeMicroseconds(d1.servo1Pulse);
     mg90s_2.writeMicroseconds(d1.servo2Pulse);
     mg90s_3.writeMicroseconds(d1.servo3Pulse);
+    //mg90s_3.writeMicroseconds(600);
 
     mg90s_4.writeMicroseconds(d2.servo1Pulse);
     mg90s_5.writeMicroseconds(d2.servo2Pulse);
     mg90s_6.writeMicroseconds(d2.servo3Pulse);
+    //mg90s_4.writeMicroseconds(2490);
 }
 
 

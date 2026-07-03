@@ -128,8 +128,8 @@ body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text)
     width: min(760px, calc(100vw - 28px)); z-index: 1600;
 }
 .numeric-keypad.side {
-    position: absolute; top: 14px; right: 14px;
-    width: min(280px, calc(100% - 28px)); z-index: 10;
+    position: fixed; top: 110px; right: 36px;
+    width: min(280px, calc(100vw - 28px)); z-index: 3600;
 }
 .numeric-keypad.client-inline {
     position: fixed; left: 24px; top: 50%; transform: translateY(-50%);
@@ -140,7 +140,9 @@ body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text)
 .keypad-head {
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
     font-size: 13px; font-weight: bold; color: #4a4a4a;
+    cursor: grab; user-select: none; touch-action: none;
 }
+.numeric-keypad.dragging .keypad-head { cursor: grabbing; }
 .keypad-close {
     border: none; border-radius: 7px; padding: 7px 10px; cursor: pointer;
     background: #6c757d; color: white; font-weight: bold;
@@ -358,10 +360,10 @@ hr { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
     <h3 style="margin-bottom:8px">Acesso DEV</h3>
     <p>Introduza a password DEV:</p>
     <input id="passwordInput" type="password" placeholder="Password"
-           inputmode="none" autocomplete="current-password" readonly>
+           autocomplete="current-password">
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px">
-      <button class="btn-ctrl gray" onclick="document.getElementById('passwordModal').style.display='none'; hideNumericKeypad()">Cancelar</button>
-      <button class="btn-ctrl blue" onclick="confirmPassword()">Entrar</button>
+      <button class="btn-ctrl gray" onclick="document.getElementById('passwordModal').style.display='none'; hideNumericKeypad()" onpointerdown="event.stopPropagation()" onmousedown="event.stopPropagation()">Cancelar</button>
+      <button class="btn-ctrl blue" onclick="confirmPassword()" onpointerdown="event.stopPropagation()" onmousedown="event.stopPropagation()">Entrar</button>
     </div>
   </div>
 </div>
@@ -418,7 +420,7 @@ hr { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
     <button class="keypad-key danger wide" type="button" onclick="keypadClear()">Limpar</button>
     <button class="keypad-key space" type="button" onclick="keypadPress(' ')">Espaço</button>
     <button class="keypad-key" type="button" onclick="keypadPress('.')">.</button>
-    <button class="keypad-key ok wide" type="button" onclick="confirmPassword()">OK</button>
+    <button class="keypad-key ok wide" type="button" onclick="confirmPassword()" onpointerdown="event.stopPropagation()" onmousedown="event.stopPropagation()">OK</button>
   </div>
 </div>
 
@@ -431,6 +433,20 @@ hr { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
       <div style="display:flex; justify-content:space-between; gap:80px; margin-top:22px">
         <button class="btn-ctrl dark" style="min-width:130px; padding:12px 26px" onclick="closeShutdownDialog()">Não</button>
         <button class="btn-ctrl danger" style="min-width:130px; padding:12px 26px" onclick="confirmShutdown()">Sim</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Confirmar envio de todos os parâmetros -->
+<div class="modal-overlay" id="movSendAllModal" style="z-index:4200" onclick="if(event.target.id==='movSendAllModal') closeMovSendAllDialog()">
+  <div class="modal-card" style="width:460px; padding:0; display:flow-root">
+    <div style="margin:10px">
+      <h3 style="margin-bottom:12px; text-align:center">Enviar parâmetros</h3>
+      <p style="text-align:center">Não existem alterações novas para enviar. Queres enviar todos os parâmetros para o ESP32?</p>
+      <div style="display:flex; justify-content:space-between; gap:60px; margin-top:22px">
+        <button class="btn-ctrl dark" style="min-width:130px; padding:12px 26px" onclick="closeMovSendAllDialog()">Não</button>
+        <button class="btn-ctrl blue" style="min-width:130px; padding:12px 26px" onclick="confirmMovSendAll()">Sim</button>
       </div>
     </div>
   </div>
@@ -521,7 +537,7 @@ function applyState(s) {
     // histórico serial
     const mon = document.getElementById('serialMonitor');
     if (mon) {
-        const tail = (s.history_tail || []).join('\\n');
+        const tail = (s.history_tail || []).join(String.fromCharCode(10));
         if (mon.value !== tail) {
             mon.value = tail;
             if (window.autoScroll) mon.scrollTop = mon.scrollHeight;
@@ -605,6 +621,44 @@ function closeWindowAfterShutdown() {
 
 let activeKeypadInput = null;
 let activeKeypadKind = null;
+let keypadDragState = null;
+let pendingMovSendAllAction = null;
+
+function startKeypadDrag(keypad, clientX, clientY) {
+    if (!keypad) return;
+    const rect = keypad.getBoundingClientRect();
+    keypad.classList.add('dragging');
+    keypad.style.position = 'fixed';
+    keypad.style.left = rect.left + 'px';
+    keypad.style.top = rect.top + 'px';
+    keypad.style.right = 'auto';
+    keypad.style.bottom = 'auto';
+    keypad.style.transform = 'none';
+    keypadDragState = {
+        keypad,
+        offsetX: clientX - rect.left,
+        offsetY: clientY - rect.top,
+    };
+}
+
+function moveKeypadDrag(clientX, clientY) {
+    if (!keypadDragState) return;
+    const {keypad, offsetX, offsetY} = keypadDragState;
+    const minLeft = -keypad.offsetWidth + 48;
+    const minTop = 0;
+    const maxLeft = window.innerWidth - 48;
+    const maxTop = window.innerHeight - 48;
+    const left = Math.min(Math.max(minLeft, clientX - offsetX), maxLeft);
+    const top = Math.min(Math.max(minTop, clientY - offsetY), maxTop);
+    keypad.style.left = left + 'px';
+    keypad.style.top = top + 'px';
+}
+
+function stopKeypadDrag() {
+    if (!keypadDragState) return;
+    keypadDragState.keypad.classList.remove('dragging');
+    keypadDragState = null;
+}
 
 function keypadDisplayEl() {
     if (activeKeypadKind === 'password') return document.getElementById('passwordKeypadDisplay');
@@ -632,13 +686,25 @@ function updateKeypadDisplay() {
 }
 
 function showNumericKeypad(input, kind) {
+    const sameInput = activeKeypadInput === input && activeKeypadKind === kind;
     activeKeypadInput = input;
     activeKeypadKind = kind;
     if (typeof input.focus === 'function') input.focus({preventScroll: true});
+    if ((kind === 'movement' || kind === 'clientMovement') && !sameInput) {
+        setTimeout(() => {
+            try { input.select(); } catch (e) {}
+        }, 0);
+    }
     document.getElementById('passwordKeypad').classList.toggle('visible', kind === 'password');
     document.getElementById('movementKeypad').classList.toggle('visible', kind === 'movement');
     document.getElementById('clientMovementKeypad').classList.toggle('visible', kind === 'clientMovement');
     document.getElementById('passwordModal').classList.toggle('keyboard-open', kind === 'password');
+    const keypad = kind === 'movement'
+        ? document.getElementById('movementKeypad')
+        : (kind === 'clientMovement' ? document.getElementById('clientMovementKeypad') : document.getElementById('passwordKeypad'));
+    if (keypad && keypad.parentElement !== document.body) {
+        document.body.appendChild(keypad);
+    }
 
     if (kind === 'movement' || kind === 'clientMovement') {
         const label = input.closest('.mov-field, .client-mov-field')?.querySelector('label')?.textContent || 'Valor numérico';
@@ -659,12 +725,20 @@ function hideNumericKeypad() {
 
 function keypadPress(value) {
     if (!activeKeypadInput) return;
-    let current = activeKeypadInput.value || '';
-    if (activeKeypadKind === 'movement' || activeKeypadKind === 'clientMovement') {
-        if (value === '.' && current.includes('.')) return;
-        if (value === '-' && (current.includes('-') || current.length > 0)) return;
+    if ((activeKeypadKind === 'movement' || activeKeypadKind === 'clientMovement') && value === ',') {
+        value = '.';
     }
-    activeKeypadInput.value = current + value;
+    let current = activeKeypadInput.value || '';
+    const start = activeKeypadInput.selectionStart ?? current.length;
+    const end = activeKeypadInput.selectionEnd ?? current.length;
+    if (activeKeypadKind === 'movement' || activeKeypadKind === 'clientMovement') {
+        const selectedText = current.slice(start, end);
+        if (value === '.' && current.includes('.') && !selectedText.includes('.')) return;
+        if (value === '-' && (start !== 0 || (current.includes('-') && !selectedText.includes('-')))) return;
+    }
+    activeKeypadInput.value = current.slice(0, start) + value + current.slice(end);
+    const cursor = start + value.length;
+    try { activeKeypadInput.setSelectionRange(cursor, cursor); } catch (e) {}
     activeKeypadInput.dispatchEvent(new Event('input', {bubbles: true}));
     updateKeypadDisplay();
 }
@@ -673,16 +747,29 @@ function keypadCanAccept(value) {
     if (!activeKeypadInput) return false;
     if (activeKeypadKind === 'movement' || activeKeypadKind === 'clientMovement') {
         const current = activeKeypadInput.value || '';
+        if (value === ',') value = '.';
         if (!/^[0-9.\-]$/.test(value)) return false;
-        if (value === '.' && current.includes('.')) return false;
-        if (value === '-' && (current.includes('-') || current.length > 0)) return false;
+        const start = activeKeypadInput.selectionStart ?? current.length;
+        const end = activeKeypadInput.selectionEnd ?? current.length;
+        const selectedText = current.slice(start, end);
+        if (value === '.' && current.includes('.') && !selectedText.includes('.')) return false;
+        if (value === '-' && (start !== 0 || (current.includes('-') && !selectedText.includes('-')))) return false;
     }
     return value.length === 1;
 }
 
 function keypadBackspace() {
     if (!activeKeypadInput) return;
-    activeKeypadInput.value = activeKeypadInput.value.slice(0, -1);
+    const current = activeKeypadInput.value || '';
+    const start = activeKeypadInput.selectionStart ?? current.length;
+    const end = activeKeypadInput.selectionEnd ?? current.length;
+    if (start !== end) {
+        activeKeypadInput.value = current.slice(0, start) + current.slice(end);
+        try { activeKeypadInput.setSelectionRange(start, start); } catch (e) {}
+    } else if (start > 0) {
+        activeKeypadInput.value = current.slice(0, start - 1) + current.slice(end);
+        try { activeKeypadInput.setSelectionRange(start - 1, start - 1); } catch (e) {}
+    }
     activeKeypadInput.dispatchEvent(new Event('input', {bubbles: true}));
     updateKeypadDisplay();
 }
@@ -729,9 +816,58 @@ document.addEventListener('pointerdown', function(e) {
     if (!activeKeypadKind) return;
     const visibleKeypad = document.querySelector('.numeric-keypad.visible');
     if (!visibleKeypad) return;
+    if (e.target.closest('.keypad-head') && !e.target.closest('button')) return;
     const clickedInput = activeKeypadInput && activeKeypadInput.contains(e.target);
     if (!visibleKeypad.contains(e.target) && !clickedInput) hideNumericKeypad();
 });
+
+document.querySelectorAll('.numeric-keypad .keypad-head').forEach(head => {
+    head.addEventListener('pointerdown', e => {
+        if (e.target.closest('button')) return;
+        const keypad = head.closest('.numeric-keypad');
+        if (!keypad) return;
+        startKeypadDrag(keypad, e.clientX, e.clientY);
+        try { head.setPointerCapture(e.pointerId); } catch (err) {}
+        e.preventDefault();
+    });
+    head.addEventListener('mousedown', e => {
+        if (e.target.closest('button')) return;
+        startKeypadDrag(head.closest('.numeric-keypad'), e.clientX, e.clientY);
+        e.preventDefault();
+    });
+});
+
+window.addEventListener('pointermove', e => {
+    if (!keypadDragState) return;
+    moveKeypadDrag(e.clientX, e.clientY);
+    e.preventDefault();
+});
+document.addEventListener('pointermove', e => {
+    if (!keypadDragState) return;
+    moveKeypadDrag(e.clientX, e.clientY);
+    e.preventDefault();
+}, true);
+
+window.addEventListener('pointerup', () => {
+    stopKeypadDrag();
+});
+document.addEventListener('pointerup', stopKeypadDrag, true);
+
+window.addEventListener('mousemove', e => {
+    if (!keypadDragState) return;
+    moveKeypadDrag(e.clientX, e.clientY);
+    e.preventDefault();
+});
+document.addEventListener('mousemove', e => {
+    if (!keypadDragState) return;
+    moveKeypadDrag(e.clientX, e.clientY);
+    e.preventDefault();
+}, true);
+
+window.addEventListener('mouseup', () => {
+    stopKeypadDrag();
+});
+document.addEventListener('mouseup', stopKeypadDrag, true);
 
 function onModeBtn() {
     const isDev = document.getElementById('modeBtn')
@@ -900,6 +1036,25 @@ fetch('/state').then(r => r.json()).then(applyState);
 .mov-modal-body {
     flex: 1; display: flex; overflow: hidden; min-height: 0;
 }
+.mov-dev-body {
+    display: grid; grid-template-columns: 180px minmax(0, 1fr) minmax(260px, 1fr);
+}
+.mov-dev-nav {
+    background: #f0f0f0; border-right: 1px solid #ddd; padding: 14px;
+    display: flex; flex-direction: column; gap: 8px;
+}
+.mov-dev-tab {
+    border: 1px solid #cfcfcf; background: white; border-radius: 8px;
+    padding: 12px 10px; text-align: left; font-weight: bold; color: #333;
+    cursor: pointer; position: relative;
+}
+.mov-dev-tab.active { border-color: #4a7c59; background: #e8f3eb; color: #2f5e3d; }
+.mov-dev-tab.dirty::after, .mov-dev-tab.dirty-red::after, .mov-dev-tab.dirty-yellow::after {
+    content: ""; width: 9px; height: 9px; border-radius: 50%;
+    background: #d99a00; position: absolute; right: 10px; top: 13px;
+}
+.mov-dev-tab.dirty-red::after { background: #d9534f; }
+.mov-dev-tab.dirty-yellow::after { background: #d99a00; }
 .mov-col-left {
     flex: 1; overflow-y: auto; padding: 14px 16px;
     display: flex; flex-direction: column; gap: 12px;
@@ -916,6 +1071,28 @@ fetch('/state').then(r => r.json()).then(applyState);
     background: white; border-radius: 10px; border: 1px solid #ddd;
     padding: 12px 16px;
 }
+.mov-section.dirty, .mov-grafico-pair.dirty,
+.mov-section.dirty-yellow, .mov-grafico-pair.dirty-yellow {
+    border-color: #d99a00;
+    box-shadow: 0 0 0 2px rgba(217,154,0,.12);
+}
+.mov-section.dirty-red, .mov-grafico-pair.dirty-red {
+    border-color: #d9534f;
+    box-shadow: 0 0 0 2px rgba(217,83,79,.16);
+}
+.mov-field input.dirty, .mov-field select.dirty,
+.mov-field input.dirty-yellow, .mov-field select.dirty-yellow {
+    border-color: #c98200;
+    box-shadow: 0 0 0 3px rgba(217,154,0,.28);
+    background: #fff4d8;
+}
+.mov-field input.dirty-red, .mov-field select.dirty-red {
+    border-color: #d9534f;
+    box-shadow: 0 0 0 3px rgba(217,83,79,.25);
+    background: #ffe7e5;
+}
+.mov-field.dirty label, .mov-field.dirty-yellow label { color: #9b6500; font-weight: bold; }
+.mov-field.dirty-red label { color: #b02a26; font-weight: bold; }
 .mov-section h3 {
     font-size: 14px; font-weight: bold; margin-bottom: 10px;
     color: #4a7c59; border-bottom: 1px solid #eee; padding-bottom: 6px;
@@ -935,6 +1112,13 @@ fetch('/state').then(r => r.json()).then(applyState);
     outline: none; border-color: #4a7c59;
     box-shadow: 0 0 0 2px rgba(74,124,89,.2);
 }
+.mov-field-inline { display: flex; gap: 6px; align-items: center; }
+.mov-field-inline input { flex: 1; min-width: 0; }
+.mov-auto-clear {
+    display: none; width: 28px; height: 28px; border: none; border-radius: 7px;
+    background: #d9534f; color: white; font-weight: bold; cursor: pointer;
+}
+.mov-auto-clear.visible { display: inline-flex; align-items: center; justify-content: center; }
 
 /* Gráficos por secção */
 .mov-grafico-pair {
@@ -1085,19 +1269,25 @@ fetch('/state').then(r => r.json()).then(applyState);
               style="background:none;border:none;color:white;font-size:22px;cursor:pointer;">✕</button>
     </div>
 
-    <div class="mov-modal-body">
+    <div class="mov-modal-body mov-dev-body">
+
+      <div class="mov-dev-nav">
+        <button class="mov-dev-tab active" data-dev-mov-tab="batimento" onclick="movDevSelect('batimento')">Batimento</button>
+        <button class="mov-dev-tab" data-dev-mov-tab="respiracao" onclick="movDevSelect('respiracao')">Respiração</button>
+        <button class="mov-dev-tab" data-dev-mov-tab="vibracao_tosse" onclick="movDevSelect('vibracao_tosse')">Vibração Tosse</button>
+      </div>
 
       <!-- COLUNA ESQUERDA: configurações -->
       <div class="mov-col-left">
 
         <!-- ── BATIMENTO CARDÍACO (Curva 1 → Elipse) ── -->
-        <div class="mov-section">
+        <div class="mov-section" data-dev-mov="batimento" data-dirty-group="curva1">
           <h3>Curva 1 — Elipse Rotacionada</h3>
           <div class="mov-fields">
             <div class="mov-field"><label>Semi-eixo maior (a)</label><input type="number" step="0.1" id="c1_a"></div>
             <div class="mov-field"><label>Semi-eixo menor (b)</label><input type="number" step="0.1" id="c1_b"></div>
-            <div class="mov-field"><label>Centro X (xc)</label><input type="number" step="0.1" id="c1_xc"></div>
-            <div class="mov-field"><label>Centro Y (yc)</label><input type="number" step="0.1" id="c1_yc"></div>
+            <div class="mov-field"><label>Centro X (xc)</label><div class="mov-field-inline"><input type="number" step="0.1" id="c1_xc"><button class="mov-auto-clear" id="c1_xc_auto_clear" type="button" onclick="movResetAutoCenter('xc')">X</button></div></div>
+            <div class="mov-field"><label>Centro Y (yc)</label><div class="mov-field-inline"><input type="number" step="0.1" id="c1_yc"><button class="mov-auto-clear" id="c1_yc_auto_clear" type="button" onclick="movResetAutoCenter('yc')">X</button></div></div>
             <div class="mov-field"><label>Rotação α (°)</label><input type="number" step="1" id="c1_alpha_deg"></div>
             <div class="mov-field"><label>Nº pontos</label><input type="number" step="1" min="2" id="c1_n_pontos"></div>
             <div class="mov-field"><label>Sentido</label>
@@ -1109,7 +1299,7 @@ fetch('/state').then(r => r.json()).then(applyState);
           </div>
         </div>
 
-        <div class="mov-section">
+        <div class="mov-section" data-dev-mov="batimento" data-dirty-group="batimento">
           <h3>Batimento Cardíaco</h3>
           <div class="mov-fields">
             <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="batimento_periodo"></div>
@@ -1124,7 +1314,7 @@ fetch('/state').then(r => r.json()).then(applyState);
         </div>
 
         <!-- ── RESPIRAÇÃO (Curva 2 → Parábola) ── -->
-        <div class="mov-section">
+        <div class="mov-section" data-dev-mov="respiracao" data-dirty-group="curva2">
           <h3>Curva 2 — Parábola (plano ZX)</h3>
           <div class="mov-fields">
             <div class="mov-field"><label>Altura máx. Z</label><input type="number" step="0.5" id="c2_altura"></div>
@@ -1134,7 +1324,7 @@ fetch('/state').then(r => r.json()).then(applyState);
           </div>
         </div>
 
-        <div class="mov-section">
+        <div class="mov-section" data-dev-mov="respiracao" data-dirty-group="respiracao">
           <h3>Respiração</h3>
           <div class="mov-fields">
             <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="respiracao_periodo"></div>
@@ -1149,7 +1339,7 @@ fetch('/state').then(r => r.json()).then(applyState);
         </div>
 
         <!-- ── TOSSE (Curva 3 → Circunferência + tempos da respiração acelerada) ── -->
-        <div class="mov-section">
+        <div class="mov-section" data-dev-mov="vibracao_tosse" data-dirty-group="curva3">
           <h3>Curva 3 — Circunferência (Vibração da Tosse)</h3>
           <div class="mov-fields">
             <div class="mov-field"><label>Raio</label><input type="number" step="0.1" min="0.1" id="c3_raio"></div>
@@ -1163,7 +1353,7 @@ fetch('/state').then(r => r.json()).then(applyState);
           </div>
         </div>
 
-        <div class="mov-section">
+        <div class="mov-section" data-dev-mov="vibracao_tosse" data-dirty-group="vibracao_tosse">
           <h3>Vibração da Tosse</h3>
           <div class="mov-fields">
             <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="vibracao_tosse_periodo"></div>
@@ -1177,7 +1367,7 @@ fetch('/state').then(r => r.json()).then(applyState);
           <div class="mov-points" id="vibracao_tosse_pts_z"><b>Z:</b> —</div>
         </div>
 
-        <div class="mov-section">
+        <div class="mov-section" data-dev-mov="legacy_tosse" data-dirty-group="tosse">
           <h3>Tosse (respiração acelerada)</h3>
           <div class="mov-fields">
             <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="tosse_periodo"></div>
@@ -1223,17 +1413,17 @@ fetch('/state').then(r => r.json()).then(applyState);
           </div>
         </div>
 
-        <div class="mov-grafico-pair" id="graf_batimento">
+        <div class="mov-grafico-pair" id="graf_batimento" data-dev-mov="batimento">
           <h3>Batimento Cardíaco — 3D e 2D (Curva 1)</h3>
           <div class="mov-grafico-placeholder" id="graf_batimento_ph">A calcular...</div>
         </div>
 
-        <div class="mov-grafico-pair" id="graf_respiracao">
+        <div class="mov-grafico-pair" id="graf_respiracao" data-dev-mov="respiracao">
           <h3>Respiração — 3D e 2D (Curva 2)</h3>
           <div class="mov-grafico-placeholder" id="graf_respiracao_ph">A calcular...</div>
         </div>
 
-        <div class="mov-grafico-pair" id="graf_tosse_vibracao">
+        <div class="mov-grafico-pair" id="graf_tosse_vibracao" data-dev-mov="vibracao_tosse">
           <h3>Tosse / Vibrações — 3D e 2D (Curva 3)</h3>
           <div class="mov-grafico-placeholder" id="graf_tosse_vibracao_ph">A calcular...</div>
         </div>
@@ -1248,6 +1438,7 @@ fetch('/state').then(r => r.json()).then(applyState);
       <button class="btn-ctrl gray" onclick="movRecarregarESP()"
               title="Lê os dados do ESP32 e atualiza as configurações">⬇ Recarregar do ESP32</button>
       <button class="btn-ctrl blue" onclick="movGuardar()">💾 Guardar</button>
+      <button class="btn-ctrl green" onclick="movEnviar()">Enviar</button>
     </div>
 
   </div>
@@ -1255,6 +1446,15 @@ fetch('/state').then(r => r.json()).then(applyState);
 
 <script>
 let _movConfig = {};
+let _movSavedConfig = {};
+let _movSentConfig = {};
+let _movDevActive = 'batimento';
+let _movDirtyGroups = {};
+let _movPointDirty = {};
+let _movDirtyLevels = {};
+let _movConfigLoaded = false;
+let _movManualCenter = {xc: false, yc: false};
+let _movApplyingAutoCenter = false;
 
 const MOV_CHAVES = ['respiracao', 'batimento', 'tosse', 'vibracao_tosse'];
 const MOV_LABELS = {
@@ -1271,11 +1471,30 @@ const MOV_CURVA = {
     tosse:      'c2',
 };
 
+const MOV_DEV_SEND = {
+    respiracao: {mode: 'R', curve: 'curva2', graph: 'graf_respiracao'},
+    batimento: {mode: 'B', curve: 'curva1', graph: 'graf_batimento'},
+    vibracao_tosse: {mode: 'T', curve: 'curva3', graph: 'graf_tosse_vibracao'},
+};
+const MOV_SCALAR_TAGS = {
+    periodo: 'Perid',
+    espera_inicio: 'TPini',
+    espera_fim: 'TPend',
+    ponto_inicio: 'STInd',
+};
+
 function openMovementsModal() {
     const isDev = document.getElementById('modeBtn').classList.contains('dev');
     if (isDev) {
         document.getElementById('movDevModal').style.display = 'flex';
-        movCarregarConfig();
+        if (_movConfigLoaded) {
+            movPreencherCampos(_movConfig);
+            movCriarSeccoesMovimentos(_movConfig);
+            movDevSelect(_movDevActive);
+            movSetStatus('Rascunho atual restaurado.', '#4a7c59');
+        } else {
+            movCarregarConfig();
+        }
     } else {
         document.getElementById('movClientModal').style.display = 'flex';
         clientMovCarregarConfig();
@@ -1283,6 +1502,9 @@ function openMovementsModal() {
 }
 
 function closeMovementsModal() {
+    if (document.getElementById('movDevModal').style.display === 'flex' && _movConfigLoaded) {
+        _movConfig = movMergeCurrentFieldsIntoConfig(_movConfig);
+    }
     document.getElementById('movDevModal').style.display = 'none';
     document.getElementById('movClientModal').style.display = 'none';
     hideNumericKeypad();
@@ -1296,10 +1518,27 @@ document.getElementById('movClientModal').addEventListener('click', function(e) 
 });
 
 document.querySelectorAll('#movDevModal input[type="number"]').forEach(input => {
-    input.setAttribute('readonly', 'readonly');
-    input.setAttribute('inputmode', 'none');
+    input.type = 'text';
+    input.setAttribute('inputmode', 'decimal');
     input.addEventListener('focus', () => showNumericKeypad(input, 'movement'));
     input.addEventListener('click', () => showNumericKeypad(input, 'movement'));
+    input.addEventListener('input', () => {
+        updateKeypadDisplay();
+        if ((input.id === 'c1_xc' || input.id === 'c1_yc') && !_movApplyingAutoCenter) {
+            _movManualCenter[input.id === 'c1_xc' ? 'xc' : 'yc'] = true;
+            movUpdateAutoCenterButtons();
+        }
+        if (['c1_a', 'c1_b', 'c1_alpha_deg', 'c1_n_pontos'].includes(input.id) && !_movApplyingAutoCenter) {
+            movApplyAutoCenters();
+        }
+        movRefreshDirty();
+    });
+    input.addEventListener('keyup', updateKeypadDisplay);
+    input.addEventListener('select', updateKeypadDisplay);
+});
+
+document.querySelectorAll('#movDevModal select').forEach(input => {
+    input.addEventListener('change', movRefreshDirty);
 });
 
 document.getElementById('passwordInput').addEventListener('click', function() {
@@ -1373,7 +1612,7 @@ function clientMovSetStatus(msg, cor) {
 
 function clientMovNum(id) {
     const el = document.getElementById(id);
-    return el && el.value !== '' ? Number(el.value) : 0;
+    return el && el.value !== '' ? Number(String(el.value).replace(',', '.')) : 0;
 }
 
 function clientMovSetVal(id, val) {
@@ -1545,15 +1784,107 @@ function clientMovEnviar() {
     clientMovSetStatus('Envio para o ESP32 ainda não está configurado. Usa Guardar para gravar no ficheiro interno.', '#b8860b');
 }
 
+function clientMovAmpChanged(key) {
+    const def = CLIENT_MOVEMENTS[key];
+    const current = def.readAmp(_clientMovConfig || {});
+    const saved = def.readAmp(_clientMovSaved || {});
+    return !movSameValue(current.x, saved.x) || !movSameValue(current.y, saved.y);
+}
+
+function clientMovApplyCalcResult(res) {
+    if (res.curva1) {
+        _clientMovConfig.curva1 = {...(_clientMovConfig.curva1 || {}), ...res.curva1};
+    }
+    if (res.pontos_c1) {
+        _clientMovConfig.batimento = _clientMovConfig.batimento || {};
+        _clientMovConfig.batimento.pontos_x = res.pontos_c1.x || [];
+        _clientMovConfig.batimento.pontos_y = res.pontos_c1.y || [];
+        _clientMovConfig.batimento.pontos_z = res.pontos_c1.z || [];
+    }
+    if (res.pontos_c2) {
+        _clientMovConfig.respiracao = _clientMovConfig.respiracao || {};
+        _clientMovConfig.respiracao.pontos_x = res.pontos_c2.x || [];
+        _clientMovConfig.respiracao.pontos_y = res.pontos_c2.y || [];
+        _clientMovConfig.respiracao.pontos_z = res.pontos_c2.z || [];
+    }
+    if (res.pontos_c3) {
+        _clientMovConfig.vibracao_tosse = _clientMovConfig.vibracao_tosse || {};
+        _clientMovConfig.vibracao_tosse.pontos_x = res.pontos_c3.x || [];
+        _clientMovConfig.vibracao_tosse.pontos_y = res.pontos_c3.y || [];
+        _clientMovConfig.vibracao_tosse.pontos_z = res.pontos_c3.z || [];
+    }
+}
+
+function clientMovEnviar(sendAll=false) {
+    clientMovReadFieldsIntoConfig();
+    clientMovRefreshDirty();
+
+    const hasDirty = Object.values(_clientMovDirty).some(Boolean);
+    if (!sendAll && !hasDirty) {
+        openMovSendAllDialog(() => clientMovEnviar(true));
+        return;
+    }
+
+    const coordKeys = {};
+    Object.keys(CLIENT_MOVEMENTS).forEach(key => {
+        const movKey = CLIENT_MOVEMENTS[key].movKey;
+        coordKeys[movKey] = sendAll || clientMovAmpChanged(key);
+    });
+
+    const afterCalc = () => {
+        const commands = movBuildCommandsFromConfig(_clientMovConfig, _clientMovSaved, sendAll, coordKeys);
+        if (!commands.length) {
+            clientMovSetStatus('Nenhum comando para enviar.', '#b8860b');
+            return;
+        }
+        clientMovSetStatus(`A enviar ${commands.length} comando(s)...`, '#b8860b');
+        fetch('/movements/send_to_esp', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({commands}),
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (!res.ok) {
+                clientMovSetStatus('Erro no envio: ' + ((res.errors || [res.error || 'desconhecido']).join(', ')), '#d9534f');
+                return;
+            }
+            clientMovSetStatus(`Enviado para o ESP32 (${(res.sent || []).length} comando(s)).`, '#28a745');
+        })
+        .catch(() => clientMovSetStatus('Erro de comunicação ao enviar.', '#d9534f'));
+    };
+
+    if (Object.values(coordKeys).some(Boolean)) {
+        clientMovSetStatus('A recalcular coordenadas antes de enviar...', '#b8860b');
+        fetch('/movements/calcular', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(_clientMovConfig),
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (!res.ok) throw new Error(res.error || 'Erro ao calcular.');
+            clientMovApplyCalcResult(res);
+            afterCalc();
+        })
+        .catch(() => clientMovSetStatus('Erro ao recalcular antes do envio.', '#d9534f'));
+    } else {
+        afterCalc();
+    }
+}
+
 document.querySelectorAll('#movClientModal input[type="number"]').forEach(input => {
-    input.setAttribute('readonly', 'readonly');
-    input.setAttribute('inputmode', 'none');
+    input.type = 'text';
+    input.setAttribute('inputmode', 'decimal');
     input.addEventListener('focus', () => showNumericKeypad(input, 'clientMovement'));
     input.addEventListener('click', () => showNumericKeypad(input, 'clientMovement'));
     input.addEventListener('input', () => {
+        updateKeypadDisplay();
         clientMovRefreshDirty();
         clientMovScheduleDraftSave();
     });
+    input.addEventListener('keyup', updateKeypadDisplay);
+    input.addEventListener('select', updateKeypadDisplay);
 });
 
 function movSetStatus(msg, cor) {
@@ -1562,14 +1893,193 @@ function movSetStatus(msg, cor) {
     el.style.color = cor || '#555';
 }
 
+function movValueAt(cfg, path) {
+    return path.split('.').reduce((acc, key) => acc && acc[key], cfg || {});
+}
+
+function movSameValue(a, b) {
+    if (Array.isArray(a) || Array.isArray(b)) {
+        return JSON.stringify(a || []) === JSON.stringify(b || []);
+    }
+    const na = Number(a);
+    const nb = Number(b);
+    if (!Number.isNaN(na) && !Number.isNaN(nb)) return na === nb;
+    return (a ?? '') === (b ?? '');
+}
+
+function movInputPath(input) {
+    const id = input.id || '';
+    const curveMap = {
+        c1_: 'curva1',
+        c2_: 'curva2',
+        c3_: 'curva3',
+    };
+    for (const [prefix, key] of Object.entries(curveMap)) {
+        if (id.startsWith(prefix)) return `${key}.${id.slice(prefix.length)}`;
+    }
+    for (const key of MOV_CHAVES) {
+        const prefix = `${key}_`;
+        if (id.startsWith(prefix)) return `${key}.${id.slice(prefix.length)}`;
+    }
+    return '';
+}
+
+function movInputCurrentValue(input) {
+    if (!input) return '';
+    if (input.tagName === 'SELECT') return input.value;
+    if (input.classList.contains('mov-number') || input.closest('#movDevModal, #movClientModal')) {
+        return input.value === '' ? 0 : Number(String(input.value).replace(',', '.'));
+    }
+    return input.value;
+}
+
+function movCurveDirtyForMovement(key) {
+    const def = MOV_DEV_SEND[key];
+    return !!(def && _movDirtyGroups[def.curve]);
+}
+
+function movCurveRedForMovement(key) {
+    const def = MOV_DEV_SEND[key];
+    return !!(def && _movDirtyLevels[def.curve] === 'red');
+}
+
+function movRefreshDirty() {
+    const current = movLerCampos();
+    _movDirtyGroups = {};
+    _movPointDirty = {};
+    _movDirtyLevels = {};
+
+    const setGroupLevel = (group, level) => {
+        if (!group || !level) return;
+        if (_movDirtyLevels[group] === 'red') return;
+        _movDirtyLevels[group] = level;
+    };
+    const applyLevelClass = (el, level) => {
+        if (!el) return;
+        el.classList.toggle('dirty', !!level);
+        el.classList.toggle('dirty-red', level === 'red');
+        el.classList.toggle('dirty-yellow', level === 'yellow');
+    };
+
+    document.querySelectorAll('#movDevModal input, #movDevModal select').forEach(input => {
+        const path = movInputPath(input);
+        const currentValue = movInputCurrentValue(input);
+        const changedFromSent = path ? !movSameValue(currentValue, movValueAt(_movSentConfig, path)) : false;
+        const changedFromSaved = path ? !movSameValue(currentValue, movValueAt(_movSavedConfig, path)) : false;
+        const level = changedFromSent ? 'red' : (changedFromSaved ? 'yellow' : '');
+        applyLevelClass(input, level);
+        const field = input.closest('.mov-field');
+        if (field) applyLevelClass(field, level);
+        const group = input.closest('[data-dirty-group]')?.dataset.dirtyGroup;
+        if (level && group) {
+            _movDirtyGroups[group] = true;
+            setGroupLevel(group, level);
+        }
+    });
+
+    Object.entries(MOV_DEV_SEND).forEach(([key, def]) => {
+        const mov = current[key] || {};
+        const sentMov = (_movSentConfig || {})[key] || {};
+        const savedMov = (_movSavedConfig || {})[key] || {};
+        Object.keys(MOV_SCALAR_TAGS).forEach(field => {
+            const level = !movSameValue(mov[field], sentMov[field])
+                ? 'red'
+                : (!movSameValue(mov[field], savedMov[field]) ? 'yellow' : '');
+            if (level) {
+                _movDirtyGroups[key] = true;
+                setGroupLevel(key, level);
+            }
+        });
+        if (_movDirtyGroups[def.curve]) {
+            _movPointDirty[key] = true;
+            setGroupLevel(`${key}:points`, _movDirtyLevels[def.curve]);
+        }
+    });
+
+    document.querySelectorAll('[data-dirty-group]').forEach(section => {
+        const group = section.dataset.dirtyGroup;
+        applyLevelClass(section, _movDirtyLevels[group] || '');
+    });
+    Object.entries(MOV_DEV_SEND).forEach(([key, def]) => {
+        const level = _movDirtyLevels[key] === 'red' || _movDirtyLevels[`${key}:points`] === 'red'
+            ? 'red'
+            : ((_movDirtyLevels[key] || _movDirtyLevels[`${key}:points`]) ? 'yellow' : '');
+        const tab = document.querySelector(`[data-dev-mov-tab="${key}"]`);
+        if (tab) applyLevelClass(tab, level);
+        applyLevelClass(document.getElementById(def.graph), _movDirtyLevels[`${key}:points`] || '');
+    });
+}
+
+function movDevSelect(key) {
+    _movDevActive = key;
+    hideNumericKeypad();
+    document.querySelectorAll('[data-dev-mov-tab]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.devMovTab === key);
+    });
+    document.querySelectorAll('#movDevModal [data-dev-mov]').forEach(el => {
+        el.style.display = el.dataset.devMov === key ? '' : 'none';
+    });
+    movRefreshDirty();
+}
+
+function movAutoCenterValues() {
+    const a = Number(String(document.getElementById('c1_a')?.value || 0).replace(',', '.')) || 0;
+    const b = Number(String(document.getElementById('c1_b')?.value || 0).replace(',', '.')) || 0;
+    const alphaDeg = Number(String(document.getElementById('c1_alpha_deg')?.value || 0).replace(',', '.')) || 0;
+    const alpha = alphaDeg * Math.PI / 180;
+    const apices = [Math.PI];
+    if (b > a) apices[0] = Math.PI * 1.5;
+    const u = apices[0];
+    const baseX = a * Math.cos(u) * Math.cos(alpha) - b * Math.sin(u) * Math.sin(alpha);
+    const baseY = a * Math.cos(u) * Math.sin(alpha) + b * Math.sin(u) * Math.cos(alpha);
+    return {xc: -baseX, yc: -baseY};
+}
+
+function movSetCenterValue(field, value) {
+    const el = document.getElementById(`c1_${field}`);
+    if (!el) return;
+    el.value = movFormatValue(value, 3);
+    el.dispatchEvent(new Event('input', {bubbles: true}));
+}
+
+function movUpdateAutoCenterButtons() {
+    ['xc', 'yc'].forEach(field => {
+        document.getElementById(`c1_${field}_auto_clear`)?.classList.toggle('visible', !!_movManualCenter[field]);
+    });
+}
+
+function movApplyAutoCenters() {
+    const values = movAutoCenterValues();
+    _movApplyingAutoCenter = true;
+    if (!_movManualCenter.xc) movSetCenterValue('xc', values.xc);
+    if (!_movManualCenter.yc) movSetCenterValue('yc', values.yc);
+    _movApplyingAutoCenter = false;
+    movUpdateAutoCenterButtons();
+}
+
+function movResetAutoCenter(field) {
+    _movManualCenter[field] = false;
+    movApplyAutoCenters();
+    movRefreshDirty();
+}
+
 function movCarregarConfig() {
     movSetStatus('A carregar...', '#888');
     fetch('/movements/config')
         .then(r => r.json())
         .then(config => {
-            _movConfig = config;
+            _movConfig = cloneConfig(config);
+            _movSavedConfig = cloneConfig(config);
+            _movSentConfig = cloneConfig(config);
+            _movConfigLoaded = true;
             movPreencherCampos(config);
             movCriarSeccoesMovimentos(config);
+            _movManualCenter = {
+                xc: !!config.curva1?.xc_manual,
+                yc: !!config.curva1?.yc_manual,
+            };
+            movApplyAutoCenters();
+            movDevSelect(_movDevActive);
             movCalcular();
             movSetStatus('Configurações carregadas.', '#28a745');
         })
@@ -1614,14 +2124,17 @@ function movCriarSeccoesMovimentos(config) {
 }
 
 function movLerCampos() {
-    const num = id => parseFloat(document.getElementById(id)?.value) || 0;
-    const int = id => parseInt(document.getElementById(id)?.value)   || 0;
+    const raw = id => String(document.getElementById(id)?.value || '').replace(',', '.');
+    const num = id => parseFloat(raw(id)) || 0;
+    const int = id => parseInt(raw(id), 10) || 0;
     const str = id => document.getElementById(id)?.value || '';
     const data = {
         curva1: {
             a: num('c1_a'), b: num('c1_b'), xc: num('c1_xc'), yc: num('c1_yc'),
             alpha_deg: num('c1_alpha_deg'), n_pontos: int('c1_n_pontos'),
             sentido: str('c1_sentido'),
+            xc_manual: !!_movManualCenter.xc,
+            yc_manual: !!_movManualCenter.yc,
         },
         curva2: {
             altura: num('c2_altura'), largura: num('c2_largura'),
@@ -1643,8 +2156,22 @@ function movLerCampos() {
     return data;
 }
 
-function movCalcular() {
-    movSetStatus('A calcular...', '#b8860b');
+function movMergeCurrentFieldsIntoConfig(base) {
+    const fields = movLerCampos();
+    const merged = cloneConfig(base || {});
+    ['curva1', 'curva2', 'curva3'].forEach(key => {
+        merged[key] = {...(merged[key] || {}), ...(fields[key] || {})};
+    });
+    MOV_CHAVES.forEach(key => {
+        merged[key] = {...(merged[key] || {}), ...(fields[key] || {})};
+    });
+    return merged;
+}
+
+function movCalcular(options={}) {
+    const silent = !!options.silent;
+    movApplyAutoCenters();
+    if (!silent) movSetStatus('A calcular...', '#b8860b');
 
     // mostra "a calcular" em todos os placeholders
     ['batimento', 'respiracao', 'tosse_vibracao'].forEach(id => {
@@ -1654,7 +2181,7 @@ function movCalcular() {
         if (container) container.querySelectorAll('img').forEach(i => i.remove());
     });
 
-    fetch('/movements/calcular', {
+    return fetch('/movements/calcular', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(movLerCampos()),
@@ -1662,8 +2189,8 @@ function movCalcular() {
     .then(r => r.json())
     .then(res => {
         if (!res.ok) {
-            movSetStatus('Erro: ' + (res.error || 'desconhecido'), '#d9534f');
-            return;
+            if (!silent) movSetStatus('Erro: ' + (res.error || 'desconhecido'), '#d9534f');
+            throw new Error(res.error || 'Erro ao calcular.');
         }
 
         // cada gráfico devolvido separadamente
@@ -1679,9 +2206,44 @@ function movCalcular() {
         if (res.pontos_c3) _movAtualizarPontos('vibracao_tosse', res.pontos_c3);
         if (res.pontos_c2) _movAtualizarPontos('tosse',          res.pontos_c2);
 
-        movSetStatus('Cálculo concluído ✓', '#28a745');
+        _movConfig = movMergeCurrentFieldsIntoConfig(_movConfig);
+        if (res.curva1) {
+            _movConfig.curva1 = {...(_movConfig.curva1 || {}), ...res.curva1};
+            _movApplyingAutoCenter = true;
+            if (!_movManualCenter.xc) movSetCenterValue('xc', _movConfig.curva1.xc);
+            if (!_movManualCenter.yc) movSetCenterValue('yc', _movConfig.curva1.yc);
+            _movApplyingAutoCenter = false;
+        }
+        if (res.pontos_c1) {
+            _movConfig.batimento = _movConfig.batimento || {};
+            _movConfig.batimento.pontos_x = res.pontos_c1.x || [];
+            _movConfig.batimento.pontos_y = res.pontos_c1.y || [];
+            _movConfig.batimento.pontos_z = res.pontos_c1.z || [];
+        }
+        if (res.pontos_c2) {
+            _movConfig.respiracao = _movConfig.respiracao || {};
+            _movConfig.respiracao.pontos_x = res.pontos_c2.x || [];
+            _movConfig.respiracao.pontos_y = res.pontos_c2.y || [];
+            _movConfig.respiracao.pontos_z = res.pontos_c2.z || [];
+            _movConfig.tosse = _movConfig.tosse || {};
+            _movConfig.tosse.pontos_x = res.pontos_c2.x || [];
+            _movConfig.tosse.pontos_y = res.pontos_c2.y || [];
+            _movConfig.tosse.pontos_z = res.pontos_c2.z || [];
+        }
+        if (res.pontos_c3) {
+            _movConfig.vibracao_tosse = _movConfig.vibracao_tosse || {};
+            _movConfig.vibracao_tosse.pontos_x = res.pontos_c3.x || [];
+            _movConfig.vibracao_tosse.pontos_y = res.pontos_c3.y || [];
+            _movConfig.vibracao_tosse.pontos_z = res.pontos_c3.z || [];
+        }
+        movRefreshDirty();
+        if (!silent) movSetStatus('Cálculo concluído ✓', '#28a745');
+        return res;
     })
-    .catch(e => movSetStatus('Erro de comunicação: ' + e, '#d9534f'));
+    .catch(e => {
+        if (!silent) movSetStatus('Erro de comunicação: ' + e, '#d9534f');
+        throw e;
+    });
 }
 
 function _movAtualizarGrafico(secId, img2d, img3d) {
@@ -1730,9 +2292,17 @@ function movRecarregarESP() {
         .then(r => r.json())
         .then(res => {
             if (res.ok || res.config) {
-                _movConfig = res.config || _movConfig;
+                _movConfig = cloneConfig(res.config || _movConfig);
+                _movSavedConfig = cloneConfig(_movConfig);
+                _movSentConfig = cloneConfig(_movConfig);
                 movPreencherCampos(_movConfig);
                 movCriarSeccoesMovimentos(_movConfig);
+                _movManualCenter = {
+                    xc: !!_movConfig.curva1?.xc_manual,
+                    yc: !!_movConfig.curva1?.yc_manual,
+                };
+                movApplyAutoCenters();
+                movDevSelect(_movDevActive);
                 movSetStatus('Dados do ESP32 carregados ✓', '#28a745');
             } else {
                 movSetStatus('Erro: ' + (res.error || (res.erros || []).join(', ')), '#d9534f');
@@ -1741,13 +2311,139 @@ function movRecarregarESP() {
         .catch(() => movSetStatus('Sem resposta do ESP32.', '#d9534f'));
 }
 
+function movFormatValue(value, decimals=3) {
+    const n = Number(value);
+    if (Number.isNaN(n)) return '0';
+    return n.toFixed(decimals).replace(/0+$/, '').replace(/\.$/, '.0');
+}
+
+function movArrayCommand(mode, tag, values) {
+    return `W${mode}${tag}${(values || []).map(v => `[${movFormatValue(v)}]`).join('')};`;
+}
+
+function movScalarCommand(mode, tag, value, isInt=false) {
+    const text = isInt ? String(parseInt(value || 0, 10)) : movFormatValue(value, 3);
+    return `W${mode}${tag}[${text}];`;
+}
+
+function movBuildCommandsFromConfig(cfg, sentCfg, sendAll=false, coordKeys={}) {
+    cfg = cloneConfig(cfg || {});
+    sentCfg = sentCfg || {};
+    const commands = [];
+
+    Object.entries(MOV_DEV_SEND).forEach(([key, def]) => {
+        const mov = cfg[key] || {};
+        const sentMov = (sentCfg || {})[key] || {};
+        const sendCoords = sendAll || !!coordKeys[key];
+
+        if (sendCoords) {
+            const xs = mov.pontos_x || [];
+            const ys = mov.pontos_y || [];
+            const zs = mov.pontos_z || [];
+            const nPoints = Math.max(xs.length, ys.length, zs.length);
+            commands.push(movScalarCommand(def.mode, 'n_pnt', nPoints, true));
+            commands.push(movArrayCommand(def.mode, 'XYZ_x', xs));
+            commands.push(movArrayCommand(def.mode, 'XYZ_y', ys));
+            commands.push(movArrayCommand(def.mode, 'XYZ_z', zs));
+        }
+
+        Object.entries(MOV_SCALAR_TAGS).forEach(([field, tag]) => {
+            const changed = !movSameValue(mov[field], sentMov[field]);
+            if (sendAll || changed) {
+                commands.push(movScalarCommand(def.mode, tag, mov[field], field === 'ponto_inicio'));
+            }
+        });
+    });
+
+    return commands;
+}
+
+function movBuildCommands(sendAll=false) {
+    const coordKeys = {};
+    Object.keys(MOV_DEV_SEND).forEach(key => {
+        coordKeys[key] = movCurveRedForMovement(key);
+    });
+    return movBuildCommandsFromConfig(_movConfig, _movSentConfig, sendAll, coordKeys);
+}
+
+function openMovSendAllDialog(onConfirm) {
+    pendingMovSendAllAction = onConfirm || null;
+    document.getElementById('movSendAllModal').style.display = 'flex';
+}
+
+function closeMovSendAllDialog() {
+    pendingMovSendAllAction = null;
+    document.getElementById('movSendAllModal').style.display = 'none';
+    movSetStatus('Envio cancelado.', '#777');
+}
+
+function confirmMovSendAll() {
+    document.getElementById('movSendAllModal').style.display = 'none';
+    const action = pendingMovSendAllAction;
+    pendingMovSendAllAction = null;
+    if (typeof action === 'function') action();
+}
+
+function movEnviar(sendAll=false) {
+    _movConfig = movMergeCurrentFieldsIntoConfig(_movConfig);
+    movRefreshDirty();
+
+    const hasDirty = Object.values(_movDirtyLevels).some(level => level === 'red');
+    if (!sendAll && !hasDirty) {
+        openMovSendAllDialog(() => movEnviar(true));
+        return;
+    }
+
+    const needsRecalc = sendAll || Object.keys(MOV_DEV_SEND).some(key => movCurveRedForMovement(key));
+    const afterCalc = () => {
+        const commands = movBuildCommands(sendAll);
+        if (!commands.length) {
+            movSetStatus('Nenhum comando para enviar.', '#b8860b');
+            return;
+        }
+        movSetStatus(`A enviar ${commands.length} comando(s)...`, '#b8860b');
+        fetch('/movements/send_to_esp', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({commands}),
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (!res.ok) {
+                movSetStatus('Erro no envio: ' + ((res.errors || [res.error || 'desconhecido']).join(', ')), '#d9534f');
+                return;
+            }
+            _movSentConfig = cloneConfig(_movConfig);
+            movRefreshDirty();
+            movSetStatus(`Enviado para o ESP32 (${(res.sent || []).length} comando(s)).`, '#28a745');
+        })
+        .catch(() => movSetStatus('Erro de comunicação ao enviar.', '#d9534f'));
+    };
+
+    if (needsRecalc) {
+        movSetStatus('A recalcular coordenadas antes de enviar...', '#b8860b');
+        movCalcular({silent: true}).then(afterCalc).catch(() => movSetStatus('Erro ao recalcular antes do envio.', '#d9534f'));
+    } else {
+        afterCalc();
+    }
+}
+
 function movGuardar() {
+    _movConfig = movMergeCurrentFieldsIntoConfig(_movConfig);
     fetch('/movements/config', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(movLerCampos()),
+        body: JSON.stringify(_movConfig),
     })
     .then(r => r.json())
+    .then(res => {
+        if (res.ok) {
+            _movSavedConfig = cloneConfig(_movConfig);
+            _movSentConfig = cloneConfig(_movConfig);
+            movRefreshDirty();
+        }
+        return res;
+    })
     .then(res => movSetStatus(
         res.ok ? 'Guardado ✓' : 'Erro ao guardar.',
         res.ok ? '#28a745' : '#d9534f'
