@@ -96,8 +96,13 @@ def set_state(**kwargs):
 
 
 def append_history(line):
+    text = str(line)
+    text = text.replace('\\r\\n', '\n').replace('\\n', '\n').replace('\\r', '\n')
+    lines = text.replace('\r\n', '\n').replace('\r', '\n').split('\n')
     with _state_lock:
-        state['serialhistory'].append(line)
+        for item in lines:
+            if item:
+                state['serialhistory'].append(item)
     push_state_update()
 
 
@@ -147,6 +152,22 @@ serial_tx_queue = queue.Queue()
 
 _ser           = None
 _serial_ready  = False
+_serial_writer_started = False
+
+
+def _command_with_terminator(command):
+    command = str(command).strip()
+    if not command:
+        return ''
+    return command if command.endswith(';') else f'{command};'
+
+
+def _start_serial_writer_once():
+    global _serial_writer_started
+    if _serial_writer_started:
+        return
+    threading.Thread(target=serial_writer, daemon=True, name='serial-writer').start()
+    _serial_writer_started = True
 
 
 def _detect_serial_port():
@@ -176,8 +197,8 @@ def serial_connect():
         return
     serial_status['stage']       = 'connecting'
     serial_status['stop_reader'] = False
+    _start_serial_writer_once()
     threading.Thread(target=serial_reader, daemon=True, name='serial-reader').start()
-    threading.Thread(target=serial_writer, daemon=True, name='serial-writer').start()
     push_serial_stage()
 
 
@@ -266,6 +287,9 @@ def serial_writer():
 
 def send_serial(command):
     """Envia um comando ao ESP32 e regista-o no histórico."""
+    command = _command_with_terminator(command)
+    if not command:
+        return
     serial_tx_queue.put(command)
     append_history(f'PI4B: {command}')
 
@@ -571,19 +595,40 @@ def _send_and_wait(command, timeout=6.0):
             except queue.Empty:
                 break
 
-        if _ser and _ser.is_open:
+        command = _command_with_terminator(command)
+        if _ser and _ser.is_open and command:
             _ser.write(command.encode('utf-8'))
 
         deadline = time.time() + timeout
         while time.time() < deadline:
             line = _serial_read_response(timeout=0.5)
             if line is None:
-                break
+                continue
             lines.append(line)
             if 'Escolha um comando:' in line or line.strip() == '':
                 break
 
     return lines
+
+
+def send_serial_sequence(commands, timeout=8.0):
+    """Envia comandos em sequência e espera pelo prompt do ESP32 entre eles."""
+    if serial_status['stage'] != 'connected':
+        return False, ['ESP32 não está ligado.']
+
+    errors = []
+    sent = []
+    for command in commands:
+        command = _command_with_terminator(command)
+        if not command:
+            continue
+        append_history(f'PI4B: {command}')
+        lines = _send_and_wait(command, timeout=timeout)
+        sent.append(command)
+        if not lines:
+            errors.append(f'Sem resposta para {command}')
+
+    return len(errors) == 0, errors if errors else sent
 
 
 # ===========================================================================
@@ -818,7 +863,7 @@ def route_movements_reload():
     ]
 
     for cmd, chave in comandos:
-        append_history(f'PI4B: {cmd}')
+        append_history(f'PI4B: {_command_with_terminator(cmd)}')
         linhas = _send_and_wait(cmd, timeout=6.0)
 
         if not linhas:
@@ -872,6 +917,20 @@ def route_movements_reload():
         'config': config,
         'erros': erros,
     })
+
+
+@app.route('/movements/send_to_esp', methods=['POST'])
+def route_movements_send_to_esp():
+    """Envia comandos W... para atualizar parâmetros dos movimentos no ESP32."""
+    data = request.get_json(force=True, silent=True) or {}
+    commands = data.get('commands') or []
+    if not isinstance(commands, list) or not commands:
+        return jsonify({'ok': False, 'error': 'Nenhum comando para enviar.'}), 400
+
+    ok, result = send_serial_sequence(commands, timeout=8.0)
+    if not ok:
+        return jsonify({'ok': False, 'errors': result}), 400
+    return jsonify({'ok': True, 'sent': result})
 
 
 @app.route('/movements/calcular', methods=['POST'])
@@ -940,8 +999,8 @@ if __name__ == '__main__':
 
     # Arranca threads de comunicação série
     serial_status['stage'] = 'connecting'
+    _start_serial_writer_once()
     threading.Thread(target=serial_reader, daemon=True, name='serial-reader').start()
-    threading.Thread(target=serial_writer, daemon=True, name='serial-writer').start()
 
     # Abre o browser normalmente (sem kiosk — versão de teste Windows)
     threading.Thread(target=open_browser, daemon=True, name='browser').start()

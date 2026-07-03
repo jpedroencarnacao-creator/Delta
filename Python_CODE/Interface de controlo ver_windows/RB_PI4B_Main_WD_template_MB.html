@@ -448,7 +448,7 @@ function applyState(s) {
     // histórico serial
     const mon = document.getElementById('serialMonitor');
     if (mon) {
-        const tail = (s.history_tail || []).join('\\n');
+        const tail = (s.history_tail || []).join(String.fromCharCode(10));
         if (mon.value !== tail) {
             mon.value = tail;
             if (window.autoScroll) mon.scrollTop = mon.scrollHeight;
