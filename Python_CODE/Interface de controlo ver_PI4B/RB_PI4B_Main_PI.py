@@ -143,6 +143,13 @@ def push_serial_stage():
     socketio.emit('serial_stage', {'stage': serial_status['stage']})
 
 
+@socketio.on('mobile_opened')
+def handle_mobile_opened():
+    """A interface mobile confirmou que abriu com sucesso (ex: após ler o QR
+    code) — avisa todos os clientes ligados (o kiosk fecha as Definições)."""
+    socketio.emit('mobile_opened')
+
+
 # ===========================================================================
 # COMUNICAÇÃO SÉRIE
 # ===========================================================================
@@ -499,19 +506,51 @@ def get_network_status():
         return f'Erro ao verificar rede: {e}'
 
 
+def _nmcli_unescape(value):
+    """nmcli (modo -t) escapa ':' e '\\' com uma barra invertida."""
+    return value.replace('\\:', ':').replace('\\\\', '\\')
+
+
+def _nmcli_split_fields(line, n):
+    """Divide uma linha do nmcli -t em N campos, respeitando os ':' escapados."""
+    parts = [_nmcli_unescape(p) for p in re.split(r'(?<!\\):', line)]
+    while len(parts) < n:
+        parts.append('')
+    return parts[:n]
+
+
 def get_available_networks():
-    """Lista redes Wi-Fi disponíveis no Raspberry Pi/Linux."""
-    names = []
+    """Lista redes Wi-Fi disponíveis no Raspberry Pi/Linux.
+
+    Devolve uma lista de dicts {ssid, secured, active}; 'secured' indica se é
+    preciso password para ligar. Em caso de erro devolve um dict com 'error'.
+    """
+    networks = []
+    by_ssid = {}
 
     if shutil.which('nmcli'):
         try:
-            out = _run_cmd(['nmcli', '-t', '-f', 'SSID', 'dev', 'wifi', 'list', '--rescan', 'yes'], timeout=12)
+            out = _run_cmd(['nmcli', '-t', '-f', 'SSID,SECURITY,IN-USE', 'dev', 'wifi', 'list', '--rescan', 'yes'],
+                           timeout=12)
             for line in out.splitlines():
-                ssid = line.strip().replace(r'\:', ':')
-                if ssid and ssid not in names:
-                    names.append(ssid)
-            if names:
-                return names
+                if not line.strip():
+                    continue
+                ssid, security, in_use = _nmcli_split_fields(line, 3)
+                ssid = ssid.strip()
+                if not ssid:
+                    continue
+                # o mesmo SSID pode aparecer várias vezes (vários pontos de
+                # acesso/repetidores) — junta-as numa só entrada, preferindo
+                # sempre a que estiver realmente em uso.
+                entry = by_ssid.get(ssid)
+                if entry is None:
+                    entry = {'ssid': ssid, 'secured': False, 'active': False}
+                    by_ssid[ssid] = entry
+                    networks.append(entry)
+                entry['secured'] = entry['secured'] or bool(security.strip())
+                entry['active']  = entry['active'] or in_use.strip() == '*'
+            if networks:
+                return networks
         except Exception:
             pass
 
@@ -520,18 +559,90 @@ def get_available_networks():
             interfaces = sorted(Path('/sys/class/net').glob('wl*')) + sorted(Path('/sys/class/net').glob('wlan*'))
             iface = interfaces[0].name if interfaces else 'wlan0'
             out = _run_cmd(['iw', 'dev', iface, 'scan'], timeout=12)
-            for match in re.finditer(r'^\s*SSID:\s*(.+)$', out, flags=re.MULTILINE):
+            for block in re.split(r'^BSS ', out, flags=re.MULTILINE):
+                match = re.search(r'^\s*SSID:\s*(.+)$', block, flags=re.MULTILINE)
+                if not match:
+                    continue
                 ssid = match.group(1).strip()
-                if ssid and ssid not in names:
-                    names.append(ssid)
-            if names:
-                return names
+                if not ssid or ssid in by_ssid:
+                    continue
+                by_ssid[ssid] = True
+                secured = bool(re.search(r'^\s*(RSN|WPA):', block, flags=re.MULTILINE))
+                networks.append({'ssid': ssid, 'secured': secured, 'active': False})
+            if networks:
+                return networks
         except PermissionError:
-            return ['Sem permissão para procurar redes Wi-Fi.']
+            return [{'ssid': 'Sem permissão para procurar redes Wi-Fi.', 'secured': False, 'active': False, 'error': True}]
         except Exception:
             pass
 
-    return ['Nenhuma rede Wi-Fi encontrada ou ferramenta Wi-Fi indisponível.']
+    return []
+
+
+def connect_to_wifi(ssid, password=None):
+    """Liga a uma rede Wi-Fi via nmcli. Devolve (ok, mensagem)."""
+    if not shutil.which('nmcli'):
+        return False, 'nmcli não disponível neste sistema.'
+
+    args = ['nmcli', 'dev', 'wifi', 'connect', ssid]
+    if password:
+        args += ['password', password]
+    try:
+        result = subprocess.run(args, capture_output=True, text=True, timeout=25, check=False)
+        if result.returncode == 0:
+            return True, result.stdout.strip()
+        return False, (result.stderr or result.stdout or 'Falha ao ligar.').strip()
+    except subprocess.TimeoutExpired:
+        return False, 'Tempo esgotado ao tentar ligar.'
+    except Exception as e:
+        return False, str(e)
+
+
+# ===========================================================================
+# BRILHO DO ECRÃ
+# ===========================================================================
+BACKLIGHT_BASE = Path('/sys/class/backlight')
+BRIGHTNESS_MIN_PERCENT = 10  # nunca deixa ir a 0%, para não "apagar" o ecrã de vez
+
+
+def _find_backlight_device():
+    try:
+        devices = sorted(BACKLIGHT_BASE.iterdir())
+    except Exception:
+        return None
+    return devices[0] if devices else None
+
+
+def get_screen_brightness():
+    """Devolve o brilho atual do ecrã em percentagem (0-100), ou None se
+    este Raspberry Pi não tiver um ecrã com controlo de brilho por software."""
+    device = _find_backlight_device()
+    if not device:
+        return None
+    try:
+        max_b = int((device / 'max_brightness').read_text().strip())
+        cur_b = int((device / 'brightness').read_text().strip())
+        if max_b <= 0:
+            return None
+        return round(cur_b / max_b * 100)
+    except Exception:
+        return None
+
+
+def set_screen_brightness(percent):
+    """Define o brilho do ecrã (0-100, com um mínimo para nunca apagar de
+    vez). Devolve True se conseguiu escrever o novo valor."""
+    device = _find_backlight_device()
+    if not device:
+        return False
+    try:
+        max_b = int((device / 'max_brightness').read_text().strip())
+        percent = max(BRIGHTNESS_MIN_PERCENT, min(100, int(percent)))
+        value = round(percent / 100 * max_b)
+        (device / 'brightness').write_text(str(value))
+        return True
+    except Exception:
+        return False
 
 
 # ===========================================================================
@@ -757,6 +868,39 @@ def info_network():
         'status':   get_network_status(),
         'networks': get_available_networks(),
     })
+
+
+@app.route('/wifi/connect', methods=['POST'])
+def route_wifi_connect():
+    """Liga a uma rede Wi-Fi (nmcli)."""
+    data = request.get_json(force=True, silent=True) or {}
+    ssid = (data.get('ssid') or '').strip()
+    password = data.get('password') or ''
+    if not ssid:
+        return jsonify({'ok': False, 'error': 'SSID em falta.'}), 400
+
+    ok, message = connect_to_wifi(ssid, password)
+    if not ok:
+        return jsonify({'ok': False, 'error': message}), 400
+    return jsonify({'ok': True, 'message': message})
+
+
+@app.route('/system/brightness', methods=['GET'])
+def route_get_brightness():
+    value = get_screen_brightness()
+    return jsonify({'ok': value is not None, 'brightness': value})
+
+
+@app.route('/system/brightness', methods=['POST'])
+def route_set_brightness():
+    data = request.get_json(force=True, silent=True) or {}
+    value = data.get('value')
+    if value is None:
+        return jsonify({'ok': False, 'error': 'Valor em falta.'}), 400
+    ok = set_screen_brightness(value)
+    if not ok:
+        return jsonify({'ok': False, 'error': 'Controlo de brilho não disponível neste sistema.'}), 400
+    return jsonify({'ok': True})
 
 
 @app.route('/start', methods=['POST'])
