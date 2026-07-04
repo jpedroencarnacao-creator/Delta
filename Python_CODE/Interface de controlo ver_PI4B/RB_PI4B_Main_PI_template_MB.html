@@ -57,6 +57,8 @@ body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text)
     border: none; cursor: pointer; font-weight: bold;
     width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
 }
+.conn-indicator svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.conn-indicator .conn-dots { font-size: 18px; letter-spacing: 1px; line-height: 1; }
 .conn-off        { background: #e0e0e0; color: #888; }
 .conn-connecting { background: #fff3cd; color: #b8860b;
                    animation: blink 1s infinite; }
@@ -96,7 +98,14 @@ body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text)
 .btn-ctrl.gray    { background: var(--gray); }
 .btn-ctrl.blue    { background: var(--accent); }
 .btn-ctrl.green   { background: #28a745; }
-.btn-ctrl.scroll-btn { background: #e0e0e0; color: #555; }
+.btn-ctrl.scroll-btn { background: #e0e0e0; color: #555; width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; }
+.btn-ctrl.scroll-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; }
+.ui-icon {
+    width: 17px; height: 17px; display: inline-block; vertical-align: -3px;
+    margin-right: 6px; fill: none; stroke: currentColor; stroke-width: 2;
+    stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
+}
+.btn-ctrl .ui-icon { margin-right: 7px; }
 .btn-ctrl.scroll-btn.active { background: var(--accent); color: white; }
 
 /* Modais */
@@ -221,6 +230,26 @@ body { padding: 16px; }
     border-radius: 14px; padding: 10px; min-width: 180px;
     box-shadow: 0 4px 16px rgba(0,0,0,.18); z-index: 600;
 }
+
+/* Campo de password com botão de mostrar/esconder (olho) */
+.password-field-wrap { position: relative; }
+.password-field-wrap input { padding-right: 42px; }
+.password-toggle-eye {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer; padding: 6px;
+    color: #888; display: flex; align-items: center; justify-content: center;
+    border-radius: 6px;
+}
+.password-toggle-eye svg {
+    width: 20px; height: 20px; fill: none; stroke: currentColor;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+.password-warning {
+    display: none; margin-top: 6px; padding: 8px 10px; border-radius: 8px;
+    background: #fdeaea; color: #b02a26; font-size: 13px; font-weight: bold;
+    border: 1px solid #f3b7b4;
+}
+.password-warning.visible { display: block; }
 </style>
 </head>
 <body>
@@ -240,7 +269,7 @@ body { padding: 16px; }
     <div class="top-row">
       <button id="modeBtn" class="btn-mode cliente" onclick="onModeBtn()">MODO CLIENTE</button>
       <div class="conn-menu-wrap">
-        <button class="conn-indicator conn-off" onclick="onConnClick(this)" title="Desligado">🔗</button>
+        <button class="conn-indicator conn-off" onclick="onConnClick(this)" title="Desligado"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v4"></path><path d="M8 4v4"></path><path d="M16 4v4"></path><path d="M6 8h12l-1 5a5 5 0 0 1-10 0z"></path><path d="M12 17v5"></path></svg></button>
         <div class="conn-menu" id="connMenu">
           <button class="btn-ctrl blue" onclick="sendAction('serial_reconnect'); closeConnMenu();">Tentar reconectar</button>
           <button class="btn-ctrl danger dev-only" style="display:none"
@@ -248,16 +277,9 @@ body { padding: 16px; }
         </div>
       </div>
     </div>
-    <div style="margin-top: 10px;">
-      <button onclick="openMovementsModal()"
-         style="display:inline-block; padding:10px 16px; background:#337ab7; color:white;
-                border-radius:8px; font-weight:bold; font-size:14px; border:none; width:100%; text-align:center;">
-        ⚙ Configurações Movimentos
-      </button>
-    </div>
   </section>
 
-  <!-- Start / Mode / Stop -->
+  <!-- Start / Mode / Configurações Movimentos / Stop -->
   <section class="card">
     <div class="section-title">Ações</div>
     <div class="btn-grid">
@@ -265,6 +287,10 @@ body { padding: 16px; }
       <button id="stopBtn"  class="btn-big on-red"   onclick="sendAction('stop')">Stop</button>
       <button class="btn-mode-action" style="grid-column:span 2"
               onclick="openModeDialog()">Mode</button>
+      <button class="btn-ctrl blue" style="grid-column:span 2; padding:12px"
+              onclick="openMovementsModal()">
+        <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.52a2 2 0 0 1-1 1.72l-.15.1a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.52a2 2 0 0 1 1-1.72l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>Configurações Movimentos
+      </button>
     </div>
   </section>
 
@@ -273,7 +299,7 @@ body { padding: 16px; }
     <div class="section-title" style="display:flex; justify-content:space-between">
       Monitor Serial
       <button id="scrollBtn" class="btn-ctrl scroll-btn active"
-              onclick="toggleAutoScroll()" title="Auto-scroll: ON">⬇</button>
+              onclick="toggleAutoScroll()" title="Auto-scroll: ON"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v13"></path><path d="M6 12l6 6 6-6"></path></svg></button>
     </div>
     <textarea id="serialMonitor" class="serial-monitor" readonly></textarea>
     <div style="display:flex; gap:8px; margin-top:8px">
@@ -300,7 +326,7 @@ body { padding: 16px; }
 <div class="client-mov-overlay" id="clientMovModal">
   <div class="client-mov-card">
     <div class="client-mov-header">
-      <h2>⚙ Configurações</h2>
+      <h2><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.52a2 2 0 0 1-1 1.72l-.15.1a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.52a2 2 0 0 1 1-1.72l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>Configurações</h2>
       <button class="btn-ctrl gray" onclick="closeMovementsModal()">Fechar</button>
     </div>
     <div class="client-mov-tabs">
@@ -334,7 +360,7 @@ body { padding: 16px; }
 <div class="mov-frame-overlay" id="movModal">
   <div class="mov-frame-card">
     <div class="mov-frame-header">
-      <h2>⚙ Configurações Movimentos</h2>
+      <h2><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.52a2 2 0 0 1-1 1.72l-.15.1a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.52a2 2 0 0 1 1-1.72l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>Configurações Movimentos</h2>
       <button class="btn-ctrl gray" onclick="closeMovementsModal()">Fechar</button>
     </div>
     <iframe class="mov-frame" id="movFrame" title="Configurações Movimentos"></iframe>
@@ -342,14 +368,20 @@ body { padding: 16px; }
 </div>
 
 <!-- MODAL: Password DEV -->
-<div class="modal-overlay" id="passwordModal">
+<div class="modal-overlay" id="passwordModal" onclick="if(event.target.id==='passwordModal') closePasswordModal()">
   <div class="modal-card" style="width:100%; max-width:360px">
     <h3 style="margin-bottom:8px">Acesso DEV</h3>
-    <input id="passwordInput" type="password" placeholder="Password DEV"
-           inputmode="text" autocomplete="current-password">
+    <div class="password-field-wrap">
+      <input id="passwordInput" type="password" placeholder="Password DEV"
+             inputmode="text" autocomplete="current-password">
+      <button type="button" class="password-toggle-eye" id="passwordEyeBtn"
+              onclick="toggleFieldVisibility('passwordInput', 'passwordEyeBtn')" title="Mostrar password">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+      </button>
+    </div>
+    <div class="password-warning" id="passwordWarning">Password errada.</div>
     <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px">
-      <button class="btn-ctrl gray"
-              onclick="document.getElementById('passwordModal').style.display='none'">Cancelar</button>
+      <button class="btn-ctrl gray" onclick="closePasswordModal()">Cancelar</button>
       <button class="btn-ctrl blue" onclick="confirmPassword()">Entrar</button>
     </div>
   </div>
@@ -389,15 +421,39 @@ body { padding: 16px; }
   </div>
 </div>
 
+<!-- MODAL: Confirmar envio de todos os parâmetros -->
+<div class="modal-overlay" id="movSendAllModal" style="z-index:4200" onclick="if(event.target.id==='movSendAllModal') closeMovSendAllDialog()">
+  <div class="modal-card" style="width:100%; max-width:460px; padding:0; display:flow-root">
+    <div style="margin:10px">
+      <h3 style="margin-bottom:12px; text-align:center">Enviar parâmetros</h3>
+      <p style="text-align:center">Não existem alterações novas para enviar. Queres enviar todos os parâmetros para o ESP32?</p>
+      <div style="display:flex; justify-content:space-between; gap:60px; margin-top:22px">
+        <button class="btn-ctrl dark" style="min-width:130px; padding:12px 26px" onclick="closeMovSendAllDialog()">Não</button>
+        <button class="btn-ctrl blue" style="min-width:130px; padding:12px 26px" onclick="confirmMovSendAll()">Sim</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script>
-const socket = window.io ? io() : { on: () => {} };
+const socket = window.io ? io() : { on: () => {}, emit: () => {} };
 if (!window.io) {
     setInterval(() => {
         fetch('/state').then(r => r.json()).then(applyState).catch(() => {});
     }, 1000);
 }
+
+// Avisa o servidor (uma única vez) assim que esta página confirmar que
+// abriu com sucesso — o kiosk usa isto para fechar as Definições
+// automaticamente depois de leres o QR code.
+let mobileOpenedSent = false;
+function notifyMobileOpened() {
+    if (mobileOpenedSent) return;
+    mobileOpenedSent = true;
+    socket.emit('mobile_opened');
+}
+socket.on('connect', notifyMobileOpened);
 
 // recebe atualização completa de estado
 socket.on('state_update', (s) => {
@@ -461,14 +517,17 @@ function applyState(s) {
 function applySerialStage(stage) {
     document.querySelectorAll('.conn-indicator').forEach(btn => {
         btn.dataset.stage = stage;
+        const plugIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v4"></path><path d="M8 4v4"></path><path d="M16 4v4"></path><path d="M6 8h12l-1 5a5 5 0 0 1-10 0z"></path><path d="M12 17v5"></path></svg>';
+        const okIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg>';
+        const errIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l10 18H2L12 3z"></path><path d="M12 9v5M12 18h.01"></path></svg>';
         const map = {
-            disconnected: {icon: '🔗', cls: 'conn-off',       tip: 'Desligado'},
-            connecting:   {icon: '↻',  cls: 'conn-connecting', tip: 'A ligar...'},
-            connected:    {icon: '🔗', cls: 'conn-on',         tip: 'Ligado'},
-            error:        {icon: '⚠',  cls: 'conn-error',      tip: 'Erro de ligação'},
+            disconnected: {icon: plugIcon, cls: 'conn-off',       tip: 'Desligado'},
+            connecting:   {icon: '<span class="conn-dots">...</span>', cls: 'conn-connecting', tip: 'A ligar...'},
+            connected:    {icon: okIcon, cls: 'conn-on',         tip: 'Ligado'},
+            error:        {icon: errIcon, cls: 'conn-error',      tip: 'Erro de ligação'},
         };
         const m = map[stage] || map.disconnected;
-        btn.textContent  = m.icon;
+        btn.innerHTML    = m.icon;
         btn.className    = 'conn-indicator ' + m.cls;
         btn.title        = m.tip;
     });
@@ -538,14 +597,84 @@ function onModeBtn() {
     } else {
         document.getElementById('passwordModal').style.display = 'flex';
         document.getElementById('passwordInput').value = '';
+        setFieldVisible('passwordInput', 'passwordEyeBtn', false);
+        hidePasswordWarning();
         document.getElementById('passwordInput').focus();
     }
 }
 
-function confirmPassword() {
-    const pw = document.getElementById('passwordInput').value;
-    sendAction('toggle_devmode', {password: pw});
+function closePasswordModal() {
     document.getElementById('passwordModal').style.display = 'none';
+}
+
+const EYE_ICON     = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+const EYE_OFF_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.5 18.5 0 0 1 5.06-5.94"></path><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.49 18.49 0 0 1-2.16 3.19"></path><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"></path><path d="M1 1l22 22"></path></svg>';
+
+function setFieldVisible(inputId, btnId, visible) {
+    const input = document.getElementById(inputId);
+    const btn = document.getElementById(btnId);
+    if (!input || !btn) return;
+    input.type = visible ? 'text' : 'password';
+    btn.innerHTML = visible ? EYE_OFF_ICON : EYE_ICON;
+    btn.title = visible ? 'Esconder password' : 'Mostrar password';
+}
+
+function toggleFieldVisibility(inputId, btnId) {
+    const input = document.getElementById(inputId);
+    setFieldVisible(inputId, btnId, input.type === 'password');
+}
+
+let passwordWarningTimer = null;
+
+function showPasswordWarning(msg) {
+    const warning = document.getElementById('passwordWarning');
+    if (!warning) return;
+    clearTimeout(passwordWarningTimer);
+    warning.textContent = msg || 'Password errada.';
+    warning.classList.add('visible');
+    passwordWarningTimer = setTimeout(hidePasswordWarning, 2500);
+}
+
+function hidePasswordWarning() {
+    const warning = document.getElementById('passwordWarning');
+    if (!warning) return;
+    clearTimeout(passwordWarningTimer);
+    warning.classList.remove('visible');
+}
+
+let passwordSubmitting = false;
+
+function confirmPassword() {
+    if (passwordSubmitting) return;
+    passwordSubmitting = true;
+    const pw = document.getElementById('passwordInput').value;
+    fetch('/toggle_devmode', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({password: pw}),
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (!res.ok) {
+            showPasswordWarning('Password errada.');
+            document.getElementById('passwordInput').value = '';
+            passwordSubmitting = false;
+            return;
+        }
+        hidePasswordWarning();
+        fetch('/state')
+            .then(r => r.json())
+            .then(applyState)
+            .catch(() => {})
+            .finally(() => {
+                closePasswordModal();
+                passwordSubmitting = false;
+            });
+    })
+    .catch(() => {
+        showPasswordWarning('Erro ao verificar password.');
+        passwordSubmitting = false;
+    });
 }
 
 function openModeDialog() {
@@ -675,8 +804,100 @@ const CLIENT_MOVEMENTS = {
     },
 };
 
+// mapeamento: qual modo/curva do ESP32 corresponde a cada movimento
+// (tem de coincidir com MOV_DEV_SEND em RB_PI4B_Main_PI_template_PC.html)
+const MOV_DEV_SEND = {
+    respiracao: {mode: 'R', curve: 'curva2', graph: 'graf_respiracao'},
+    batimento: {mode: 'B', curve: 'curva1', graph: 'graf_batimento'},
+    vibracao_tosse: {mode: 'T', curve: 'curva3', graph: 'graf_tosse_vibracao'},
+};
+const MOV_SCALAR_TAGS = {
+    periodo: 'Perid',
+    espera_inicio: 'TPini',
+    espera_fim: 'TPend',
+    ponto_inicio: 'STInd',
+};
+
+function movSameValue(a, b) {
+    if (Array.isArray(a) || Array.isArray(b)) {
+        return JSON.stringify(a || []) === JSON.stringify(b || []);
+    }
+    const na = Number(a);
+    const nb = Number(b);
+    if (!Number.isNaN(na) && !Number.isNaN(nb)) return na === nb;
+    return (a ?? '') === (b ?? '');
+}
+
+function movFormatValue(value, decimals=3) {
+    const n = Number(value);
+    if (Number.isNaN(n)) return '0';
+    return n.toFixed(decimals).replace(/0+$/, '').replace(/\.$/, '.0');
+}
+
+function movArrayCommand(mode, tag, values) {
+    return `W${mode}${tag}${(values || []).map(v => `[${movFormatValue(v)}]`).join('')};`;
+}
+
+function movScalarCommand(mode, tag, value, isInt=false) {
+    const text = isInt ? String(parseInt(value || 0, 10)) : movFormatValue(value, 3);
+    return `W${mode}${tag}[${text}];`;
+}
+
+function movBuildCommandsFromConfig(cfg, sentCfg, sendAll=false, coordKeys={}) {
+    cfg = cloneConfig(cfg || {});
+    sentCfg = sentCfg || {};
+    const commands = [];
+
+    Object.entries(MOV_DEV_SEND).forEach(([key, def]) => {
+        const mov = cfg[key] || {};
+        const sentMov = (sentCfg || {})[key] || {};
+        const sendCoords = sendAll || !!coordKeys[key];
+
+        if (sendCoords) {
+            const xs = mov.pontos_x || [];
+            const ys = mov.pontos_y || [];
+            const zs = mov.pontos_z || [];
+            const nPoints = Math.max(xs.length, ys.length, zs.length);
+            commands.push(movScalarCommand(def.mode, 'n_pnt', nPoints, true));
+            commands.push(movArrayCommand(def.mode, 'XYZ_x', xs));
+            commands.push(movArrayCommand(def.mode, 'XYZ_y', ys));
+            commands.push(movArrayCommand(def.mode, 'XYZ_z', zs));
+        }
+
+        Object.entries(MOV_SCALAR_TAGS).forEach(([field, tag]) => {
+            const changed = !movSameValue(mov[field], sentMov[field]);
+            if (sendAll || changed) {
+                commands.push(movScalarCommand(def.mode, tag, mov[field], field === 'ponto_inicio'));
+            }
+        });
+    });
+
+    return commands;
+}
+
+let pendingMovSendAllAction = null;
+
+function openMovSendAllDialog(onConfirm) {
+    pendingMovSendAllAction = onConfirm || null;
+    document.getElementById('movSendAllModal').style.display = 'flex';
+}
+
+function closeMovSendAllDialog() {
+    pendingMovSendAllAction = null;
+    document.getElementById('movSendAllModal').style.display = 'none';
+    clientMovSetStatus('Envio cancelado.', '#777');
+}
+
+function confirmMovSendAll() {
+    document.getElementById('movSendAllModal').style.display = 'none';
+    const action = pendingMovSendAllAction;
+    pendingMovSendAllAction = null;
+    if (typeof action === 'function') action();
+}
+
 let _clientMovConfig = {};
 let _clientMovSaved = {};
+let _clientMovSent = {};
 let _clientMovActive = 'batimento';
 let _clientMovDirty = {};
 let _clientMovDraftTimer = null;
@@ -817,6 +1038,7 @@ function clientMovCarregarConfig() {
         const cfg = res.config || {};
         _clientMovConfig = cloneConfig(cfg);
         _clientMovSaved = cloneConfig(res.saved || cfg);
+        _clientMovSent = cloneConfig(res.saved || cfg);
         _clientMovDirty = {};
         clientMovRenderActive();
         clientMovSetStatus(res.has_draft ? 'Rascunho temporário carregado.' : 'Configurações carregadas.', '#28a745');
@@ -859,10 +1081,96 @@ function clientMovRestaurar() {
       .catch(() => clientMovSetStatus('Erro ao restaurar.', '#d9534f'));
 }
 
-function clientMovEnviar() {
+function clientMovAmpChanged(key) {
+    const def = CLIENT_MOVEMENTS[key];
+    const current = def.readAmp(_clientMovConfig || {});
+    const sent = def.readAmp(_clientMovSent || {});
+    return !movSameValue(current.x, sent.x) || !movSameValue(current.y, sent.y);
+}
+
+function clientMovApplyCalcResult(res) {
+    if (res.curva1) {
+        _clientMovConfig.curva1 = {...(_clientMovConfig.curva1 || {}), ...res.curva1};
+    }
+    if (res.pontos_c1) {
+        _clientMovConfig.batimento = _clientMovConfig.batimento || {};
+        _clientMovConfig.batimento.pontos_x = res.pontos_c1.x || [];
+        _clientMovConfig.batimento.pontos_y = res.pontos_c1.y || [];
+        _clientMovConfig.batimento.pontos_z = res.pontos_c1.z || [];
+    }
+    if (res.pontos_c2) {
+        _clientMovConfig.respiracao = _clientMovConfig.respiracao || {};
+        _clientMovConfig.respiracao.pontos_x = res.pontos_c2.x || [];
+        _clientMovConfig.respiracao.pontos_y = res.pontos_c2.y || [];
+        _clientMovConfig.respiracao.pontos_z = res.pontos_c2.z || [];
+    }
+    if (res.pontos_c3) {
+        _clientMovConfig.vibracao_tosse = _clientMovConfig.vibracao_tosse || {};
+        _clientMovConfig.vibracao_tosse.pontos_x = res.pontos_c3.x || [];
+        _clientMovConfig.vibracao_tosse.pontos_y = res.pontos_c3.y || [];
+        _clientMovConfig.vibracao_tosse.pontos_z = res.pontos_c3.z || [];
+    }
+}
+
+function clientMovEnviar(sendAll=false) {
     clientMovReadFieldsIntoConfig();
     clientMovRefreshDirty();
-    clientMovSetStatus('Envio para o ESP32 ainda não está configurado. Usa Guardar para gravar no ficheiro interno.', '#b8860b');
+
+    const currentConfig = cloneConfig(_clientMovConfig);
+    const coordKeys = {};
+    Object.keys(CLIENT_MOVEMENTS).forEach(key => {
+        const movKey = CLIENT_MOVEMENTS[key].movKey;
+        coordKeys[movKey] = sendAll || clientMovAmpChanged(key);
+    });
+    let commands = movBuildCommandsFromConfig(currentConfig, _clientMovSent, sendAll, coordKeys);
+
+    if (!sendAll && !commands.length) {
+        openMovSendAllDialog(() => clientMovEnviar(true));
+        return;
+    }
+
+    const afterCalc = () => {
+        commands = movBuildCommandsFromConfig(_clientMovConfig, _clientMovSent, sendAll, coordKeys);
+        if (!commands.length) {
+            clientMovSetStatus('Nenhum comando para enviar.', '#b8860b');
+            return;
+        }
+        clientMovSetStatus(`A enviar ${commands.length} comando(s)...`, '#b8860b');
+        fetch('/movements/send_to_esp', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({commands}),
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (!res.ok) {
+                clientMovSetStatus('Erro no envio: ' + ((res.errors || [res.error || 'desconhecido']).join(', ')), '#d9534f');
+                return;
+            }
+            _clientMovSent = cloneConfig(_clientMovConfig);
+            clientMovRefreshDirty();
+            clientMovSetStatus(`Enviado para o ESP32 (${(res.sent || []).length} comando(s)).`, '#28a745');
+        })
+        .catch(() => clientMovSetStatus('Erro de comunicação ao enviar.', '#d9534f'));
+    };
+
+    if (Object.values(coordKeys).some(Boolean)) {
+        clientMovSetStatus('A recalcular coordenadas antes de enviar...', '#b8860b');
+        fetch('/movements/calcular', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(_clientMovConfig),
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (!res.ok) throw new Error(res.error || 'Erro ao calcular.');
+            clientMovApplyCalcResult(res);
+            afterCalc();
+        })
+        .catch(() => clientMovSetStatus('Erro ao recalcular antes do envio.', '#d9534f'));
+    } else {
+        afterCalc();
+    }
 }
 
 document.querySelectorAll('#clientMovModal input[type="number"]').forEach(input => {
@@ -881,7 +1189,7 @@ function checkDevice() {
 checkDevice();
 window.addEventListener('resize', checkDevice);
 
-fetch('/state').then(r => r.json()).then(applyState);
+fetch('/state').then(r => r.json()).then(s => { applyState(s); notifyMobileOpened(); });
 </script>
 
 <template id="movementsMobileTemplate">
@@ -995,9 +1303,10 @@ body.embedded .header { display: none; }
     </div>
     <div class="actions">
       <button class="btn blue" onclick="movCalcular()">Calcular</button>
-      <button class="btn green" onclick="movGuardar()">Guardar</button>
-      <button class="btn blue" onclick="movRecarregarESP()">Recarregar ESP32</button>
-      <button class="btn gray" onclick="movCarregarConfig()">Atualizar</button>
+      <button class="btn gray" onclick="movRecarregarESP()">Recarregar ESP32</button>
+      <button class="btn blue" onclick="movGuardar()">Guardar</button>
+      <button class="btn gray" onclick="movCarregarConfig()">Restaurar</button>
+      <button class="btn green" style="grid-column:span 2" onclick="movEnviar()">Enviar</button>
     </div>
     <div class="status" id="movStatus">A carregar...</div>
   </div>
@@ -1118,10 +1427,10 @@ body.embedded .header { display: none; }
     <button class="key" onclick="keypadPress('7')">7</button>
     <button class="key" onclick="keypadPress('8')">8</button>
     <button class="key" onclick="keypadPress('9')">9</button>
-    <button class="key action" onclick="keypadPress('-')">−</button>
+    <button class="key action" onclick="keypadPress('-')">-</button>
     <button class="key" onclick="keypadPress('0')">0</button>
     <button class="key action" onclick="keypadPress('.')">.</button>
-    <button class="key action" onclick="keypadBackspace()">⌫</button>
+    <button class="key action" onclick="keypadBackspace()">Del</button>
     <button class="key red" onclick="keypadClear()">Limpar</button>
     <button class="key ok" onclick="hideKeypad()">OK</button>
   </div>
@@ -1230,9 +1539,108 @@ function movCalcular() {
       if (res.pontos_c2) movAtualizarPontos('respiracao', res.pontos_c2);
       if (res.pontos_c3) movAtualizarPontos('vibracao_tosse', res.pontos_c3);
       if (res.pontos_c2) movAtualizarPontos('tosse', res.pontos_c2);
+      // guarda os pontos calculados (não há campos de texto para eles) para poderem ser enviados ao ESP32
+      _movConfig.batimento = _movConfig.batimento || {};
+      _movConfig.respiracao = _movConfig.respiracao || {};
+      _movConfig.tosse = _movConfig.tosse || {};
+      _movConfig.vibracao_tosse = _movConfig.vibracao_tosse || {};
+      if (res.pontos_c1) Object.assign(_movConfig.batimento, {pontos_x: res.pontos_c1.x, pontos_y: res.pontos_c1.y, pontos_z: res.pontos_c1.z});
+      if (res.pontos_c2) {
+          Object.assign(_movConfig.respiracao, {pontos_x: res.pontos_c2.x, pontos_y: res.pontos_c2.y, pontos_z: res.pontos_c2.z});
+          Object.assign(_movConfig.tosse, {pontos_x: res.pontos_c2.x, pontos_y: res.pontos_c2.y, pontos_z: res.pontos_c2.z});
+      }
+      if (res.pontos_c3) Object.assign(_movConfig.vibracao_tosse, {pontos_x: res.pontos_c3.x, pontos_y: res.pontos_c3.y, pontos_z: res.pontos_c3.z});
       movSetStatus('Cálculo concluído.', '#28a745');
     })
     .catch(e => movSetStatus('Erro de comunicação: ' + e, '#d9534f'));
+}
+
+const MOV_DEV_SEND = {
+    respiracao: {mode: 'R'},
+    batimento: {mode: 'B'},
+    vibracao_tosse: {mode: 'T'},
+};
+const MOV_SCALAR_TAGS = {
+    periodo: 'Perid',
+    espera_inicio: 'TPini',
+    espera_fim: 'TPend',
+    ponto_inicio: 'STInd',
+};
+
+function movFormatValue(value, decimals=3) {
+    const n = Number(value);
+    if (Number.isNaN(n)) return '0';
+    return n.toFixed(decimals).replace(/0+$/, '').replace(/\.$/, '.0');
+}
+
+function movArrayCommand(mode, tag, values) {
+    return `W${mode}${tag}${(values || []).map(v => `[${movFormatValue(v)}]`).join('')};`;
+}
+
+function movScalarCommand(mode, tag, value, isInt=false) {
+    const text = isInt ? String(parseInt(value || 0, 10)) : movFormatValue(value, 3);
+    return `W${mode}${tag}[${text}];`;
+}
+
+function movBuildCommands(cfg) {
+    const commands = [];
+    Object.entries(MOV_DEV_SEND).forEach(([key, def]) => {
+        const mov = cfg[key] || {};
+        const xs = mov.pontos_x || [];
+        const ys = mov.pontos_y || [];
+        const zs = mov.pontos_z || [];
+        const nPoints = Math.max(xs.length, ys.length, zs.length);
+        commands.push(movScalarCommand(def.mode, 'n_pnt', nPoints, true));
+        commands.push(movArrayCommand(def.mode, 'XYZ_x', xs));
+        commands.push(movArrayCommand(def.mode, 'XYZ_y', ys));
+        commands.push(movArrayCommand(def.mode, 'XYZ_z', zs));
+        Object.entries(MOV_SCALAR_TAGS).forEach(([field, tag]) => {
+            commands.push(movScalarCommand(def.mode, tag, mov[field], field === 'ponto_inicio'));
+        });
+    });
+    return commands;
+}
+
+function movEnviar() {
+    const cfg = movLerCampos();
+    movSetStatus('A recalcular antes de enviar...', '#b8860b');
+    fetch('/movements/calcular', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(cfg),
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (!res.ok) throw new Error(res.error || 'Erro ao calcular.');
+        if (res.pontos_c1) Object.assign(cfg.batimento, {pontos_x: res.pontos_c1.x, pontos_y: res.pontos_c1.y, pontos_z: res.pontos_c1.z});
+        if (res.pontos_c2) Object.assign(cfg.respiracao, {pontos_x: res.pontos_c2.x, pontos_y: res.pontos_c2.y, pontos_z: res.pontos_c2.z});
+        if (res.pontos_c3) Object.assign(cfg.vibracao_tosse, {pontos_x: res.pontos_c3.x, pontos_y: res.pontos_c3.y, pontos_z: res.pontos_c3.z});
+
+        const g = res.graficos || {};
+        movAtualizarGrafico('batimento', g.batimento_2d || g.c1_2d, g.batimento_3d || g.c1_3d);
+        movAtualizarGrafico('respiracao', g.respiracao_2d || g.tosse_2d, g.respiracao_3d || g.tosse_3d);
+        movAtualizarGrafico('tosse_vibracao', g.vibracao_tosse_2d, g.vibracao_tosse_3d);
+        if (res.pontos_c1) movAtualizarPontos('batimento', res.pontos_c1);
+        if (res.pontos_c2) { movAtualizarPontos('respiracao', res.pontos_c2); movAtualizarPontos('tosse', res.pontos_c2); }
+        if (res.pontos_c3) movAtualizarPontos('vibracao_tosse', res.pontos_c3);
+
+        const commands = movBuildCommands(cfg);
+        movSetStatus(`A enviar ${commands.length} comando(s)...`, '#b8860b');
+        return fetch('/movements/send_to_esp', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({commands}),
+        });
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (!res.ok) {
+            movSetStatus('Erro no envio: ' + ((res.errors || [res.error || 'desconhecido']).join(', ')), '#d9534f');
+            return;
+        }
+        movSetStatus(`Enviado para o ESP32 (${(res.sent || []).length} comando(s)).`, '#28a745');
+    })
+    .catch(e => movSetStatus('Erro ao enviar: ' + e, '#d9534f'));
 }
 
 function movAtualizarGrafico(secId, img2d, img3d) {
