@@ -248,6 +248,41 @@
       \endverb
       \keyw{broncoscopia,educacao-medica,simulacao}
     \endentry
+    \entry{Barros2023}{unpublished}{}{}
+      \name{author}{3}{}{%
+        {{hash=bfcdbb574f34a34ba9ef401ffdb4872c}{%
+           family={Barros},
+           familyi={B\bibinitperiod},
+           given={Pedro},
+           giveni={P\bibinitperiod}}}%
+        {{hash=9f79d1f263ab6ee9f1899b151fb727e8}{%
+           family={Santos},
+           familyi={S\bibinitperiod},
+           given={Bruno},
+           giveni={B\bibinitperiod}}}%
+        {{hash=33b52afa45990cb9a9a88395f8025fb5}{%
+           family={Brito},
+           familyi={B\bibinitperiod},
+           given={Ulisses},
+           giveni={U\bibinitperiod}}}%
+      }
+      \strng{namehash}{301dcbbe37b26d6e16384332412552bc}
+      \strng{fullhash}{301dcbbe37b26d6e16384332412552bc}
+      \strng{fullhashraw}{301dcbbe37b26d6e16384332412552bc}
+      \strng{bibnamehash}{301dcbbe37b26d6e16384332412552bc}
+      \strng{authorbibnamehash}{301dcbbe37b26d6e16384332412552bc}
+      \strng{authornamehash}{301dcbbe37b26d6e16384332412552bc}
+      \strng{authorfullhash}{301dcbbe37b26d6e16384332412552bc}
+      \strng{authorfullhashraw}{301dcbbe37b26d6e16384332412552bc}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Documento de trabalho interno, Serviço de Pneumologia, Centro Hospitalar Universitário do Algarve, cedido à equipa do projeto}
+      \field{title}{Projeto para desenvolvimento de modelo de simulação de árvore brônquica, com impressão 3D}
+      \field{year}{2023}
+      \keyw{documento-interno,proposta-projeto}
+    \endentry
     \entry{Pedersen2017}{article}{}{}
       \name{author}{7}{}{%
         {{hash=7de7c52221e09d48be44b55202e355f4}{%
@@ -294,8 +329,8 @@
       \strng{authornamehash}{98452daf1b33c31af5de151c0a966d71}
       \strng{authorfullhash}{cf6a4aacb8c62da90f1ff4b6f9d96134}
       \strng{authorfullhashraw}{cf6a4aacb8c62da90f1ff4b6f9d96134}
-      \field{sortinit}{2}
-      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Anaesthesia}
@@ -346,8 +381,8 @@
       \strng{authornamehash}{1b9b35bd38408866d073df1fd2bbedfd}
       \strng{authorfullhash}{0d95258d70173223624163537b43ec2a}
       \strng{authorfullhashraw}{0d95258d70173223624163537b43ec2a}
-      \field{sortinit}{2}
-      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Anaesthesia and Intensive Care}
@@ -378,8 +413,8 @@
       \strng{authornamehash}{91f3a2b551f0e05abbbec1df778d4e60}
       \strng{authorfullhash}{91f3a2b551f0e05abbbec1df778d4e60}
       \strng{authorfullhashraw}{91f3a2b551f0e05abbbec1df778d4e60}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Journal of Clinical Investigation}
@@ -410,8 +445,8 @@
       \strng{authornamehash}{2242c670a11e2c0a29c478dee260c138}
       \strng{authorfullhash}{2242c670a11e2c0a29c478dee260c138}
       \strng{authorfullhashraw}{2242c670a11e2c0a29c478dee260c138}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{The Journal of Physiology}
@@ -457,8 +492,8 @@
       \strng{authornamehash}{a7f3be235eae144f626efb9d7a5e819f}
       \strng{authorfullhash}{489790188dce5b238f2e4af7417b9b30}
       \strng{authorfullhashraw}{489790188dce5b238f2e4af7417b9b30}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Chest}
@@ -509,8 +544,8 @@
       \strng{authornamehash}{da9e445f58a7913cb470f13981f7dc1a}
       \strng{authorfullhash}{8fe6d9c8b93ce9d31ad48ce5e6b2c02b}
       \strng{authorfullhashraw}{8fe6d9c8b93ce9d31ad48ce5e6b2c02b}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Computers in Biology and Medicine}
@@ -523,6 +558,205 @@
       \verb 10.1016/j.compbiomed.2020.104099
       \endverb
       \keyw{vias-aereas,movimento-respiratorio,cfd}
+    \endentry
+    \entry{Santos2026}{unpublished}{}{}
+      \name{author}{1}{}{%
+        {{hash=9f79d1f263ab6ee9f1899b151fb727e8}{%
+           family={Santos},
+           familyi={S\bibinitperiod},
+           given={Bruno},
+           giveni={B\bibinitperiod}}}%
+      }
+      \strng{namehash}{9f79d1f263ab6ee9f1899b151fb727e8}
+      \strng{fullhash}{9f79d1f263ab6ee9f1899b151fb727e8}
+      \strng{fullhashraw}{9f79d1f263ab6ee9f1899b151fb727e8}
+      \strng{bibnamehash}{9f79d1f263ab6ee9f1899b151fb727e8}
+      \strng{authorbibnamehash}{9f79d1f263ab6ee9f1899b151fb727e8}
+      \strng{authornamehash}{9f79d1f263ab6ee9f1899b151fb727e8}
+      \strng{authorfullhash}{9f79d1f263ab6ee9f1899b151fb727e8}
+      \strng{authorfullhashraw}{9f79d1f263ab6ee9f1899b151fb727e8}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Documento de trabalho interno, Serviço de Pneumologia, Centro Hospitalar Universitário do Algarve, cedido à equipa do projeto}
+      \field{title}{Simulação dinâmica da videobroncofibroscopia em modelo impresso 3D: introdução de movimento no modelo de árvore brônquica}
+      \field{year}{2026}
+      \keyw{documento-interno,movimentos-fisiologicos}
+    \endentry
+    \entry{TinkersProjects2018}{software}{}{}
+      \name{author}{1}{}{%
+        {{hash=312495e244c91855d4827b73b634b887}{%
+           family={Bailes},
+           familyi={B\bibinitperiod},
+           given={William},
+           giveni={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{312495e244c91855d4827b73b634b887}
+      \strng{fullhash}{312495e244c91855d4827b73b634b887}
+      \strng{fullhashraw}{312495e244c91855d4827b73b634b887}
+      \strng{bibnamehash}{312495e244c91855d4827b73b634b887}
+      \strng{authorbibnamehash}{312495e244c91855d4827b73b634b887}
+      \strng{authornamehash}{312495e244c91855d4827b73b634b887}
+      \strng{authorfullhash}{312495e244c91855d4827b73b634b887}
+      \strng{authorfullhashraw}{312495e244c91855d4827b73b634b887}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Biblioteca Arduino de código aberto para cinemática direta e inversa de manipuladores delta}
+      \field{title}{Delta-Kinematics-Library}
+      \field{urlday}{3}
+      \field{urlmonth}{7}
+      \field{urlyear}{2026}
+      \field{year}{2018}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://github.com/tinkersprojects/Delta-Kinematics-Library
+      \endverb
+      \verb{url}
+      \verb https://github.com/tinkersprojects/Delta-Kinematics-Library
+      \endverb
+      \keyw{manipulador-delta,codigo-fonte}
+    \endentry
+    \entry{Nikanorov_HyperTriangle}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=8fe42cc9d2d0f1ff1aa7336ba6d56c9e}{%
+           family={Nikanorov},
+           familyi={N\bibinitperiod},
+           given={Alex},
+           giveni={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
+      \strng{fullhash}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
+      \strng{fullhashraw}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
+      \strng{bibnamehash}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
+      \strng{authorbibnamehash}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
+      \strng{authornamehash}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
+      \strng{authorfullhash}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
+      \strng{authorfullhashraw}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Tutorial online, HyperTriangle}
+      \field{title}{Delta robot kinematics}
+      \field{urlday}{3}
+      \field{urlmonth}{7}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://hypertriangle.com/~alex/delta-robot-tutorial/
+      \endverb
+      \verb{url}
+      \verb https://hypertriangle.com/~alex/delta-robot-tutorial/
+      \endverb
+      \keyw{manipulador-delta,cinematica-inversa,tutorial}
+    \endentry
+    \entry{Isaac2019Delta}{software}{}{}
+      \name{author}{1}{}{%
+        {{hash=ae49d1a95d81a575fcc595b008b82d3e}{%
+           family={{isaac879}},
+           familyi={i\bibinitperiod}}}%
+      }
+      \strng{namehash}{ae49d1a95d81a575fcc595b008b82d3e}
+      \strng{fullhash}{ae49d1a95d81a575fcc595b008b82d3e}
+      \strng{fullhashraw}{ae49d1a95d81a575fcc595b008b82d3e}
+      \strng{bibnamehash}{ae49d1a95d81a575fcc595b008b82d3e}
+      \strng{authorbibnamehash}{ae49d1a95d81a575fcc595b008b82d3e}
+      \strng{authornamehash}{ae49d1a95d81a575fcc595b008b82d3e}
+      \strng{authorfullhash}{ae49d1a95d81a575fcc595b008b82d3e}
+      \strng{authorfullhashraw}{ae49d1a95d81a575fcc595b008b82d3e}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Repositório de código aberto; robô manipulador delta impresso em 3D controlado por Arduino Nano}
+      \field{title}{Delta-Robot}
+      \field{urlday}{3}
+      \field{urlmonth}{7}
+      \field{urlyear}{2026}
+      \field{year}{2019}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://github.com/isaac879/Delta-Robot
+      \endverb
+      \verb{url}
+      \verb https://github.com/isaac879/Delta-Robot
+      \endverb
+      \keyw{manipulador-delta,codigo-fonte,inspiracao}
+    \endentry
+    \entry{ZsomborMurray2004}{report}{}{}
+      \name{author}{1}{}{%
+        {{hash=4b90129d39f91e27bbe2ac53de61772d}{%
+           family={Zsombor-Murray},
+           familyi={Z\bibinithyphendelim M\bibinitperiod},
+           given={P.\bibnamedelimi J.},
+           giveni={P\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {McGill University, Centre for Intelligent Machines}%
+      }
+      \strng{namehash}{4b90129d39f91e27bbe2ac53de61772d}
+      \strng{fullhash}{4b90129d39f91e27bbe2ac53de61772d}
+      \strng{fullhashraw}{4b90129d39f91e27bbe2ac53de61772d}
+      \strng{bibnamehash}{4b90129d39f91e27bbe2ac53de61772d}
+      \strng{authorbibnamehash}{4b90129d39f91e27bbe2ac53de61772d}
+      \strng{authornamehash}{4b90129d39f91e27bbe2ac53de61772d}
+      \strng{authorfullhash}{4b90129d39f91e27bbe2ac53de61772d}
+      \strng{authorfullhashraw}{4b90129d39f91e27bbe2ac53de61772d}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Descriptive Geometric Kinematic Analysis of Clavel's ``Delta'' Robot}
+      \field{urlday}{3}
+      \field{urlmonth}{7}
+      \field{urlyear}{2026}
+      \field{year}{2004}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://cim.mcgill.ca/~paul/clavdelt.pdf
+      \endverb
+      \verb{url}
+      \verb https://cim.mcgill.ca/~paul/clavdelt.pdf
+      \endverb
+      \keyw{manipulador-delta,cinematica-inversa,geometria}
+    \endentry
+    \entry{Hasanlu2025}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=b42ba49357abf1d203e86ce4b99d26c0}{%
+           family={Hasanlu},
+           familyi={H\bibinitperiod},
+           given={M.},
+           giveni={M\bibinitperiod}}}%
+        {{hash=725d15cdbf35d58e57a264310499129b}{%
+           family={Siavashi},
+           familyi={S\bibinitperiod},
+           given={M.},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{cff48e85ea807a82af55a62f33b8f419}
+      \strng{fullhash}{cff48e85ea807a82af55a62f33b8f419}
+      \strng{fullhashraw}{cff48e85ea807a82af55a62f33b8f419}
+      \strng{bibnamehash}{cff48e85ea807a82af55a62f33b8f419}
+      \strng{authorbibnamehash}{cff48e85ea807a82af55a62f33b8f419}
+      \strng{authornamehash}{cff48e85ea807a82af55a62f33b8f419}
+      \strng{authorfullhash}{cff48e85ea807a82af55a62f33b8f419}
+      \strng{authorfullhashraw}{cff48e85ea807a82af55a62f33b8f419}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Robotic Systems and Applications}
+      \field{number}{1}
+      \field{title}{Optimum kinematic--dynamic performance of the reconfigurable delta robot through genetic algorithm optimization}
+      \field{volume}{5}
+      \field{year}{2025}
+      \verb{doi}
+      \verb 10.21595/rsa.2025.24731
+      \endverb
+      \keyw{manipulador-delta,cinematica-inversa,otimizacao}
     \endentry
   \enddatalist
 \endrefsection

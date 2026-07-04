@@ -2381,31 +2381,39 @@
     <bcf:citekey order="1" intorder="3">Fielding2014</bcf:citekey>
     <bcf:citekey order="1" intorder="4">Nilsson2017</bcf:citekey>
     <bcf:citekey order="1" intorder="5">Gopal2018</bcf:citekey>
-    <bcf:citekey order="2" intorder="1">Pedersen2017</bcf:citekey>
-    <bcf:citekey order="2" intorder="2">Fu2023</bcf:citekey>
+    <bcf:citekey order="2" intorder="1">Barros2023</bcf:citekey>
     <bcf:citekey order="3" intorder="1">Pedersen2017</bcf:citekey>
     <bcf:citekey order="3" intorder="2">Fu2023</bcf:citekey>
-    <bcf:citekey order="4" intorder="1">Heinbecker1927</bcf:citekey>
-    <bcf:citekey order="4" intorder="2">Ellis1936</bcf:citekey>
-    <bcf:citekey order="4" intorder="3">Chen2015</bcf:citekey>
-    <bcf:citekey order="4" intorder="4">Gunatilaka2020</bcf:citekey>
-    <bcf:citekey order="5" intorder="1">Davoudi2008</bcf:citekey>
-    <bcf:citekey order="5" intorder="2">Kennedy2013</bcf:citekey>
-    <bcf:citekey order="5" intorder="3">Fielding2014</bcf:citekey>
-    <bcf:citekey order="5" intorder="4">Nilsson2017</bcf:citekey>
-    <bcf:citekey order="6" intorder="1">Kennedy2013</bcf:citekey>
-    <bcf:citekey order="6" intorder="2">Fielding2014</bcf:citekey>
-    <bcf:citekey order="6" intorder="3">Gopal2018</bcf:citekey>
-    <bcf:citekey order="7" intorder="1">Davoudi2008</bcf:citekey>
-    <bcf:citekey order="7" intorder="2">Nilsson2017</bcf:citekey>
-    <bcf:citekey order="7" intorder="3">Fu2023</bcf:citekey>
-    <bcf:citekey order="8" intorder="1">Pedersen2017</bcf:citekey>
-    <bcf:citekey order="8" intorder="2">Fu2023</bcf:citekey>
-    <bcf:citekey order="9" intorder="1">Chen2015</bcf:citekey>
-    <bcf:citekey order="9" intorder="2">Gunatilaka2020</bcf:citekey>
-    <bcf:citekey order="10" intorder="1">Heinbecker1927</bcf:citekey>
-    <bcf:citekey order="10" intorder="2">Ellis1936</bcf:citekey>
-    <bcf:citekey order="11" intorder="1" nocite="1">*</bcf:citekey>
+    <bcf:citekey order="4" intorder="1">Pedersen2017</bcf:citekey>
+    <bcf:citekey order="4" intorder="2">Fu2023</bcf:citekey>
+    <bcf:citekey order="5" intorder="1">Heinbecker1927</bcf:citekey>
+    <bcf:citekey order="5" intorder="2">Ellis1936</bcf:citekey>
+    <bcf:citekey order="5" intorder="3">Chen2015</bcf:citekey>
+    <bcf:citekey order="5" intorder="4">Gunatilaka2020</bcf:citekey>
+    <bcf:citekey order="6" intorder="1">Davoudi2008</bcf:citekey>
+    <bcf:citekey order="6" intorder="2">Kennedy2013</bcf:citekey>
+    <bcf:citekey order="6" intorder="3">Fielding2014</bcf:citekey>
+    <bcf:citekey order="6" intorder="4">Nilsson2017</bcf:citekey>
+    <bcf:citekey order="7" intorder="1">Kennedy2013</bcf:citekey>
+    <bcf:citekey order="7" intorder="2">Fielding2014</bcf:citekey>
+    <bcf:citekey order="7" intorder="3">Gopal2018</bcf:citekey>
+    <bcf:citekey order="8" intorder="1">Davoudi2008</bcf:citekey>
+    <bcf:citekey order="8" intorder="2">Nilsson2017</bcf:citekey>
+    <bcf:citekey order="8" intorder="3">Fu2023</bcf:citekey>
+    <bcf:citekey order="9" intorder="1">Pedersen2017</bcf:citekey>
+    <bcf:citekey order="9" intorder="2">Fu2023</bcf:citekey>
+    <bcf:citekey order="10" intorder="1">Santos2026</bcf:citekey>
+    <bcf:citekey order="11" intorder="1">Chen2015</bcf:citekey>
+    <bcf:citekey order="11" intorder="2">Gunatilaka2020</bcf:citekey>
+    <bcf:citekey order="12" intorder="1">Heinbecker1927</bcf:citekey>
+    <bcf:citekey order="12" intorder="2">Ellis1936</bcf:citekey>
+    <bcf:citekey order="13" intorder="1">Santos2026</bcf:citekey>
+    <bcf:citekey order="14" intorder="1">TinkersProjects2018</bcf:citekey>
+    <bcf:citekey order="15" intorder="1">Nikanorov_HyperTriangle</bcf:citekey>
+    <bcf:citekey order="16" intorder="1">Isaac2019Delta</bcf:citekey>
+    <bcf:citekey order="17" intorder="1">ZsomborMurray2004</bcf:citekey>
+    <bcf:citekey order="18" intorder="1">Hasanlu2025</bcf:citekey>
+    <bcf:citekey order="19" intorder="1" nocite="1">*</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="none">

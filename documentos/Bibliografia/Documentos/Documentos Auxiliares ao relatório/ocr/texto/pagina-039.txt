@@ -1,0 +1,83 @@
+Moses,
+
+—? SoyVe
+
+Hora
+
+Todo
+
+l> HoTiom To) astro
+
+2 0º, dO
+
+—> Fnyã Pe
+
+fr =
+
+(Rexras nho
+
+Pesa (com fonsto , Po > NS
+
+(vo e Er”
+
+Vai 4 das Tudo] e os
+
+VANRHIN 03 (rogo, SST | Ps, E)
+
+al
+
+>
+
+A
+
+fest Um. obpede de (Gitras o Pod Vai
+
+mo Vááié
+
+—
+
+=—
+
+“alpha:
+
+(
+
+Jelapsed-/-dtMs;
+
+Fe (alpha-<:
+
+9.0f)- alpha:
+
+pa
+
+—
+
+-B.BT;
+
+===
+
+==
+
+E (alpha->:
+
+1
+
+.0f)-alpha:
+
+FR
+
+“Inst.currentIndex;
+
+«(1:+:1)-%-m.nPoints;
+
+OUTX *
+
+“lerp(m.x[1|],:m.X[]], alpha);
+
+ou tY
+
+“Jerp(m.v[i],:m.vY[9], alpha);
+
+ouUtZ
+
+“lerp(m.zZ[i],:m.Z[9], alpha);

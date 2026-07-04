@@ -1,32 +1,68 @@
 \chapter{Desenvolvimento do Hardware}
 
+Este capítulo descreve o percurso de desenvolvimento do hardware, desde as primeiras impressões de teste em março de 2026 até à montagem final do sistema com dois manipuladores delta, servos, eletrónica de controlo e encaixe de alimentação. O processo não foi linear: cada iteração revelou limitações que levaram a novas decisões de projeto, de materiais e de arquitetura mecânica. O que se segue documenta esse caminho, mostrando não apenas o resultado final, mas as escolhas intermédias e os problemas que as motivaram.
+
 \section{Requisitos do sistema}
-O protótipo deve permitir o treino de videobroncofibroscopia com um modelo físico de baixo custo, robusto, lavável e fácil de montar. Os requisitos principais foram agrupados em quatro eixos: realismo anatómico, facilidade de utilização, movimento fisiológico controlado e possibilidade de evolução futura.
+O protótipo deve permitir o treino de videobroncofibroscopia com um modelo físico de baixo custo, robusto, lavável e fácil de montar, tendo os requisitos principais sido agrupados em quatro eixos: realismo anatómico, facilidade de utilização, movimento fisiológico controlado e possibilidade de evolução futura.
 
-No plano anatómico, o modelo deve representar a árvore brônquica com dimensões, ângulos de ramificação e características compatíveis com dados obtidos por tomografia computorizada. No plano mecânico, deve permitir a introdução de movimentos de respiração, batimento cardíaco e tosse sem comprometer a estabilidade do conjunto. No plano pedagógico, deve permitir repetição de exercícios e adaptação da dificuldade. No plano técnico, deve manter a solução acessível, evitando materiais, atuadores ou processos de fabrico que tornem o sistema demasiado caro para o objetivo do projeto.
+No plano anatómico, o modelo deve representar a árvore brônquica com dimensões, ângulos de ramificação e características compatíveis com dados obtidos por tomografia computorizada, enquanto no plano mecânico deve permitir a introdução de movimentos de respiração, batimento cardíaco e tosse sem comprometer a estabilidade do conjunto. No plano pedagógico, deve ainda permitir a repetição de exercícios e a adaptação da dificuldade e, no plano técnico, manter a solução acessível, evitando materiais, atuadores ou processos de fabrico que tornem o sistema demasiado caro para o objetivo do projeto.
 
-Do ponto de vista funcional, o sistema foi separado em dois blocos. O primeiro é o modelo dinâmico, constituído pela árvore brônquica impressa em 3D, pelos manipuladores delta, pelos servo-motores, pelos drivers e pelo ESP32-S3. Este bloco executa fisicamente os movimentos e deve manter comportamento previsível mesmo quando recebe comandos externos. O segundo bloco é a HMI, suportada pelo Raspberry Pi 4B e pelo monitor ou browser associado. Este bloco apresenta ao utilizador comandos de alto nível, como iniciar, parar, escolher modo fisiológico ou ajustar parâmetros, ficando a tradução desses comandos para mensagens série a cargo do software.
+Do ponto de vista funcional, o sistema foi separado em dois blocos. O primeiro é o modelo dinâmico, constituído pela árvore brônquica impressa em 3D, pelos manipuladores delta, pelos servo-motores, pelos drivers e pelo ESP32-S3, executando fisicamente os movimentos e mantendo um comportamento previsível mesmo quando recebe comandos externos. O segundo bloco é a HMI, suportada pelo Raspberry Pi 4B e pelo monitor ou browser associado, apresentando ao utilizador comandos de alto nível, como iniciar, parar, escolher modo fisiológico ou ajustar parâmetros, ficando a tradução desses comandos para mensagens série a cargo do software.
 
 \section{Modelo físico da árvore brônquica}
-O ponto de partida do projeto é um modelo tridimensional da árvore brônquica obtido a partir de dados de imagem médica. Os ficheiros recebidos descreviam essencialmente a superfície interna da árvore brônquica, ou seja, a ``casca'' do volume. Por esse motivo, foi necessário atribuir espessura ao modelo antes da impressão 3D. Numa fase inicial, essa operação foi feita de forma expedita no Tinkercad, com o objetivo de realizar um teste rápido em PLA e validar a viabilidade geométrica da impressão.
+O ponto de partida do projeto é um modelo tridimensional da árvore brônquica obtido a partir de dados de imagem médica, cujos ficheiros descreviam essencialmente a superfície interna da árvore brônquica, ou seja, a ``casca'' do volume, pelo que foi necessário atribuir espessura ao modelo antes da impressão 3D. Esta operação foi feita inicialmente no Tinkercad, com o objetivo de realizar um teste rápido em PLA e confirmar a viabilidade geométrica da impressão.
 
-A seleção de materiais foi considerada uma decisão crítica. Foram identificados filamentos flexíveis como PEBA, TPU, TPE, TPC e PP, bem como diferentes durezas comerciais, por exemplo 95A, 85A e 70A. Contudo, a reprodução integral do tato anatómico exigiria materiais e equipamentos mais caros. Assim, nesta fase, o realismo material foi limitado principalmente a aspetos visuais e mecânicos básicos, como flexibilidade, cor, textura e resistência, mantendo o objetivo de baixo custo.
+O primeiro teste de impressão, realizado em março de 2026 nos laboratórios da universidade com impressoras Creality (\cref{fig:laboratorio-impressao}), utilizou filamento PLA branco com suportes impressos em filamento de cor diferente. O resultado, visível na \cref{fig:impressao-inicial}, confirmou a geometria geral das ramificações, mas revelou limitações práticas: as superfícies apresentavam marcas dos suportes, algumas zonas das junções entre ramos ficaram frágeis e a rigidez do PLA não representava de forma adequada a sensação de tecido. Esta primeira iteração serviu principalmente para confirmar que o modelo era imprimível na escala pretendida e para identificar as zonas que precisariam de maior espessura de parede nas versões seguintes.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{fotos/laboratorio_impressao_3d.jpg}
+  \caption{Laboratório de impressão 3D da universidade, com as impressoras Creality utilizadas nas fases iniciais de impressão do protótipo.}
+  \label{fig:laboratorio-impressao}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{fotos/impressao_inicial_pla.jpg}
+  \caption{Primeiro teste de impressão da árvore brônquica em PLA branco, março de 2026. São visíveis as marcas dos suportes e as zonas mais frágeis nas junções entre ramos.}
+  \label{fig:impressao-inicial}
+\end{figure}
+
+A seleção de materiais foi considerada uma decisão crítica ao longo do projeto. Foram identificados filamentos flexíveis como PEBA, TPU, TPE, TPC e PP, bem como diferentes durezas comerciais, por exemplo 95A, 85A e 70A. Para as versões de teste das peças estruturais dos manipuladores delta foi utilizado PLA preto, por ser fácil de imprimir, rígido e acessível. Para a versão final da árvore brônquica utilizada nos testes com profissionais de saúde, a impressão foi feita em filamento flexível numa impressora Bambu Lab de maior capacidade, conforme mostra a \cref{fig:impressao-bambulab}. Esta mudança de equipamento e material permitiu imprimir o modelo completo numa só peça, com melhor acabamento de superfície e menor fragilidade nas zonas de bifurcação.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{fotos/impressao_bambulab.jpg}
+  \caption{Impressão da árvore brônquica em filamento flexível na impressora Bambu Lab, maio de 2026. O modelo ocupa a maior parte da cama de impressão (\(350\times320\times325\,\text{mm}^3\)).}
+  \label{fig:impressao-bambulab}
+\end{figure}
 
 \section{Seleção do sistema de atuação}
 Foram consideradas duas abordagens para gerar movimento no modelo. A primeira consistia em distribuir vários atuadores ao longo da árvore brônquica, cada um com um movimento independente. Esta solução seria relativamente simples de programar para movimentos locais, mas tornaria o sistema mais difícil de gerir mecanicamente, aumentaria a quantidade de motores e exigiria uma estrutura de suporte complexa acoplada ao modelo.
 
-A segunda abordagem, aprovada para o desenvolvimento, consiste na utilização de manipuladores robóticos do tipo delta. Esta opção permite controlar pontos da estrutura nos três eixos cartesianos, concentrando a complexidade mecânica em unidades de atuação repetíveis. Embora introduza maior complexidade matemática, devido ao cálculo da cinemática inversa, permite reproduzir vários movimentos com menos alterações físicas ao hardware.
+A segunda abordagem, aprovada para o desenvolvimento, consiste na utilização de manipuladores robóticos do tipo delta. Esta opção permite controlar pontos da estrutura nos três eixos cartesianos, concentrando a complexidade mecânica em unidades de atuação repetíveis e, embora introduza maior complexidade matemática, devido ao cálculo da cinemática inversa, permite reproduzir vários movimentos com menos alterações físicas ao hardware.
 
-Foram analisados dois tipos de manipuladores delta. O primeiro utiliza três atuadores e permite controlar a posição de um corpo em três eixos, \(X\), \(Y\) e \(Z\). O segundo utiliza seis motores, permitindo também controlar orientações adicionais. Para esta versão do projeto, foi considerado suficiente o controlo em três eixos, uma vez que os movimentos inicialmente acordados foram respiração, batimento cardíaco e tosse.
+Foram analisados dois tipos de manipuladores delta: o primeiro utiliza três atuadores e permite controlar a posição de um corpo em três eixos, \(X\), \(Y\) e \(Z\), enquanto o segundo utiliza seis motores, permitindo também controlar orientações adicionais. Para esta versão do projeto, foi considerado suficiente o controlo em três eixos, uma vez que os movimentos inicialmente acordados foram respiração, batimento cardíaco e tosse.
+
+Esta escolha mecânica foi acompanhada, ainda no final de abril de 2026, pelo início do desenvolvimento do código de cinemática inversa associado a este tipo de manipulador, descrito em detalhe na \cref{sec:cinematica-inversa}. A validação cruzada entre o comportamento físico dos braços montados em bancada e o cálculo implementado no firmware foi, aliás, uma constante ao longo de todo o desenvolvimento mecânico que se segue.
+
+Antes da montagem final, foram realizados testes de acoplamento mecânico entre os servos e as peças impressas, utilizando suportes em PLA para confirmar as tolerâncias de encaixe e o posicionamento da patilha de cada servo em relação à base do manipulador (\cref{fig:servo-suporte}).
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.55\textwidth]{fotos/servo_suporte_impresso.jpg}
+  \caption{Servo motor com suporte impresso em 3D para validação do acoplamento mecânico com a estrutura do manipulador delta, março de 2026.}
+  \label{fig:servo-suporte}
+\end{figure}
 
 \section{Movimentos representados no protótipo}
-O estado da arte identificou vários movimentos observáveis durante a broncoscopia. No entanto, para a primeira versão funcional do modelo, foram selecionados apenas os movimentos com melhor relação entre relevância clínica, viabilidade mecânica e simplicidade de controlo: respiração, batimento cardíaco e tosse.
+O estado da arte identificou vários movimentos observáveis durante a broncoscopia. No entanto, para a primeira versão funcional do modelo, foram selecionados apenas os movimentos com melhor relação entre relevância clínica, viabilidade mecânica e simplicidade de controlo: respiração, batimento cardíaco e tosse. Os valores de frequência e amplitude usados nas secções seguintes, resumidos na \cref{tab:movimentos-hardware}, foram retirados diretamente do documento de trabalho fornecido pela equipa de Pneumologia do CHUA \parencite{Santos2026}.
 
-A respiração foi definida como um movimento cíclico, com frequência aproximada de 12 a 20 ciclos por minuto e deslocamento predominantemente craniocaudal. A implementação deve permitir pequenas irregularidades e alteração de amplitude, para que o movimento não pareça completamente artificial.
+A respiração foi definida como um movimento cíclico, com frequência aproximada de 12 a 20 ciclos por minuto e deslocamento predominantemente craniocaudal, devendo a implementação permitir pequenas irregularidades e alteração de amplitude, para que o movimento não pareça completamente artificial.
 
-O batimento cardíaco foi associado principalmente ao brônquio principal esquerdo, devido à proximidade anatómica do coração. O movimento previsto é de baixa amplitude, cerca de 1 a \SI{3}{\milli\metre}, com frequência aproximada de 60 a 120 batimentos por minuto. No protótipo, este movimento é tratado como uma oscilação sobreposta ao movimento respiratório.
+O batimento cardíaco foi associado principalmente ao brônquio principal esquerdo, devido à proximidade anatómica do coração, prevendo-se um movimento de baixa amplitude, cerca de 1 a \SI{3}{\milli\metre}, com frequência aproximada de 60 a 120 batimentos por minuto; no protótipo, este movimento é tratado como uma oscilação sobreposta ao movimento respiratório.
 
-A tosse foi caracterizada como um evento abrupto, irregular e de maior amplitude relativa. Em vez de ser apenas uma trajetória independente, deve alterar temporariamente o comportamento respiratório, aumentando a amplitude e introduzindo uma perturbação rápida. Movimentos como deformação ativa do lúmen, estenose localizada e resistência ao contacto com a sonda ficam documentados como trabalho futuro.
+A tosse foi caracterizada como um evento abrupto, irregular e de maior amplitude relativa e, em vez de ser apenas uma trajetória independente, deve alterar temporariamente o comportamento respiratório, aumentando a amplitude e introduzindo uma perturbação rápida. Movimentos como deformação ativa do lúmen, estenose localizada e resistência ao contacto com a sonda não foram incluídos nesta versão, por exigirem atuadores distribuídos e materiais com características mecânicas mais específicas.
 
 \begin{table}[htbp]
   \centering
@@ -44,16 +80,41 @@ A tosse foi caracterizada como um evento abrupto, irregular e de maior amplitude
 \end{table}
 
 \section{Eletrónica de controlo e alimentação}
-A arquitetura prevista separa a interface de utilizador e o cálculo de alto nível do controlo direto dos atuadores. O Raspberry Pi 4B fica responsável pela HMI, pela monitorização e pelo envio de comandos ou posições. O ESP32-S3 atua como microcontrolador de tempo real, recebendo dados por comunicação série e convertendo-os em comandos para os servos.
+A arquitetura prevista separa a interface de utilizador e o cálculo de alto nível do controlo direto dos atuadores, cabendo ao Raspberry Pi 4B a responsabilidade pela HMI, pela monitorização e pelo envio de comandos ou posições, enquanto o ESP32-S3 atua como microcontrolador de tempo real, recebendo dados por comunicação série e convertendo-os em comandos para os servos.
 
-O sistema de alimentação foi definido considerando pelo menos dois níveis: \SI{5}{\volt} para o Raspberry Pi 4B e o ESP32-S3, e \SI{5}{\volt} a \SI{6}{\volt} para os servos. Durante a seleção dos atuadores também foi considerada a possibilidade de utilizar motores de passo, que exigiriam tensões superiores, por exemplo \SI{8}{\volt} a \SI{12}{\volt}. Para os servos, foram estimados consumos nominais de cerca de 150 a \SI{250}{\milli\ampere} por unidade, com valores superiores em bloqueio.
+O sistema de alimentação foi definido considerando pelo menos dois níveis: \SI{5}{\volt} para o Raspberry Pi 4B e o ESP32-S3, e \SI{5}{\volt} a \SI{6}{\volt} para os servos. Durante a seleção dos atuadores também foi considerada a possibilidade de utilizar motores de passo, que exigiriam tensões superiores, por exemplo \SI{8}{\volt} a \SI{12}{\volt}, tendo sido estimados, para os servos, consumos nominais de cerca de 150 a \SI{250}{\milli\ampere} por unidade, com valores superiores em bloqueio.
 
-Foi considerada a utilização de uma UPS/HAT para o Raspberry Pi, permitindo alimentação pelos pinos de \SI{5}{\volt} e transição para bateria em caso de falha. A opção analisada foi um HAT de gestão de energia do tipo Suptronics X1209, por combinar alimentação, bateria e gestão de entrada no mesmo módulo. O ESP32 pode ser alimentado pelo Raspberry Pi através de USB-C, mantendo simultaneamente a ligação série necessária à comunicação.
+Foi considerada a utilização de uma UPS/HAT para o Raspberry Pi, permitindo alimentação pelos pinos de \SI{5}{\volt} e transição para bateria em caso de falha, tendo sido analisada a opção de um HAT de gestão de energia do tipo Suptronics X1209, por combinar alimentação, bateria e gestão de entrada no mesmo módulo. O ESP32, por sua vez, pode ser alimentado pelo Raspberry Pi através de USB-C, mantendo simultaneamente a ligação série necessária à comunicação.
+
+Para acomodar o Raspberry Pi 4B e a fonte de alimentação de forma compacta e robusta, foi projetada e impressa uma caixa em PLA branco. Esta estrutura, visível na \cref{fig:raspberry-pi-caixa}, agrupa o Raspberry Pi com a fonte de alimentação comutada numa única unidade que pode ser posicionada independentemente do modelo dinâmico.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{fotos/raspberry_pi_caixa.jpg}
+  \caption{Caixa impressa em PLA branco que aloja o Raspberry Pi 4B e a fonte de alimentação comutada, junho de 2026.}
+  \label{fig:raspberry-pi-caixa}
+\end{figure}
 
 \section{Integração mecânica e segurança}
-A integração mecânica deve garantir que o movimento é transmitido à árvore brônquica sem esforços excessivos, folgas significativas ou interferência com a passagem do broncoscópio. A estrutura deve ainda permitir acesso para manutenção, limpeza e substituição de peças. Do ponto de vista de segurança, os limites de curso do manipulador e os limites angulares dos servos devem ser definidos no firmware, evitando posições impossíveis ou capazes de danificar o modelo.
+A integração mecânica deve garantir que o movimento é transmitido à árvore brônquica sem esforços excessivos, folgas significativas ou interferência com a passagem do broncoscópio, devendo a estrutura permitir ainda acesso para manutenção, limpeza e substituição de peças. Do ponto de vista de segurança, os limites de curso do manipulador e os limites angulares dos servos devem ser definidos no firmware, evitando posições impossíveis ou capazes de danificar o modelo.
 
-Como melhoria futura, a estrutura poderá incluir sensores de fim de curso, deteção de contacto ou medição de corrente dos atuadores. Estes elementos permitiriam aumentar a segurança e abrir caminho para simulação de resistência ao avanço do broncoscópio ou contacto com as paredes internas.
+A fase de montagem começou pela impressão das peças estruturais em PLA preto, incluindo a base circular, os braços superiores, os elos de ligação e a plataforma móvel central. Numa primeira fase, a estrutura foi montada sem servos para verificar folgas, alinhamento das articulações e comportamento geométrico do conjunto (\cref{fig:delta-estrutura-mecanica}), etapa que permitiu identificar zonas onde era necessário rever tolerâncias e confirmar que os braços articulados rodavam sem bloqueio.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{fotos/delta_estrutura_mecanica.jpg}
+  \caption{Estrutura mecânica de um manipulador delta em PLA preto, antes da instalação dos servos, maio de 2026. A base circular e os três braços articulados estão já montados.}
+  \label{fig:delta-estrutura-mecanica}
+\end{figure}
+
+A instalação dos servos foi feita de forma gradual, com validação individual de cada canal, tendo os dois manipuladores sido testados, numa fase intermédia, com ligações diretas ao ESP32 sem PCB de interface, usando jumpers para confirmar o funcionamento elétrico básico antes de qualquer ligação definitiva. A \cref{fig:delta-dois-manipuladores} mostra os dois manipuladores montados com todos os servos instalados, prontos para a fase de calibração de firmware.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{fotos/delta_dois_manipuladores.jpg}
+  \caption{Os dois manipuladores delta montados com os servos Waveshare instalados, prontos para calibração de firmware, junho de 2026. Os cabos dos servos são visíveis mas ainda sem organização final de cablagem.}
+  \label{fig:delta-dois-manipuladores}
+\end{figure}
 
 \begin{figure}[htbp]
   \centering
@@ -137,3 +198,4 @@ Como melhoria futura, a estrutura poderá incluir sensores de fim de curso, dete
     \bottomrule
   \end{tabular}
 \end{table}
+\clearpage
