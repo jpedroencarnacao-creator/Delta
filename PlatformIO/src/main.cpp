@@ -1944,8 +1944,8 @@ void FSM_Motion_Update(boolean start, MotionInstance& inst, unsigned long nowMs)
 
 
 bool Fusao_plus_IK_D1(const Coordinate& respi, const Coordinate& batim , const Coordinate& tosse) {
-    float X_total = 1.0f * respi.X + 0.2f * batim.X + -15.0f + Index0.X*Index_mult_R.X + tosse.X;
-    float Y_total = 1.0f * respi.Y + 0.2f * batim.Y + -10.0f + Index0.Y*Index_mult_R.Y + tosse.X;
+    float X_total = 1.0f * respi.X + 0.2f * batim.X + -25.0f + Index0.X*Index_mult_R.X + tosse.X;
+    float Y_total = 1.0f * respi.Y + 0.2f * batim.Y + -5.0f + Index0.Y*Index_mult_R.Y + tosse.X;
     float Z_total = 1.0f * respi.Z * Resp_inst.Z_amp_mult + 0.2f * batim.Z +  45.0f + Index0.Z*Index_mult_R.Z + tosse.X;
 
     //float X_total = -15.0f;
@@ -1957,8 +1957,8 @@ bool Fusao_plus_IK_D1(const Coordinate& respi, const Coordinate& batim , const C
 }
 
 bool Fusao_plus_IK_D2(const Coordinate& respi, const Coordinate& batim , const Coordinate& tosse) {
-    float X_total = 1.0f * respi.X + 0.0f * batim.X + -15.0f + Index0.X*Index_mult_R.X + tosse.X;
-    float Y_total = 1.0f * respi.Y + 0.0f * batim.Y + -10.0f + Index0.Y*Index_mult_R.Y + tosse.X;
+    float X_total = 1.0f * respi.X + 0.0f * batim.X + -25.0f + Index0.X*Index_mult_R.X + tosse.X;
+    float Y_total = 1.0f * respi.Y + 0.0f * batim.Y + -5.0f + Index0.Y*Index_mult_R.Y + tosse.X;
     float Z_total = 1.0f * respi.Z * Resp_inst.Z_amp_mult + 0.0f * batim.Z +  45.0f + Index0.Z*Index_mult_R.Z + tosse.X;
 
     //float X_total = -15.0f;
