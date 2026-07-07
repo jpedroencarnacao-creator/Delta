@@ -2,27 +2,25 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {3.1}{\ignorespaces Laboratório de impressão 3D da universidade, com as impressoras Creality utilizadas nas fases iniciais de impressão do protótipo.}}{10}{figure.caption.12}%
-\contentsline {figure}{\numberline {3.2}{\ignorespaces Primeiro teste de impressão da árvore brônquica em PLA branco, março de 2026. São visíveis as marcas dos suportes e as zonas mais frágeis nas junções entre ramos.}}{11}{figure.caption.13}%
-\contentsline {figure}{\numberline {3.3}{\ignorespaces Impressão da árvore brônquica em filamento flexível na impressora Bambu Lab, maio de 2026. O modelo ocupa a maior parte da cama de impressão (\(350\times 320\times 325\,\text {mm}^3\)).}}{11}{figure.caption.14}%
-\contentsline {figure}{\numberline {3.4}{\ignorespaces Servo motor com suporte impresso em 3D para validação do acoplamento mecânico com a estrutura do manipulador delta, março de 2026.}}{12}{figure.caption.15}%
-\contentsline {figure}{\numberline {3.5}{\ignorespaces Caixa impressa em PLA branco que aloja o Raspberry Pi 4B e a fonte de alimentação comutada, junho de 2026.}}{14}{figure.caption.17}%
-\contentsline {figure}{\numberline {3.6}{\ignorespaces Estrutura mecânica de um manipulador delta em PLA preto, antes da instalação dos servos, maio de 2026. A base circular e os três braços articulados estão já montados.}}{15}{figure.caption.18}%
-\contentsline {figure}{\numberline {3.7}{\ignorespaces Os dois manipuladores delta montados com os servos Waveshare instalados, prontos para calibração de firmware, junho de 2026. Os cabos dos servos são visíveis mas ainda sem organização final de cablagem.}}{16}{figure.caption.19}%
-\contentsline {figure}{\numberline {3.8}{\ignorespaces Esquema consolidado de alimentação, comunicação e comando dos dois manipuladores delta.}}{16}{figure.caption.20}%
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Testes de impressão da árvore brônquica com TPU 95A, com suporte em PLA.}}{17}{figure.caption.12}%
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Escala de dureza Shore aplicada a filamentos flexíveis, com exemplos de objetos do dia a dia em pontos equivalentes da escala (fonte: Recreus).}}{17}{figure.caption.13}%
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Caixa impressa em PLA branco que aloja o Raspberry Pi 4B e a fonte de alimentação comutada, junho de 2026.}}{25}{figure.caption.14}%
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Estrutura mecânica de um manipulador delta em PLA preto, antes da instalação dos servos, maio de 2026. A base circular e os três braços articulados estão já montados.}}{26}{figure.caption.15}%
+\contentsline {figure}{\numberline {3.5}{\ignorespaces Os dois manipuladores delta montados com os servos Waveshare instalados, prontos para calibração de firmware, junho de 2026. Os cabos dos servos são visíveis mas ainda sem organização final de cablagem.}}{26}{figure.caption.16}%
+\contentsline {figure}{\numberline {3.6}{\ignorespaces Esquema consolidado de alimentação, comunicação e comando dos dois manipuladores delta.}}{27}{figure.caption.17}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {4.1}{\ignorespaces Estrutura global das máquinas de estados e blocos de controlo.}}{19}{figure.caption.22}%
-\contentsline {figure}{\numberline {4.2}{\ignorespaces Ambiente de desenvolvimento de software e eletrónica: portátil com PlatformIO, osciloscópio RIGOL, ESP32 em breadboard e tablet com diagramas de apoio, maio de 2026.}}{20}{figure.caption.23}%
-\contentsline {figure}{\numberline {4.3}{\ignorespaces Relação entre as estruturas de dados principais do firmware.}}{20}{figure.caption.24}%
-\contentsline {figure}{\numberline {4.4}{\ignorespaces Trajetória calculada para o movimento de batimento cardíaco, com representação 2D e 3D dos pontos de passagem.}}{23}{figure.caption.25}%
-\contentsline {figure}{\numberline {4.5}{\ignorespaces Trajetória calculada para o movimento respiratório, com representação 2D no plano \(ZX\) e visualização 3D.}}{24}{figure.caption.26}%
-\contentsline {figure}{\numberline {4.6}{\ignorespaces Trajetória calculada para a vibração associada à tosse, com representação 2D e 3D dos pontos de passagem.}}{26}{figure.caption.27}%
-\contentsline {figure}{\numberline {4.7}{\ignorespaces Esquema da FSM\_Motion\_Update.}}{30}{figure.caption.31}%
-\contentsline {figure}{\numberline {4.8}{\ignorespaces Representação lateral das variáveis usadas na cinemática inversa do manipulador delta.}}{33}{figure.caption.34}%
-\contentsline {figure}{\numberline {4.9}{\ignorespaces Relação linear de referência entre o ângulo calculado pela cinemática inversa e o pulso PWM aplicado aos servos nos dois manipuladores.}}{35}{figure.caption.35}%
-\contentsline {figure}{\numberline {4.10}{\ignorespaces FSM\_Serial\_Read responsável pela leitura e validação dos dados recebidos por comunicação série.}}{38}{figure.caption.39}%
-\contentsline {figure}{\numberline {4.11}{\ignorespaces FSM\_Serial\_Command responsável pela interpretação dos comandos recebidos por comunicação série.}}{39}{figure.caption.40}%
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Estrutura global das máquinas de estados e blocos de controlo.}}{29}{figure.caption.19}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Ambiente de desenvolvimento de software e eletrónica: portátil com PlatformIO, osciloscópio RIGOL, ESP32 em breadboard e tablet com diagramas de apoio, maio de 2026.}}{31}{figure.caption.20}%
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Trajetória calculada para o movimento de batimento cardíaco, com representação 2D e 3D dos pontos de passagem.}}{34}{figure.caption.22}%
+\contentsline {figure}{\numberline {4.4}{\ignorespaces Trajetória calculada para o movimento respiratório, com representação 2D no plano \(ZX\) e visualização 3D.}}{35}{figure.caption.23}%
+\contentsline {figure}{\numberline {4.5}{\ignorespaces Trajetória calculada para a vibração associada à tosse, com representação 2D e 3D dos pontos de passagem.}}{37}{figure.caption.24}%
+\contentsline {figure}{\numberline {4.6}{\ignorespaces Relação entre as estruturas de dados principais do firmware.}}{38}{figure.caption.27}%
+\contentsline {figure}{\numberline {4.7}{\ignorespaces Esquema da FSM\_Motion\_Update.}}{41}{figure.caption.29}%
+\contentsline {figure}{\numberline {4.8}{\ignorespaces Representação lateral das variáveis usadas na cinemática inversa do manipulador delta.}}{44}{figure.caption.32}%
+\contentsline {figure}{\numberline {4.9}{\ignorespaces Relação linear de referência entre o ângulo calculado pela cinemática inversa e o pulso PWM aplicado aos servos nos dois manipuladores.}}{46}{figure.caption.33}%
+\contentsline {figure}{\numberline {4.10}{\ignorespaces FSM\_Serial\_Read responsável pela leitura e validação dos dados recebidos por comunicação série.}}{49}{figure.caption.37}%
+\contentsline {figure}{\numberline {4.11}{\ignorespaces FSM\_Serial\_Command responsável pela interpretação dos comandos recebidos por comunicação série.}}{50}{figure.caption.38}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {5.1}{\ignorespaces Sessão de observação preliminar com profissional de saúde: broncoscópio introduzido no modelo de árvore brônquica impresso em 3D enquanto o sistema de controlo estava ativo, junho de 2026.}}{48}{figure.caption.42}%
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Sessão de observação preliminar com profissional de saúde: broncoscópio introduzido no modelo de árvore brônquica impresso em 3D enquanto o sistema de controlo estava ativo, junho de 2026.}}{59}{figure.caption.40}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }

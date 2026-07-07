@@ -2,12 +2,12 @@
 
 O software foi desenvolvido em paralelo com o hardware, mas em camadas progressivas. Começou por testes elementares de comunicação série para confirmar que o ESP32 e o Raspberry Pi conseguiam trocar dados de forma fiável. A partir daí foram adicionados, um a um, os blocos de geração de trajetórias, de máquinas de estados, de cinemática inversa e de interface gráfica. Este capítulo descreve essa construção por partes, da arquitetura global até aos detalhes de calibração e sincronização, seguindo a ordem em que cada bloco foi desenvolvido e validado.
 
-\section{Arquitetura geral do software}
+\section{Arquitetura geral do software e ambiente de desenvolvimento}
 O software foi organizado para separar a definição dos movimentos, o estado de execução, a comunicação série, a cinemática inversa, o acionamento dos servos e a interface HMI. Esta separação permite que os mesmos mecanismos de execução sejam usados para diferentes fenómenos fisiológicos, como respiração, batimento cardíaco e tosse, mantendo a interface de utilizador independente da lógica de baixo nível executada no ESP32-S3.
 
 A arquitetura global, representada na \cref{fig:arquitetura-software}, organiza o controlo em blocos independentes de HMI, comunicação, interpretação de comandos, atualização de movimento e cálculo cinemático, onde o Raspberry Pi executa a interface gráfica e envia comandos por comunicação série, enquanto o ESP32-S3 lê esses dados, interpreta comandos, atualiza estruturas de movimento, prepara eventos como a tosse e calcula as posições finais que serão convertidas pela cinemática inversa.
 
-\begin{figure}[htbp]
+\begin{figure}[p]
   \centering
   \resizebox{\textwidth}{!}{%
   \begin{tikzpicture}[
@@ -18,56 +18,69 @@ A arquitetura global, representada na \cref{fig:arquitetura-software}, organiza 
     event/.style={-Latex, thick, red!70!black},
     positionflow/.style={-Latex, thick, orange!85!black}
   ]
-    \node[block, fill=blue!12] (pi) {Raspberry\\Pi};
-    \node[block, right=1.2cm of pi, fill=cyan!10] (reader) {Leitor série\\FSM};
-    \node[small, below=0.8cm of reader, xshift=-0.7cm, fill=cyan!7] (dt1) {\(\Delta t\)};
-    \node[small, below=0.8cm of reader, xshift=0.8cm, fill=cyan!7] (dt2) {\(\Delta t\)};
-    \node[block, right=1.2cm of reader, fill=cyan!10] (interp) {Interpretador\\série FSM};
-    \node[block, above=0.9cm of interp, fill=gray!12] (mem) {Gravação\\memória\\EEPROM};
-    \node[block, below=0.9cm of interp, fill=gray!12] (trigger) {Trigger FSM\\monitor};
+    %% -- topo: memória e leitura série --
+    \node[block, fill=gray!12] (mem) at (3.2,18.0) {Gravação\\memória\\EEPROM};
 
-    \node[block, right=1.5cm of interp, yshift=1.35cm, fill=green!10] (mresp) {Mov.\\respiração};
-    \node[block, right=1.5cm of interp, fill=green!10] (mbat) {Mov.\\batimento};
-    \node[block, right=1.5cm of interp, yshift=-1.35cm, fill=green!10] (mtosse) {Mov. vibração\\tosse};
-    \node[block, below=1.0cm of mtosse, fill=red!10] (prep) {Preparação\\tosse};
+    \node[block, fill=blue!12] (pi) at (-5.6,15.0) {Raspberry\\Pi};
+    \node[block, fill=cyan!10] (reader) at (-1.6,15.0) {Leitor série\\FSM};
+    \node[small, fill=cyan!7] (dt1) at (-2.4,13.3) {\(\Delta t\)};
+    \node[small, fill=cyan!7] (dt2) at (-0.8,13.3) {\(\Delta t\)};
 
-    \node[block, right=1.4cm of mbat, yshift=-1.0cm, fill=orange!12] (fus1) {Fusão + IK\\Delta 1};
-    \node[block, right=1.4cm of fus1, fill=orange!9] (ease1) {Easing\\servo};
-    \node[block, below=1.2cm of fus1, fill=orange!12] (fus2) {Fusão + IK\\Delta 2};
-    \node[block, right=1.4cm of fus2, fill=orange!9] (ease2) {Easing\\servo};
+    \node[block, fill=cyan!10] (interp) at (3.2,15.0) {Interpretador\\série FSM};
+    \node[small, fill=cyan!7] (dt3) at (2.4,13.3) {\(\Delta t\)};
+    \node[small, fill=cyan!7] (dt4) at (4.0,13.3) {\(\Delta t\)};
+    \node[block, fill=gray!12] (trigger) at (3.2,11.6) {Trigger FSM\\monitor};
 
-    \node[small, right=0.65cm of ease1, yshift=0.35cm, fill=yellow!20] (s11) {\(\theta_1\)};
-    \node[small, right=0.65cm of ease1, fill=yellow!20] (s12) {\(\theta_2\)};
-    \node[small, right=0.65cm of ease1, yshift=-0.35cm, fill=yellow!20] (s13) {\(\theta_3\)};
-    \node[small, right=0.65cm of ease2, yshift=0.35cm, fill=yellow!20] (s21) {\(\theta_1\)};
-    \node[small, right=0.65cm of ease2, fill=yellow!20] (s22) {\(\theta_2\)};
-    \node[small, right=0.65cm of ease2, yshift=-0.35cm, fill=yellow!20] (s23) {\(\theta_3\)};
+    %% -- direita: movimentos e preparação da tosse --
+    \node[block, fill=green!10] (mresp) at (8.0,15.0) {Mov.\\respiração};
+    \node[block, fill=green!10] (mbat)  at (8.0,13.3) {Mov.\\batimento};
+    \node[block, fill=green!10] (mtosse) at (8.0,11.6) {Mov. vibração\\tosse};
+    \node[block, fill=red!10] (prep) at (8.0,9.4) {Preparação\\tosse};
+
+    %% -- fusão, cinemática inversa e easing dos dois manipuladores --
+    \node[block, fill=orange!12] (fus1) at (3.2,7.4) {Fusão + IK\\Delta 1};
+    \node[block, fill=orange!12] (fus2) at (8.0,7.4) {Fusão + IK\\Delta 2};
+    \node[block, fill=orange!9] (ease1) at (3.2,5.4) {Easing\\servo};
+    \node[block, fill=orange!9] (ease2) at (8.0,5.4) {Easing\\servo};
+
+    \node[small, fill=yellow!20] (s11) at (1.9,3.4) {\(\theta_1\)};
+    \node[small, fill=yellow!20] (s12) at (3.2,3.4) {\(\theta_2\)};
+    \node[small, fill=yellow!20] (s13) at (4.5,3.4) {\(\theta_3\)};
+    \node[small, fill=yellow!20] (s21) at (6.7,3.4) {\(\theta_1\)};
+    \node[small, fill=yellow!20] (s22) at (8.0,3.4) {\(\theta_2\)};
+    \node[small, fill=yellow!20] (s23) at (9.3,3.4) {\(\theta_3\)};
+
+    %% -- coordenadas auxiliares para encaminhar as linhas sem cruzar caixas --
+    \coordinate (memCorX) at (11.2,18.0);
+    \coordinate (busX) at (10.2,8.2);
 
     \draw[arrow] (pi) -- (reader);
-    \draw[arrow] (reader) -- node[above]{CH\_Command} (interp);
+    \draw[arrow] (reader) -- node[above, font=\scriptsize]{CH\_Command} (interp);
     \draw[arrow] (dt1) -- (reader);
     \draw[arrow] (reader) -- (dt2);
-    \draw[arrow] (interp) -- (mem);
-    \draw[arrow] (mem) -- (interp);
-    \draw[arrow] (interp) -- (trigger);
-    \draw[arrow] (trigger) -- (interp);
+    \draw[arrow] (dt3) -- (trigger);
+    \draw[arrow] (trigger) -- (dt4);
+    \draw[cfg] (interp.north west) ++(-0.3,0) -- ++(0,2.65) -| (mem.south west);
+    \draw[cfg] (mem.south east) -| ++(0.3,-2.65) -- (interp.north east);
+    \draw[arrow] (interp.south west) ++(-0.3,0) -- ++(0,-1.15) -| (trigger.north west);
+    \draw[arrow] (trigger.north east) -| ++(0.3,1.15) -- (interp.south east);
     \draw[arrow] (interp) -- (mresp);
     \draw[arrow] (interp) -- (mbat);
     \draw[arrow] (interp) -- (mtosse);
-    \draw[event] (interp) -- (prep);
-    \draw[cfg] (mem) -- (mresp);
-    \draw[cfg] (mem) -- (mbat);
-    \draw[cfg] (mem) -- (mtosse);
+    \draw[event] (interp.south east) ++(0,0.3) -- ++(0,-3.0) -| (prep.north west);
+    \draw[cfg] (mem.east) -- (memCorX |- mem.east) -- (memCorX |- mresp.east) -- (mresp.east);
+    \draw[cfg] (memCorX |- mresp.east) -- (memCorX |- mbat.east) -- (mbat.east);
+    \draw[cfg] (memCorX |- mbat.east) -- (memCorX |- mtosse.east) -- (mtosse.east);
     \draw[event] (prep) -- (mtosse);
-    \draw[event] (prep) -- (fus1);
-    \draw[positionflow] (mresp) -- (fus1);
-    \draw[positionflow] (mbat) -- (fus1);
-    \draw[positionflow] (mtosse) -- (fus1);
-    \draw[positionflow] (mresp) |- (fus2);
-    \draw[positionflow] (mbat) |- (fus2);
-    \draw[positionflow] (mtosse) |- (fus2);
-    \draw[arrow] (fus1) -- node[above]{pulsos} (ease1);
-    \draw[arrow] (fus2) -- node[above]{pulsos} (ease2);
+    \draw[event] (prep.west) -- (3.2,9.4) -- (fus1.north);
+    \draw[event] (prep.south) -- (fus2.north);
+    \draw[positionflow] (mresp.east) -- (busX |- mresp.east) -- (busX);
+    \draw[positionflow] (mbat.east) -- (busX |- mbat.east) -- (busX);
+    \draw[positionflow] (mtosse.east) -- (busX |- mtosse.east) -- (busX);
+    \draw[positionflow] (busX) -- (8.0,8.2) -- (fus2.north east);
+    \draw[positionflow] (busX) -- (3.4,8.2) -- (fus1.north east);
+    \draw[arrow] (fus1) -- node[left]{pulsos} (ease1);
+    \draw[arrow] (fus2) -- node[right]{pulsos} (ease2);
     \draw[arrow] (ease1) -- (s11);
     \draw[arrow] (ease1) -- (s12);
     \draw[arrow] (ease1) -- (s13);
@@ -79,7 +92,6 @@ A arquitetura global, representada na \cref{fig:arquitetura-software}, organiza 
   \label{fig:arquitetura-software}
 \end{figure}
 
-\section{Ambiente de desenvolvimento}
 O firmware foi desenvolvido em C++ para a plataforma ESP32, usando o ecossistema Arduino/PlatformIO, recorrendo à biblioteca \texttt{ESP32Servo} para o controlo dos servos e à biblioteca \texttt{Adafruit\_NeoPixel} para a indicação visual de estados por LED RGB.
 
 O ponto de partida deste firmware foi um exemplo de referência para manipuladores delta, disponível publicamente, adaptado no final de abril de 2026 à geometria e aos servos usados neste projeto. Depois de confirmado o funcionamento básico da cinemática e do acionamento dos servos, esse código de referência foi progressivamente separado do código próprio do projeto, o que permitiu reescrever cada bloco --- estruturas de dados, geração de movimento, máquinas de estados --- de forma independente, sem manter a organização original do exemplo.
@@ -97,62 +109,33 @@ A \cref{fig:ambiente-desenvolvimento} mostra o ambiente de trabalho típico dest
   \label{fig:ambiente-desenvolvimento}
 \end{figure}
 
-\section{Estruturas de dados}
-A estrutura \texttt{Manipulador\_Config} concentra os parâmetros geométricos e de calibração, entre os quais se encontram os comprimentos \(L1\), \(L2\) e \(L3\), os offsets do servo nos eixos \(X\) e \(Z\), os limites angulares e os valores mínimos e máximos de pulso para cada servo.
+\section{Movimentos representados no protótipo}
+O estado da arte identificou vários movimentos observáveis durante a broncoscopia. No entanto, para a primeira versão funcional do modelo, foram selecionados apenas os movimentos com melhor relação entre relevância clínica, viabilidade mecânica e simplicidade de controlo: respiração, batimento cardíaco e tosse. Os valores de frequência e amplitude usados nas secções seguintes, resumidos na \cref{tab:movimentos-hardware}, foram retirados diretamente do documento de trabalho fornecido pela equipa de Pneumologia do CHUA \parencite{Santos2026}.
 
-A estrutura \texttt{MotionStorage} guarda a definição de uma trajetória, incluindo arrays de pontos \(X\), \(Y\) e \(Z\) para cada movimento, número de pontos, período total, tempos de pausa no início e no fim, índice inicial e informação sobre se o movimento é bidirecional; já a estrutura \texttt{MotionInstance} representa o estado dinâmico de uma trajetória em execução, guardando ponteiros, flags, índices, direção, tempos decorridos e estado atual da FSM.
+A respiração foi definida como um movimento cíclico, com frequência aproximada de 12 a 20 ciclos por minuto e deslocamento predominantemente craniocaudal, devendo a implementação permitir pequenas irregularidades e alteração de amplitude, para que o movimento não pareça completamente artificial.
 
-\begin{figure}[htbp]
+O batimento cardíaco foi associado principalmente ao brônquio principal esquerdo, devido à proximidade anatómica do coração, prevendo-se um movimento de baixa amplitude, cerca de 1 a \SI{3}{\milli\metre}, com frequência aproximada de 60 a 120 batimentos por minuto. No protótipo, este movimento é tratado como uma oscilação sobreposta ao movimento respiratório.
+
+A tosse foi caracterizada como um evento abrupto, irregular e de maior amplitude relativa e, em vez de ser apenas uma trajetória independente, deve alterar temporariamente o comportamento respiratório, aumentando a amplitude e introduzindo uma perturbação rápida. Movimentos como deformação ativa do lúmen, estenose localizada e resistência ao contacto com a sonda não foram incluídos nesta versão, por exigirem atuadores distribuídos e materiais com características mecânicas mais específicas.
+
+\begin{table}[htbp]
   \centering
-  \resizebox{\textwidth}{!}{%
-  \begin{tikzpicture}[
-    hdr/.style={draw, thick, fill=blue!15, font=\small\bfseries\ttfamily,
-                align=center, minimum width=5.6cm, minimum height=0.72cm},
-    fld/.style={draw=gray!50, fill=white, font=\small\ttfamily,
-                align=left, minimum width=5.6cm, minimum height=0.60cm, inner sep=4pt},
-    fldout/.style={draw=gray!50, fill=green!8, font=\small\ttfamily,
-                align=left, minimum width=5.6cm, minimum height=0.60cm, inner sep=4pt},
-    ptr/.style={-Latex, thick, dashed, blue!60!black}
-  ]
-    %% ── Manipulador_Config ──
-    \node[hdr]                    (mc0) at (0,0)    {Manipulador\_Config};
-    \node[fld, below=0pt of mc0] (mc1)              {\quad L1,\ L2,\ L3};
-    \node[fld, below=0pt of mc1] (mc2)              {\quad servoOffsetX,\ servoOffsetZ};
-    \node[fld, below=0pt of mc2] (mc3)              {\quad angleMin,\ angleMax};
-    \node[fld, below=0pt of mc3] (mc4)              {\quad rotationOffsetZ};
-    \node[fld, below=0pt of mc4] (mc5)              {\quad servo1/2/3: minPulse,\ maxPulse};
-    \node[fld, below=0pt of mc5] (mc6)              {\quad theta1/2/3: minPulse,\ maxPulse};
-    \node[fldout, below=0pt of mc6] (mc7)           {\quad servo1/2/3Pulse\ \ \textit{(saída IK)}};
+  \caption{Movimentos considerados para a primeira versão do protótipo.}
+  \label{tab:movimentos-hardware}
+  \begin{tabular}{@{}p{3.0cm}p{3.0cm}p{3.0cm}p{4.4cm}@{}}
+    \toprule
+    Movimento & Frequência & Amplitude prevista & Observações \\
+    \midrule
+    Respiração & 12--20 ciclos/min & 5--\SI{10}{\milli\metre} & Cíclico, com pequenas irregularidades \\
+    Batimento cardíaco & 60--120 bpm & 1--\SI{3}{\milli\metre} & Oscilação de baixa amplitude \\
+    Tosse & Evento curto & 5--\SI{25}{\milli\metre} & Abrupto, não linear e irregular \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
-    %% ── MotionStorage ──
-    \node[hdr]                    (ms0) at (7.0,0)  {MotionStorage};
-    \node[fld, below=0pt of ms0] (ms1)              {\quad X[],\ Y[],\ Z[]\ \ \textit{(trajetória)}};
-    \node[fld, below=0pt of ms1] (ms2)              {\quad nPts,\ Pini};
-    \node[fld, below=0pt of ms2] (ms3)              {\quad Period,\ dtMs};
-    \node[fld, below=0pt of ms3] (ms4)              {\quad T\_PausaIni,\ T\_PausaFim};
-    \node[fld, below=0pt of ms4] (ms5)              {\quad Bidirecional\ \ \textit{(bool)}};
-
-    %% ── MotionInstance ──
-    \node[hdr]                    (mi0) at (14.0,0) {MotionInstance};
-    \node[fld, below=0pt of mi0] (mi1)              {\quad *move\ $\to$\ MotionStorage};
-    \node[fld, below=0pt of mi1] (mi2)              {\quad iIndex,\ jIndex};
-    \node[fld, below=0pt of mi2] (mi3)              {\quad d\ (+1\,/\,$-$1)};
-    \node[fld, below=0pt of mi3] (mi4)              {\quad elapsed\_1,\ elapsed\_2};
-    \node[fld, below=0pt of mi4] (mi5)              {\quad Z\_amp\_mult};
-    \node[fld, below=0pt of mi5] (mi6)              {\quad state\ \ \textit{(FSM)}};
-    \node[fld, below=0pt of mi6] (mi7)              {\quad Signal,\ Exec,\ Sent};
-
-    %% ── ponteiro ──
-    \draw[ptr] (mi1.west) -- ++(-0.5,0) |- (ms0.east);
-  \end{tikzpicture}}
-  \caption{Relação entre as estruturas de dados principais do firmware.}
-  \label{fig:estruturas-dados}
-\end{figure}
-
-\section{Perfis de movimento}
+\section{Geração de trajetórias (Python/Raspberry Pi)}
 Foram definidos três perfis principais, procurando transformar a descrição qualitativa dos movimentos observáveis durante a broncoscopia em trajetórias discretas que pudessem ser executadas pelo modelo: a respiração foi descrita como um movimento lento, cíclico e dominante, associado à expansão e relaxamento do conjunto; o batimento cardíaco, por sua vez, foi tratado como uma perturbação de menor amplitude e maior frequência, sobreposta ao movimento principal; e a tosse foi interpretada como um evento curto e abrupto, composto por uma alteração rápida da trajetória respiratória e por uma vibração localizada de curta duração.
 
-\subsection{Geração de trajetórias na HMI (Python/Raspberry Pi)}
 No Raspberry Pi, a parte escrita em Python tem uma função diferente: transformar parâmetros configuráveis em curvas, pontos e gráficos para a HMI. Este cálculo foi desenvolvido inicialmente fora da interface, para validar as curvas, os pontos e as coordenadas antes de os integrar na aplicação. Na versão para Raspberry Pi, o cálculo é feito pelo módulo \texttt{calculo\_movimentos.py}. A interface permite alterar parâmetros geométricos, número de pontos e parâmetros temporais; depois, o módulo calcula os pontos de passagem e devolve gráficos 2D e 3D para visualização. Estes pontos são guardados como coordenadas \(X\), \(Y\) e \(Z\), podendo servir de base para atualizar posteriormente as estruturas de movimento usadas pelo firmware.
 
 Esta lógica de cálculo evoluiu por etapas ao longo de maio de 2026: a versão inicial, a meio do mês, gerava apenas uma curva padrão genérica com suavização interna por \textit{easing}; poucos dias depois, o código evoluiu para as três curvas específicas atualmente usadas --- elipse para o batimento, parábola para a respiração e circunferência para a tosse --- já preparadas para alimentar a etapa de fusão dos movimentos e a cinemática inversa dos dois manipuladores.
@@ -265,7 +248,61 @@ O raio \(r\) controla a amplitude da vibração, o número de pontos controla a 
   \end{tabular}}
 \end{table}
 
-\subsection{Execução dos perfis no modelo dinâmico (C++/ESP32)}
+\hl{(conteúdo adicional a enviar sobre o cálculo dos movimentos e pontos)}
+
+\section{Estruturas de dados}
+A estrutura \texttt{Manipulador\_Config} concentra os parâmetros geométricos e de calibração, entre os quais se encontram os comprimentos \(L1\), \(L2\) e \(L3\), os offsets do servo nos eixos \(X\) e \(Z\), os limites angulares e os valores mínimos e máximos de pulso para cada servo.
+
+A estrutura \texttt{MotionStorage} guarda a definição de uma trajetória, incluindo arrays de pontos \(X\), \(Y\) e \(Z\) para cada movimento, número de pontos, período total, tempos de pausa no início e no fim, índice inicial e informação sobre se o movimento é bidirecional; já a estrutura \texttt{MotionInstance} representa o estado dinâmico de uma trajetória em execução, guardando ponteiros, flags, índices, direção, tempos decorridos e estado atual da FSM.
+
+\begin{figure}[htbp]
+  \centering
+  \resizebox{\textwidth}{!}{%
+  \begin{tikzpicture}[
+    hdr/.style={draw, thick, fill=blue!15, font=\small\bfseries\ttfamily,
+                align=center, minimum width=5.6cm, minimum height=0.72cm},
+    fld/.style={draw=gray!50, fill=white, font=\small\ttfamily,
+                align=left, minimum width=5.6cm, minimum height=0.60cm, inner sep=4pt},
+    fldout/.style={draw=gray!50, fill=green!8, font=\small\ttfamily,
+                align=left, minimum width=5.6cm, minimum height=0.60cm, inner sep=4pt},
+    ptr/.style={-Latex, thick, dashed, blue!60!black}
+  ]
+    %% ── Manipulador_Config ──
+    \node[hdr]                    (mc0) at (0,0)    {Manipulador\_Config};
+    \node[fld, below=0pt of mc0] (mc1)              {\quad L1,\ L2,\ L3};
+    \node[fld, below=0pt of mc1] (mc2)              {\quad servoOffsetX,\ servoOffsetZ};
+    \node[fld, below=0pt of mc2] (mc3)              {\quad angleMin,\ angleMax};
+    \node[fld, below=0pt of mc3] (mc4)              {\quad rotationOffsetZ};
+    \node[fld, below=0pt of mc4] (mc5)              {\quad servo1/2/3: minPulse,\ maxPulse};
+    \node[fld, below=0pt of mc5] (mc6)              {\quad theta1/2/3: minPulse,\ maxPulse};
+    \node[fldout, below=0pt of mc6] (mc7)           {\quad servo1/2/3Pulse\ \ \textit{(saída IK)}};
+
+    %% ── MotionStorage ──
+    \node[hdr]                    (ms0) at (7.0,0)  {MotionStorage};
+    \node[fld, below=0pt of ms0] (ms1)              {\quad X[],\ Y[],\ Z[]\ \ \textit{(trajetória)}};
+    \node[fld, below=0pt of ms1] (ms2)              {\quad nPts,\ Pini};
+    \node[fld, below=0pt of ms2] (ms3)              {\quad Period,\ dtMs};
+    \node[fld, below=0pt of ms3] (ms4)              {\quad T\_PausaIni,\ T\_PausaFim};
+    \node[fld, below=0pt of ms4] (ms5)              {\quad Bidirecional\ \ \textit{(bool)}};
+
+    %% ── MotionInstance ──
+    \node[hdr]                    (mi0) at (14.0,0) {MotionInstance};
+    \node[fld, below=0pt of mi0] (mi1)              {\quad *move\ $\to$\ MotionStorage};
+    \node[fld, below=0pt of mi1] (mi2)              {\quad iIndex,\ jIndex};
+    \node[fld, below=0pt of mi2] (mi3)              {\quad d\ (+1\,/\,$-$1)};
+    \node[fld, below=0pt of mi3] (mi4)              {\quad elapsed\_1,\ elapsed\_2};
+    \node[fld, below=0pt of mi4] (mi5)              {\quad Z\_amp\_mult};
+    \node[fld, below=0pt of mi5] (mi6)              {\quad state\ \ \textit{(FSM)}};
+    \node[fld, below=0pt of mi6] (mi7)              {\quad Signal,\ Exec,\ Sent};
+
+    %% ── ponteiro ──
+    \draw[ptr] (mi1.west) -- ++(-0.5,0) |- (ms0.east);
+  \end{tikzpicture}}
+  \caption{Relação entre as estruturas de dados principais do firmware.}
+  \label{fig:estruturas-dados}
+\end{figure}
+
+\section{Máquinas de estados e execução dos movimentos}
 No ESP32, o firmware não tem como função principal desenhar ou recalcular as curvas geométricas dos movimentos, mas sim gerir a execução, em tempo real, de pontos de trajetória já definidos, guardados em arrays de coordenadas \(X\), \(Y\) e \(Z\) associados a uma estrutura \texttt{MotionStorage}, na qual se guardam ainda, para cada movimento, o número de pontos, o período total, as pausas no início e no fim, o ponto inicial e a indicação de o movimento ser, ou não, bidirecional.
 
 Esta forma de execução, comum aos três movimentos, resulta de uma evolução ao longo de vários meses: a primeira versão do firmware, em abril de 2026, executava apenas um movimento linear fixo, usado para validar a cinemática inversa; em maio, esse movimento foi substituído por perfis com base na frequência do movimento e, por fim, pela lógica genérica de \texttt{MotionStorage}/\texttt{MotionInstance} aqui descrita, capaz de reutilizar o mesmo mecanismo de execução para qualquer trajetória.
@@ -292,7 +329,6 @@ O intervalo temporal entre pontos é calculado a partir do período total do mov
 \end{equation}
 Depois de calculada a posição intermédia, essa coordenada segue para a etapa de fusão dos movimentos e para a cinemática inversa dos manipuladores delta, pelo que a lógica em C++ trata sobretudo da execução temporal, sincronização, pausas, inversão de direção e combinação dos movimentos no modelo dinâmico.
 
-\section{Máquina de estados de execução dos movimentos}
 A função genérica de atualização de movimento percorre qualquer trajetória associada a uma \texttt{MotionInstance}. No desenvolvimento, esta rotina foi referida como \texttt{FSM\_Motion\_Update}. A \cref{fig:fsm-motion} representa a sequência lógica desta máquina, mantendo os estados principais, as pausas inicial/final, a inversão de direção e o tratamento do movimento bidirecional.
 
 A \texttt{FSM\_Motion\_Update()} recebe a cada ciclo de execução o sinal global de arranque \texttt{start}, a referência da instância de movimento \texttt{inst} e o instante de tempo atual \texttt{nowMs}. A função não calcula posições --- essa responsabilidade pertence à etapa seguinte --- mas mantém atualizados os índices de trajetória e o cronómetro interno que a função de posição instantânea vai consumir.
@@ -635,7 +671,8 @@ Os limites de PWM usados no código não foram assumidos apenas a partir de valo
 
 No arranque, o firmware mantém estes intervalos físicos para associar cada servo ao seu canal PWM, mas inverte a correspondência entre \texttt{thetaMinPulse} e \texttt{thetaMaxPulse} no Manipulador Delta 2. Assim, a cinemática inversa continua a gerar os mesmos três ângulos lógicos, enquanto a conversão final para PWM respeita a montagem, o sentido de rotação e a calibração individual de cada servo.
 
-\section{Comunicação série e comandos}
+\section{Comunicação série}
+\subsection{Comunicação série no firmware (ESP32)}
 A comunicação série é organizada por duas máquinas de estados principais: a primeira é a \texttt{FSM\_Serial\_reader()}, responsável apenas pela receção dos dados que chegam pela porta série, e a segunda é a \texttt{FSM\_Serial\_Command()}, que interpreta esses dados e altera o comportamento do sistema, sendo esta separação usada precisamente para evitar que a leitura da porta série ficasse misturada com a lógica de controlo dos movimentos.
 
 A primeira versão desta separação em duas máquinas de estados ficou operacional a 8 de junho de 2026. Nas semanas seguintes, à medida que a interface gráfica do Raspberry Pi ia sendo desenvolvida, os comandos disponíveis foram sendo atualizados e ajustados para corresponder às ações que a HMI passou a expor ao utilizador.
@@ -798,6 +835,9 @@ Os comandos longos começam por \texttt{W} e permitem enviar uma cadeia de carac
 \end{figure}
 
 \clearpage
+
+\subsection{Comunicação série no Python (Raspberry Pi)}
+\hl{(conteúdo a enviar, ficheiros separados de comunicação série do lado do Raspberry Pi/Python)}
 
 \section{Interface HMI no Raspberry Pi}
 A interface homem-máquina foi desenvolvida para transformar os comandos de baixo nível do firmware numa utilização mais simples e natural, já que, sem esta camada, o utilizador teria de memorizar comandos como \texttt{S}, \texttt{P}, \texttt{Mr}, \texttt{Mb}, \texttt{Mh} ou \texttt{Ma}, escrevendo-os diretamente no monitor série; com a HMI, essas ações passam antes a estar disponíveis através de botões, menus e páginas de configuração, reduzindo a probabilidade de erro e tornando o modelo mais adequado para demonstração e treino.

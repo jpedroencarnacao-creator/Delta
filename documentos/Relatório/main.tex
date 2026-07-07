@@ -16,6 +16,9 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc,fit}
 \usepackage{colortbl}
+\usepackage{soul}
+\sethlcolor{yellow}
+\shorthandoff{"}
 \usepackage{hyperref}
 \usepackage[nameinlink,noabbrev]{cleveref}
 \crefname{figure}{figura}{figuras}
@@ -81,6 +84,8 @@
 \makeatother
 
 \begin{document}
+
+\shorthandoff{"}
 
 \hypersetup{pageanchor=false}
 
@@ -151,14 +156,30 @@ A preencher na versão final.
 A preencher na versão final.
 
 \chapter*{Resumo}
-Este relatório descreve o desenvolvimento de um modelo articulado de uma árvore brônquica para apoio à simulação de videobroncofibroscopia. O trabalho parte da necessidade de criar uma plataforma física de treino que permita representar, de forma controlada e repetível, alguns movimentos internos observáveis durante o procedimento, combinando impressão 3D, atuação mecânica, controlo eletrónico, software embarcado e uma interface homem-máquina. A solução foi organizada em dois blocos principais: o modelo dinâmico, constituído pela árvore brônquica impressa em 3D, pelos manipuladores delta, pelos servo-motores e pelo microcontrolador ESP32-S3; e a HMI, executada no Raspberry Pi 4B, responsável por permitir ao utilizador comandar o sistema de forma simples e intuitiva, sem necessidade de memorizar comandos série.
+O presente relaório descreve o desenvolvimento de um modelo articulado de uma árvore brônquica para apoio á simulação e treino de videobroncofibroscopia. O trabalho parte da necessidade de criar uma plataforma física de treino que permita representar, de forma controlada e realista, movimentos internos observáveis durante o procedimento, combinando tecnicas como:
+\begin{itemize}
+  \item impressão 3D;
+  \item atuação mecânica;
+  \item controlo eletrónico;
+  \item software embarcado;
+  \item interface homem-máquina.
+\end{itemize}
+A solução foi organizada em duas secções:
+\begin{itemize}
+  \item Modelo dinâmico $\rightarrow$ constituído pela árvore brônquica impressa em 3D, pelos manipuladores delta, pelos servo-motores e pelo microcontrolador ESP32-S3;
+  \item HMI $\rightarrow$ alojada num Raspberry Pi 4B, responsável por permitir ao utilizador controlar o sistema de forma simples e intuitiva, sem necessidade de memorizar comandos internos ou valores.
+\end{itemize}
 
-No modelo dinâmico foram implementados perfis de movimento associados à respiração, ao batimento cardíaco e à tosse, recorrendo a estruturas de trajetória, máquinas de estados, comunicação série e cinemática inversa para converter posições desejadas nos ângulos dos manipuladores. A interface gráfica permite selecionar modos de funcionamento, iniciar ou interromper o ensaio, acompanhar a comunicação com o ESP32 e preparar parâmetros de movimento a partir de uma camada de controlo mais acessível. Ao longo do desenvolvimento foram também validados os blocos fundamentais do sistema, nomeadamente a arquitetura de alimentação e comunicação, os testes iniciais de comunicação série e o cálculo dos movimentos, identificando-se no final as principais limitações do protótipo e possíveis melhorias futuras.
+No modelo dinâmico foram implementados alguns perfis de movimento tais como: 
+\begin{itemize}
+  \item Respiração;
+  \item Batimento cardíaco;
+  \item Tosse.
+\end{itemize}
+Toda a implementação recorreu a estruturas de trajetórias, máquinas de estados, comunicação série e Equações de Cinemática Inversa para converter posições desejadas nos ângulos dos manipuladores. A interface gráfica por sua vez, permite selecionar modos de funcionamento, bem como estados de funcionamento(iniciar ou interromper o ensaio), outras funcionalidades como: estabelecer e acompanhar a comunicação série com o ESP32 e preparar os parâmetros de movimento também se encontram implementadas, dando uma grande quantidade de ferramentas para os operadores. Durante todo o desenvolvimento foram validados, testados e modificados os varios blocos fundamentais dos sistemas já mencionados em ambos, modelo dinamico e HMI. Identificando-se no final as  principais limitações do protótipo atual e possíveis sugesões de melhorias a considerar no futuro.
 
 \chapter*{Abstract}
-This report describes the development of an articulated bronchial tree model intended to support flexible bronchoscopy simulation. The project addresses the need for a physical training platform capable of reproducing, in a controlled and repeatable way, some of the internal movements observed during the procedure, combining 3D printing, mechanical actuation, electronic control, embedded software and a human-machine interface. The solution was organised into two main blocks: the dynamic model, composed of the 3D-printed bronchial tree, the delta manipulators, the servomotors and the ESP32-S3 microcontroller; and the HMI, running on a Raspberry Pi 4B, which allows the user to control the system in a simple and intuitive way without memorising serial commands.
 
-The dynamic model implements motion profiles associated with breathing, heartbeat and coughing, using trajectory structures, finite-state machines, serial communication and inverse kinematics to convert desired positions into manipulator angles. The graphical interface allows the user to select operating modes, start or stop a training session, monitor communication with the ESP32 and prepare movement parameters through a more accessible control layer. During development, the main functional blocks were also validated, namely the power and communication architecture, the initial serial communication tests and the movement calculation process, leading to the identification of the current prototype limitations and possible future improvements.
 
 \cleardoublepage
 \addtocontents{toc}{\protect\noindent\protect\hfill\textbf{Página}\protect\par\protect\vspace{0.3em}}
@@ -185,7 +206,6 @@ The dynamic model implements motion profiles associated with breathing, heartbea
   \item[TPC] Filamento de impressão 3D de copoliéster termoplástico, material flexível usado em peças elásticas e funcionais.
   \item[UPS] \textit{Uninterruptible Power Supply}; sistema de alimentação que mantém o equipamento ligado durante falhas ou interrupções temporárias da alimentação principal.
   \item[HAT] \textit{Hardware Attached on Top}; placa de expansão para Raspberry Pi, acoplada aos pinos GPIO para adicionar ferramentas, periféricos ou capacidade de processamento.
-  \item[Manipulador delta] Mecanismo paralelo usado para transformar o movimento dos servos no deslocamento da plataforma móvel.
 \end{description}
 
 \cleardoublepage

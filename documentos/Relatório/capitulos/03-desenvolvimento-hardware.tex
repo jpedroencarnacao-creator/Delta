@@ -1,88 +1,153 @@
 \chapter{Desenvolvimento do Hardware}
 
-Este capítulo descreve o percurso de desenvolvimento do hardware, desde as primeiras impressões de teste em março de 2026 até à montagem final do sistema com dois manipuladores delta, servos, eletrónica de controlo e encaixe de alimentação. O processo não foi linear: cada iteração revelou limitações que levaram a novas decisões de projeto, de materiais e de arquitetura mecânica. O que se segue documenta esse caminho, mostrando não apenas o resultado final, mas as escolhas intermédias e os problemas que as motivaram.
+Este capítulo descreve o percurso de desenvolvimento do hardware, desde as primeiras impressões de teste até à montagem final do sistema dos dois manipuladores delta, eletrónica de controlo e suportes para guardar os componentes de forma segura. O processo não foi linear. Cada iteração revelou limitações que levaram a novas abordagens do design, materiais e arquitetura mecânica. 
+O que se segue documenta esse caminho de escolhas intermédias, bem os problemas que as motivaram.
 
 \section{Requisitos do sistema}
-O protótipo deve permitir o treino de videobroncofibroscopia com um modelo físico de baixo custo, robusto, lavável e fácil de montar, tendo os requisitos principais sido agrupados em quatro eixos: realismo anatómico, facilidade de utilização, movimento fisiológico controlado e possibilidade de evolução futura.
+Como já referido o modelo deve permitir o treino de videobroncofibroscopia com um modelo físico de baixo custo, robusto,\hl{(lavável)} e fácil de montar, tendo os requisitos principais sido agrupados em quatro eixos: 
+\begin{itemize}
+  \item $\rightarrow$ Realismo anatómico;
+  \item $\rightarrow$ Facilidade de utilização;
+  \item $\rightarrow$ Movimento fisiológico controlado;
+\end{itemize}
 
-No plano anatómico, o modelo deve representar a árvore brônquica com dimensões, ângulos de ramificação e características compatíveis com dados obtidos por tomografia computorizada, enquanto no plano mecânico deve permitir a introdução de movimentos de respiração, batimento cardíaco e tosse sem comprometer a estabilidade do conjunto. No plano pedagógico, deve ainda permitir a repetição de exercícios e a adaptação da dificuldade e, no plano técnico, manter a solução acessível, evitando materiais, atuadores ou processos de fabrico que tornem o sistema demasiado caro para o objetivo do projeto.
+No plano anatómico, o modelo deve representar a árvore brônquica com dimensões aproximadas, ângulos de ramificação e características compatíveis com dados obtidos por tomografia computorizada, enquanto no plano mecânico deve permitir a introdução de movimentos de respiração, batimento cardíaco e tosse sem comprometer a estabilidade do conjunto. 
+No plano pedagógico, deve ainda permitir a repetição de exercícios e a adaptação do grau de dificuldade e, no plano técnico, \hl{( manter a solução acessível, evitando materiais, atuadores ou processos de fabrico que tornem o sistema demasiado caro para o objetivo do projeto)}.
 
-Do ponto de vista funcional, o sistema foi separado em dois blocos. O primeiro é o modelo dinâmico, constituído pela árvore brônquica impressa em 3D, pelos manipuladores delta, pelos servo-motores, pelos drivers e pelo ESP32-S3, executando fisicamente os movimentos e mantendo um comportamento previsível mesmo quando recebe comandos externos. O segundo bloco é a HMI, suportada pelo Raspberry Pi 4B e pelo monitor ou browser associado, apresentando ao utilizador comandos de alto nível, como iniciar, parar, escolher modo fisiológico ou ajustar parâmetros, ficando a tradução desses comandos para mensagens série a cargo do software.
+Do ponto de vista funcional, o sistema foi separado em dois blocos:
+\begin{itemize}
+  \item 1º  $\rightarrow$ Modelo Dinâmico, constituído pela árvore brônquica impressa em 3D, pelos manipuladores delta, pelos servo-motores e seus respitivos drivers e pelo microcontrolador ESP32-S3, executando fisicamente os movimentos e mantendo um comportamento previsível mesmo quando recebe comandos externos;
+  \item 2º $\rightarrow$ HMI, suportada pelo Raspberry Pi 4B e pelo monitor touchscreen, apresentando ao utilizador, através de botões e menus intuitivos, comandos de alto nível, como iniciar, parar, escolher modo fisiológico ou ajustar parâmetros, ficando a cargo do software a tradução desses comandos, o cálculo e a geração de coordenadas para os movimentos pretendidos e a execução física dos mesmos, o que torna o sistema mais simples e intuitivo para o utilizador;
+\end{itemize}
+
+Um dos requisitos mais importantes do projeto é a capacidade de reproduzir movimentos fisiológicos de forma controlada, com frequências e amplitudes compatíveis com os valores observados em humanos, tornado-se também o desafio mais importante deste projeto, pois ambos os sistemas têm que funcionar de forma paralela e sincronizada, sem compromenter \hl{(Não sei como descrever os tempos e sincronismo das operações e movimentos)}.
 
 \section{Modelo físico da árvore brônquica}
-O ponto de partida do projeto é um modelo tridimensional da árvore brônquica obtido a partir de dados de imagem médica, cujos ficheiros descreviam essencialmente a superfície interna da árvore brônquica, ou seja, a ``casca'' do volume, pelo que foi necessário atribuir espessura ao modelo antes da impressão 3D. Esta operação foi feita inicialmente no Tinkercad, com o objetivo de realizar um teste rápido em PLA e confirmar a viabilidade geométrica da impressão.
 
-O primeiro teste de impressão, realizado em março de 2026 nos laboratórios da universidade com impressoras Creality (\cref{fig:laboratorio-impressao}), utilizou filamento PLA branco com suportes impressos em filamento de cor diferente. O resultado, visível na \cref{fig:impressao-inicial}, confirmou a geometria geral das ramificações, mas revelou limitações práticas: as superfícies apresentavam marcas dos suportes, algumas zonas das junções entre ramos ficaram frágeis e a rigidez do PLA não representava de forma adequada a sensação de tecido. Esta primeira iteração serviu principalmente para confirmar que o modelo era imprimível na escala pretendida e para identificar as zonas que precisariam de maior espessura de parede nas versões seguintes.
+\subsection{Técnicas de impressão 3D}
+\label{subsec:tecnicas-impressao-3d}
+Entre as tecnologias de impressão 3D mais utilizadas destacam-se o FDM, a SLA e a SLS, cada uma assente num princípio de fabrico distinto e, por isso, mais adequada a diferentes tipos de aplicação.
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.72\textwidth]{fotos/laboratorio_impressao_3d.jpg}
-  \caption{Laboratório de impressão 3D da universidade, com as impressoras Creality utilizadas nas fases iniciais de impressão do protótipo.}
-  \label{fig:laboratorio-impressao}
-\end{figure}
+O FDM (Fused Deposition Modeling, ou modelação por deposição de material fundido) é a tecnologia mais acessível e mais difundida, consistindo na extrusão de um filamento termoplástico aquecido através de um bico, que deposita o material camada a camada sobre uma base de impressão. É compatível com uma grande variedade de materiais, como o PLA, o PETG, o ABS ou filamentos flexíveis como o TPU, permitindo a produção de peças estruturalmente resistentes a um custo reduzido, ainda que com uma resolução e um acabamento de superfície mais limitados, sendo geralmente visíveis as linhas de cada camada. Para geometrias com zonas em consola ou sem apoio inferior, o FDM necessita ainda de estruturas de suporte, que têm de ser removidas após a impressão.
 
+A SLA (Stereolithography) recorre a uma cuba de resina fotopolimérica líquida, curada seletivamente camada a camada por uma fonte de luz ultravioleta, um laser ou um projetor. Esta tecnologia permite obter peças com elevada resolução e um acabamento de superfície muito mais fino do que o FDM, sendo por isso indicada para modelos com geometrias detalhadas. Em contrapartida, exige equipamento de pós-processamento dedicado, nomeadamente para lavagem das peças em álcool isopropílico e cura adicional sob luz ultravioleta, além de recorrer a materiais mais dispendiosos e, em geral, mais frágeis do que os filamentos termoplásticos.
+
+Por fim, a SLS (Selective Laser Sintering) utiliza um laser para sinterizar seletivamente um material em pó, tipicamente uma poliamida, camada a camada dentro de um leito de pó. Uma das suas principais vantagens é dispensar estruturas de suporte dedicadas, uma vez que o próprio pó não sinterizado sustenta as zonas em consola durante a impressão, permitindo fabricar geometrias mais complexas. As peças resultantes apresentam ainda propriedades mecânicas mais uniformes do que as obtidas por FDM. Contudo, o equipamento e os materiais são substancialmente mais caros, o que torna esta tecnologia mais comum em contexto industrial do que em pequenos projetos ou protótipos.
+
+No contexto deste projeto, esta comparação foi particularmente relevante na escolha entre FDM e SLA para a impressão da árvore brônquica, decisão discutida em detalhe na \cref{sec:disposicao-impressao}.
+
+\subsection{O modelo STL da árvore brônquica}
+O ponto de partida do projeto foi o modelo tridimensional da árvore brônquica, obtido a partir de dados de uma Tomografia (scan 3D) que foi realizada e entregue pelo grupo de médicos encarregues do projeto, em formato de malha 3D (STL). Este tipo de ficheiro define apenas a geometria da superfície do objeto, sob a forma de uma malha de triângulos, sem qualquer volume ou espessura associada, pelo que o modelo obtido correspondia apenas à superfície interna da árvore brônquica, uma espécie de casca oca, sendo por isso necessário atribuir-lhe espessura manualmente antes da impressão 3D.
+
+\subsection{Programas utilizados no tratamento do modelo}
+Esta operação foi feita inicialmente no programa gratuito Tinkercad (da Autodesk), com o objetivo de realizar um teste rápido em PLA e confirmar a viabilidade geométrica da impressão. Depois de uma confirmação visual, passou-se para um programa mais indicado para este trabalho, o Fusion 360, um programa CAD da Autodesk destinado ao desenho 3D de sólidos, superfícies e malhas, que dispõe de uma ferramenta interna chamada ``Forms''. Ao contrário do ambiente normal do Fusion 360, onde se trabalha maioritariamente com objetos sólidos e geometria bem definida, o Forms é exclusivamente indicado para trabalhar diretamente com scans 3D e as suas irregularidades geométricas, o que o tornava particularmente adequado a este caso.
+
+No ambiente Forms, não se edita diretamente o ficheiro de malha. Em vez disso, é criada uma aproximação à superfície do ficheiro através de uma camada virtual, sendo apenas a essa camada que depois é possível atribuir um valor de espessura, criando assim um verdadeiro objeto 3D da árvore brônquica. Esta abordagem permitia editar em tempo real a geometria da camada e corrigir irregularidades existentes na malha, bem como descartar secções consideradas desnecessárias, como por exemplo as extremidades mais pequenas do scan 3D, que não tinham qualquer utilidade para o modelo devido à incompatibilidade entre a largura das vias nessas extremidades e a largura da sonda broncoscópica.
+
+Contudo, observou-se rapidamente que este método era demorado e ineficiente. O ambiente Forms trabalha com formas primitivas do tipo T-Spline, como o cilindro sem base nem topo ou uma superfície do tipo folha, compostas por vértices, arestas e faces que podem ser deslocados, rodados ou escalados através da ferramenta Edit Form, moldando a forma até se aproximar da geometria pretendida. Para este modelo, o cilindro sem tampas foi a forma escolhida, por já se aproximar naturalmente do formato dos ramos da árvore brônquica. Não era, no entanto, possível aplicar esta aproximação ao modelo completo de uma só vez. Era necessário trabalhar ramo a ramo, ajustando individualmente um destes cilindros a cada ramificação através da ferramenta Edit Form, para depois ser cosido aos ramos adjacentes e ter a posição dos pontos novamente afinada, de forma a manter a fidelidade à geometria original do scan. Este processo, repetido ramo a ramo ao longo de toda a árvore brônquica e seguido de sucessivas costuras e correções, tornava o método muito demorado. Por esta razão, optou-se por um outro programa, o MeshMixer, também da Autodesk, direcionado exclusivamente para trabalhar e modificar diretamente ficheiros de malha 3D. Ao contrário do Forms, que edita apenas uma camada virtual de aproximação, o MeshMixer permite selecionar diretamente os triângulos da malha através de ferramentas de pincel e laço, corrigindo na fonte as imperfeições e cortando as secções desnecessárias. A ferramenta Inspector fecha automaticamente as malhas abertas e repara falhas de continuidade na superfície, enquanto o Offset permite atribuir espessura diretamente à malha, sem depender de uma camada intermédia como no Forms. Uma outra vantagem do MeshMixer em relação ao Forms está na forma como lida com sobreposições. Quando, com o aumento de espessura (scale-up), duas malhas ficam sobrepostas, a ferramenta Boolean Union do MeshMixer une-as automaticamente numa só peça, enquanto o Fusion 360 não consegue processar essas sobreposições e obriga a manter uma distância mínima entre elas, exigindo várias iterações e ajustes manuais.
+
+\subsection{Seleção de materiais}
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.72\textwidth]{fotos/impressao_inicial_pla.jpg}
-  \caption{Primeiro teste de impressão da árvore brônquica em PLA branco, março de 2026. São visíveis as marcas dos suportes e as zonas mais frágeis nas junções entre ramos.}
+  \caption{Testes de impressão da árvore brônquica com TPU 95A, com suporte em PLA.}
   \label{fig:impressao-inicial}
 \end{figure}
 
-A seleção de materiais foi considerada uma decisão crítica ao longo do projeto. Foram identificados filamentos flexíveis como PEBA, TPU, TPE, TPC e PP, bem como diferentes durezas comerciais, por exemplo 95A, 85A e 70A. Para as versões de teste das peças estruturais dos manipuladores delta foi utilizado PLA preto, por ser fácil de imprimir, rígido e acessível. Para a versão final da árvore brônquica utilizada nos testes com profissionais de saúde, a impressão foi feita em filamento flexível numa impressora Bambu Lab de maior capacidade, conforme mostra a \cref{fig:impressao-bambulab}. Esta mudança de equipamento e material permitiu imprimir o modelo completo numa só peça, com melhor acabamento de superfície e menor fragilidade nas zonas de bifurcação.
+A seleção de materiais foi considerada uma decisão crítica ao longo de todo o projeto, tendo sido identificados filamentos flexíveis como PEBA, TPU, TPE e TPC, filamentos especiais de dureza variável utilizados mais tarde no projeto e diferentes durezas comerciais, por exemplo 95A, 85A e 70A.
+Como o objetivo do modelo era aproximar-se o mais possível da realidade anatómica, era necessário utilizar um material suficientemente mole, \hl{( sem que se soubesse à partida qual o grau de maciez adequado)}, pelo que foi necessário testar vários materiais, geometrias e durezas ao longo do projeto.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.72\textwidth]{fotos/impressao_bambulab.jpg}
-  \caption{Impressão da árvore brônquica em filamento flexível na impressora Bambu Lab, maio de 2026. O modelo ocupa a maior parte da cama de impressão (\(350\times320\times325\,\text{mm}^3\)).}
-  \label{fig:impressao-bambulab}
+  \includegraphics[width=0.9\textwidth]{fotos/shore_hardness_scale.jpg}
+  \caption{Escala de dureza Shore aplicada a filamentos flexíveis, com exemplos de objetos do dia a dia em pontos equivalentes da escala (fonte: Recreus).}
+  \label{fig:escala-shore}
 \end{figure}
+
+Nos filamentos maleáveis, quanto menor a dureza do material, mais difícil se torna a sua impressão. 
+Os filamentos mais duros alimentam-se com facilidade através do extrusor, enquanto os mais moles tendem a comprimir-se e a deformar-se nas engrenagens de alimentação em vez de serem corretamente empurrados, o que aumenta significativamente a tendência para entupimentos e para defeitos de impressão, como o stringing. 
+O TPU exige ainda um controlo mais apertado de vários parâmetros de impressão, nomeadamente a temperatura, que deve manter-se numa gama estreita, uma vez que poucos graus a mais podem ser o suficientes para provocar stringing ou distorções mais graves nas secções inclinadas por excesso de fluidez do material, a retração, que deve ser reduzida ao mínimo, já que retrações demasiado longas tendem a provocar entupimentos em vez de os evitar (devido á criação de stress entre a zona do estrusora e a secção de convecção que por sua vez faz com que o material se adere as paredes do bico e crie resistencia) e a velocidade de impressão, que deve ser mantida baixa, para permitir uma extrusão mais controlada. A dureza mais comum no mercado é a 95A, existindo ainda assim empresas que produzem filamentos especializados com durezas tão baixas como 85A ou mesmo 70A, sendo este último especialmente problemático, por se deformar com facilidade durante a impressão e por exigir um extrusor direct-drive dedicado para não encravar. Por esta razão, os testes iniciais foram realizados apenas com TPU 95A, com o objetivo de validar a viabilidade de impressão do modelo em materiais flexíveis, conforme documentado nos primeiros testes de impressão (\cref{fig:impressao-inicial}).
+
+\subsection{Disposição do modelo para impressão}
+\label{sec:disposicao-impressao}
+Um outro desafio foi decidir como dispor o modelo para impressão em FDM, a única tecnologia disponível na universidade. Uma impressora SLA eliminaria alguns destes problemas de suporte, mas foi desde logo descartada:
+\begin{itemize}
+  \item Vantagem do SLA: dispensaria suportes em várias zonas do modelo, simplificando a geometria de impressão;
+  \item Desvantagem do SLA: equipamento com custo muito superior e dependente de equipamento adicional de pós-processamento, o que tornava a sua aquisição incomportável para o projeto.
+\end{itemize}
+
+Mantendo-se a impressão em FDM, foram equacionadas três opções para a disposição do modelo:
+\begin{enumerate}
+  \item \textbf{Impressão em peça única com suportes exteriores.} O modelo seria impresso de uma só vez, com suportes colocados do lado de fora para sustentar as zonas sem apoio inferior, que ficariam essencialmente a ser impressas ``no ar'':
+  \begin{itemize}
+    \item Vantagens: simplicidade de modificação da impressão e possibilidade de reaproveitar os próprios suportes como estrutura de fixação do modelo à base com os atuadores;
+    \item Desvantagens: tempo de impressão elevado, uma vez que todo o modelo seria impresso de uma só vez, obrigando a reimprimir a peça inteira em caso de falha, com desperdício considerável de filamento, tempo e energia, além de os suportes só poderem ser colocados no exterior do modelo, deixando sem sustentação zonas interiores igualmente sujeitas a grandes deformações, sobretudo em materiais mais moles.
+  \end{itemize}
+
+  \item \textbf{Desdobramento e impressão individual das ramificações.} Esta opção passava por separar literalmente cada ramificação da malha num objeto independente e desdobrar a secção cilíndrica de cada ramo num plano, à semelhança do desdobramento de papel para construir um sólido, atribuindo-lhe espessura já na forma planificada e devolvendo-lhe a forma tridimensional apenas depois de impresso:
+  \begin{itemize}
+    \item Vantagens: possibilidade de modificar facilmente cada ramo de forma individual e de integrar sensores ou atuadores diretamente no modelo, caso necessário;
+    \item Desvantagens: incerteza quanto à viabilidade do método, uma vez que, embora fosse possível desdobrar um ficheiro STL num plano com programas como o Blender, não havia garantia de que o mesmo funcionasse com um scan tão complexo e detalhado, podendo gerar erros ou geometrias inesperadas. A montagem após a impressão era também um risco, dado que os filamentos maleáveis são imprevisíveis e podem esticar ao serem retirados da base de impressão, criando folgas na união das peças e exigindo uma estratégia própria de costura entre secções, com uma probabilidade reduzida de sucesso ao longo de tantas ramificações.
+  \end{itemize}
+
+  \item \textbf{Moldação por vazamento em molde negativo.} Em vez de imprimir diretamente o modelo, esta opção previa a impressão de um molde negativo, utilizado depois para vazar resina ou silicone e obter o positivo da árvore brônquica. Foi uma ideia forte durante grande parte do projeto, funcionando quase sempre como plano secundário:
+  \begin{itemize}
+    \item Vantagens: possibilidade de usar um material mais rígido no molde e um material extremamente mole no modelo positivo, bem como reutilizar o mesmo molde para produzir vários modelos sem o descartar;
+    \item Desvantagens: como a árvore brônquica é oca, era necessário produzir um molde negativo tanto para a superfície exterior como para o espaço interior do modelo, ficando o positivo reduzido a uma película fina, com a espessura pretendida, encaixada entre esses dois moldes negativos. Isto obrigava a unir com precisão as três secções de molde em volta dessa película, o negativo interior e os dois lados do negativo exterior. A orientação das ramificações em várias direções dificultava ainda a remoção dos moldes sem danificar o modelo. Por fim, a geometria complexa e extensa não dava garantias de que fosse possível injetar resina ou silicone de forma uniforme em todos os cantos, com risco de inconsistências na espessura das paredes.
+  \end{itemize}
+\end{enumerate}
+
+Mais tarde, motivadas pela futura aquisição de uma impressora Bambu Lab com dois bicos de impressão independentes (assunto detalhado mais adiante), foram ainda teorizadas duas variações aos métodos já descritos:
+\begin{enumerate}
+  \item \textbf{Suportes solúveis em PVA}, uma variação da impressão em peça única com suportes exteriores, substituindo o material dos suportes pelo filamento solúvel PVA:
+  \begin{itemize}
+    \item Vantagens: por ser solúvel em água, permitiria colocar suportes também no interior do modelo, em regiões críticas, aumentando a qualidade de impressão sem complicar o processo de remoção;
+    \item Desvantagens: o PVA tem um custo por quilo superior ao do PLA e mesmo ao do TPU, já de si caro nas durezas mais baixas. Por ser sempre perdido após a dissolução em água, o custo de utilização tornar-se-ia incomportável. Esta variação acabou por nunca ser testada, por falta de tempo para adquirir o material a tempo.
+  \end{itemize}
+
+  \item \textbf{Molde negativo interno com vazamento por imersão}, uma variação do método dos moldes, recorrendo a uma resina especial de uso médico que solidifica em contacto com o ar, mantendo uma dureza específica de acordo com o tempo de exposição antes de a reação ser interrompida com um químico próprio. O processo consistiria em imprimir apenas o molde negativo interno da árvore brônquica, num material de fácil remoção como o PVA e mergulhá-lo repetidamente na resina, à semelhança do processo de fabrico de velas, sendo o número de imersões definido pela espessura pretendida para o modelo positivo. No final, bastaria dissolver o molde negativo em água:
+  \begin{itemize}
+    \item Vantagens: processo de produção muito simples;
+    \item Desvantagens: o material do molde negativo tem um custo elevado, sendo sempre perdido no processo. Depois de impresso, o modelo, já sem qualquer rigidez estrutural própria, seria também difícil de fixar à estrutura de suporte dos manipuladores, exigindo peças de fixação dedicadas e de integração complexa.
+  \end{itemize}
+\end{enumerate}
+
+Por estas razões, optou-se por manter o método de impressão em peça única com suportes exteriores.
+
+\subsection{Evolução do processo de impressão}
+Inicialmente, os suportes eram impressos no mesmo material do modelo, devido às limitações da maquinaria disponível na altura, com apenas um bico de impressão. Este método funcionava razoavelmente bem com filamentos de dureza elevada, como o 95A, mas mostrava-se bastante problemático com materiais mais moles, como o Filaflex TPE 70A. A mesma característica que tornava estes materiais interessantes para o projeto tornava-os também problemáticos. Ao usar o mesmo material para o suporte e para o objeto, toda a impressão se comportava como um único e grande objeto mole, cuja vibração aumentava com a altura já impressa, entrando em ressonância com o próprio movimento da cabeça de impressão e criando grandes inconsistências. Por frações de milissegundo e de milímetro, a posição da cabeça de impressão deixava de corresponder à posição real da última camada impressa. \hl{(vou adicionar imagens sobre isto nesta secção)}
+
+Uma das soluções equacionadas para este problema passava por substituir o filamento por um material especial de dureza variável, com um agente expansivo interno que utiliza o próprio calor do bico como catalisador, permitindo teoricamente atingir durezas entre 80A e 50A consoante a temperatura, segundo a informação disponibilizada pela marca. O único inconveniente deste material seriam os resíduos gerados pelo agente expansivo, que poderiam comprometer a qualidade de impressão, ainda que de forma mitigável. Esta solução acabou por nunca ser necessária, pois, sensivelmente na mesma altura, a universidade adquiriu três novas impressoras 3D, entre elas uma Bambu Lab H2D, equipada com dois bicos independentes que permitem imprimir, em simultâneo, materiais com propriedades e compatibilidades distintas, uma aquisição que resolveu o problema.
+
+Passou-se então a um método que mantinha o TPE 70A como material principal do modelo, mas com PLA como material de suporte, funcionando simultaneamente como suporte estrutural e como suporte de amortecimento de vibração para o modelo principal. \hl{(vou adicionar uma imagem sobre isto)}
+
+Este método trouxe uma melhoria enorme na qualidade de impressão, mas tornou mais visíveis outros problemas. Como já referido, os materiais flexíveis de dureza muito baixa são especialmente difíceis de imprimir com fiabilidade. Este caso não foi exceção. Detetaram-se, durante e após a impressão, inconsistências de aderência entre camadas e entre paredes do objeto, camadas inteiras com falta de material, tornando-as propensas a quebrar ou rasgar e, o pior de todos os problemas, uma quantidade excessiva de stringing no interior do modelo, precisamente a zona mais importante para este trabalho. Isto persistia mesmo após inúmeras calibrações dos parâmetros de retração, da velocidade de impressão, da temperatura de impressão, do Pressure Advance e dos níveis de humidade do filamento. O Pressure Advance é uma funcionalidade do firmware do slicer que ajusta antecipadamente a pressão de extrusão nas mudanças de velocidade, reduzindo o babar de material e o stringing nos cantos. O TPU é, além disso, frequentemente descrito como uma ``esponja'', por ser um material higroscópico, ou seja, por absorver facilmente humidade do ar, sendo por isso necessário secá-lo constantemente e mantê-lo selado o máximo de tempo possível.
+
+Foram também testadas técnicas e opções internas do slicer para mitigar o stringing, como alterar a localização da costura das paredes para uma zona menos visível, calibrar constantemente os valores de transição entre paredes, modificar as opções de geometria de retração e forçar as deslocações da cabeça de impressão a ocorrerem, sempre que possível, sobre as zonas de enchimento.
+
+Ainda assim, nada resolvia de forma satisfatória o problema do stringing, nem mesmo técnicas de limpeza manual, como escovilhões para aquários, jatos de ar comprimido ou a queima das próprias linhas no interior do modelo. Algumas destas técnicas conseguiam reduzir a visibilidade do problema nas ramificações mais próximas da entrada, mas nas ramificações mais profundas era praticamente impossível.
+
+A única forma de resolver, ou melhor, de mitigar este problema, foi escolher outro material como filamento flexível principal, o TPU MorPhlex 95A/75A, da empresa BiQU. Ao contrário dos outros filamentos de dureza variável considerados, apresenta uma transição de dureza fixa, começando com uma dureza de 95A antes de ser impresso e estabilizando permanentemente numa dureza de 75A\,$\pm$\,3A depois de impresso e aquecido. Esta caraterística torna-o muito mais estável, fiável e seguro do que as alternativas anteriores, permitindo, com a calibração correta, atingir uma qualidade de impressão quase perfeita e praticamente sem resíduos. Um outro ponto forte deste filamento é a sua cor, exclusiva da BiQU, muito próxima da cor real do interior do pulmão, o que o tornava ainda mais adequado a este trabalho.
 
 \section{Seleção do sistema de atuação}
-Foram consideradas duas abordagens para gerar movimento no modelo. A primeira consistia em distribuir vários atuadores ao longo da árvore brônquica, cada um com um movimento independente. Esta solução seria relativamente simples de programar para movimentos locais, mas tornaria o sistema mais difícil de gerir mecanicamente, aumentaria a quantidade de motores e exigiria uma estrutura de suporte complexa acoplada ao modelo.
+A definição do sistema de atuação foi uma das partes que mais evoluiu durante o projeto, sobretudo nas fases iniciais. A descrição dos movimentos pretendidos ainda não estava completamente consolidada e, por isso, foram exploradas soluções que mais tarde se revelaram pouco adequadas ao comportamento real que se pretendia reproduzir. Esta incerteza levou à análise de alternativas bastante diferentes entre si, desde motores de vibração, pensados para criar zonas de pressão localizada que pudessem sugerir o batimento cardíaco ou pequenas compressões das vias aéreas, até micro motores de passo, considerados para apertar gradualmente as paredes do modelo e simular constrangimentos associados ao ciclo respiratório.
 
-A segunda abordagem, aprovada para o desenvolvimento, consiste na utilização de manipuladores robóticos do tipo delta. Esta opção permite controlar pontos da estrutura nos três eixos cartesianos, concentrando a complexidade mecânica em unidades de atuação repetíveis e, embora introduza maior complexidade matemática, devido ao cálculo da cinemática inversa, permite reproduzir vários movimentos com menos alterações físicas ao hardware.
+Com a evolução do modelo da árvore brônquica e após a primeira reunião de acompanhamento com a equipa médica, tornou-se mais clara a natureza dos movimentos a implementar. O objetivo principal deixou de ser a criação de deformações locais independentes e passou a ser a reprodução controlada de deslocações globais e perturbações visíveis, associadas à respiração, ao batimento cardíaco e à tosse. Esta clarificação obrigou a rever a arquitetura de atuação inicialmente imaginada, baseada na distribuição de vários atuadores ao longo da árvore brônquica. Embora essa solução pudesse parecer direta para movimentos localizados, acabaria por tornar o sistema pesado do ponto de vista mecânico, aumentando o número de motores, exigindo uma estrutura de suporte muito próxima do modelo e introduzindo dificuldades adicionais de montagem, calibração, sincronização e manutenção.
 
-Foram analisados dois tipos de manipuladores delta: o primeiro utiliza três atuadores e permite controlar a posição de um corpo em três eixos, \(X\), \(Y\) e \(Z\), enquanto o segundo utiliza seis motores, permitindo também controlar orientações adicionais. Para esta versão do projeto, foi considerado suficiente o controlo em três eixos, uma vez que os movimentos inicialmente acordados foram respiração, batimento cardíaco e tosse.
+A solução adotada passou, por isso, pela utilização de manipuladores robóticos capazes de posicionar uma plataforma móvel dentro de um volume de trabalho definido por coordenadas cartesianas. Nesta abordagem, o movimento deixa de depender de vários atuadores distribuídos pela árvore brônquica e passa a ser gerado a partir da trajetória imposta à plataforma. A complexidade é, assim, transferida para a descrição matemática do movimento, em particular para o cálculo da cinemática inversa, permitindo alterar perfis de respiração, batimento cardíaco ou tosse sobretudo por software, sem obrigar a modificar fisicamente a disposição dos motores.
 
-Esta escolha mecânica foi acompanhada, ainda no final de abril de 2026, pelo início do desenvolvimento do código de cinemática inversa associado a este tipo de manipulador, descrito em detalhe na \cref{sec:cinematica-inversa}. A validação cruzada entre o comportamento físico dos braços montados em bancada e o cálculo implementado no firmware foi, aliás, uma constante ao longo de todo o desenvolvimento mecânico que se segue.
+Dentro desta lógica, foram estudadas diferentes configurações de manipuladores delta, uma vez que este tipo de robô paralelo utiliza vários braços ligados a uma plataforma móvel comum. Ao contrário de um manipulador serial, em que cada junta depende diretamente da anterior, num manipulador delta os braços trabalham em conjunto para posicionar a plataforma no espaço. Esta geometria permite obter movimentos rápidos, repetíveis e compactos, mantendo os atuadores fixos na base e reduzindo a massa em movimento. Para este projeto, estas características eram particularmente interessantes, pois permitiam atuar sobre a árvore brônquica sem instalar motores diretamente sobre o modelo.
 
-Antes da montagem final, foram realizados testes de acoplamento mecânico entre os servos e as peças impressas, utilizando suportes em PLA para confirmar as tolerâncias de encaixe e o posicionamento da patilha de cada servo em relação à base do manipulador (\cref{fig:servo-suporte}).
+Foram considerados dois tipos principais de solução. A primeira recorria a seis atuadores, dois por braço, permitindo controlar a translação da plataforma nos eixos \(X\), \(Y\) e \(Z\) e, adicionalmente, a sua orientação através de três graus de rotação. Esta configuração oferecia maior liberdade de movimento, mas introduzia uma complexidade mecânica e matemática superior à necessária para os fenómenos definidos para o protótipo. A segunda opção, posteriormente escolhida, utiliza apenas três atuadores, um por braço, controlando a posição da plataforma nos três eixos cartesianos. Apesar de não permitir comandar diretamente a rotação da plataforma, esta solução revelou-se suficiente para representar os deslocamentos pretendidos, simplificando a montagem, reduzindo o número de componentes e tornando mais direta a implementação da cinemática inversa.
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.55\textwidth]{fotos/servo_suporte_impresso.jpg}
-  \caption{Servo motor com suporte impresso em 3D para validação do acoplamento mecânico com a estrutura do manipulador delta, março de 2026.}
-  \label{fig:servo-suporte}
-\end{figure}
+Com esta decisão, a seleção dos atuadores passou a privilegiar servo-motores compactos, acessíveis e fáceis de controlar por PWM, tendo sido escolhidos os MG90S para a construção dos manipuladores. A escolha destes servos foi coerente com o objetivo de manter o sistema simples e repetível, concentrando a coordenação dos movimentos no firmware e no cálculo das posições da plataforma. Antes da montagem final, foram realizados testes de encaixe entre os MG90S e as peças impressas, verificando tolerâncias, alinhamento da patilha do servo e liberdade de rotação dos braços. Estes ensaios foram acompanhados por um processo gradual de calibração, no qual se confirmou a posição neutra de cada servo, os limites angulares admissíveis e a correspondência entre o comando PWM enviado pelo firmware e o movimento real observado no manipulador.
 
-\section{Movimentos representados no protótipo}
-O estado da arte identificou vários movimentos observáveis durante a broncoscopia. No entanto, para a primeira versão funcional do modelo, foram selecionados apenas os movimentos com melhor relação entre relevância clínica, viabilidade mecânica e simplicidade de controlo: respiração, batimento cardíaco e tosse. Os valores de frequência e amplitude usados nas secções seguintes, resumidos na \cref{tab:movimentos-hardware}, foram retirados diretamente do documento de trabalho fornecido pela equipa de Pneumologia do CHUA \parencite{Santos2026}.
-
-A respiração foi definida como um movimento cíclico, com frequência aproximada de 12 a 20 ciclos por minuto e deslocamento predominantemente craniocaudal, devendo a implementação permitir pequenas irregularidades e alteração de amplitude, para que o movimento não pareça completamente artificial.
-
-O batimento cardíaco foi associado principalmente ao brônquio principal esquerdo, devido à proximidade anatómica do coração, prevendo-se um movimento de baixa amplitude, cerca de 1 a \SI{3}{\milli\metre}, com frequência aproximada de 60 a 120 batimentos por minuto; no protótipo, este movimento é tratado como uma oscilação sobreposta ao movimento respiratório.
-
-A tosse foi caracterizada como um evento abrupto, irregular e de maior amplitude relativa e, em vez de ser apenas uma trajetória independente, deve alterar temporariamente o comportamento respiratório, aumentando a amplitude e introduzindo uma perturbação rápida. Movimentos como deformação ativa do lúmen, estenose localizada e resistência ao contacto com a sonda não foram incluídos nesta versão, por exigirem atuadores distribuídos e materiais com características mecânicas mais específicas.
-
-\begin{table}[htbp]
-  \centering
-  \caption{Movimentos considerados para a primeira versão do protótipo.}
-  \label{tab:movimentos-hardware}
-  \begin{tabular}{@{}p{3.0cm}p{3.0cm}p{3.0cm}p{4.4cm}@{}}
-    \toprule
-    Movimento & Frequência & Amplitude prevista & Observações \\
-    \midrule
-    Respiração & 12--20 ciclos/min & 5--\SI{10}{\milli\metre} & Cíclico, com pequenas irregularidades \\
-    Batimento cardíaco & 60--120 bpm & 1--\SI{3}{\milli\metre} & Oscilação de baixa amplitude \\
-    Tosse & Evento curto & 5--\SI{25}{\milli\metre} & Abrupto, não linear e irregular \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+Esta escolha mecânica foi acompanhada, ainda no final de abril de 2026, pelo início do desenvolvimento do código de cinemática inversa associado a este tipo de manipulador, descrito em detalhe na \cref{sec:cinematica-inversa}. Ao longo deste processo, a validação do sistema foi feita de forma cruzada: o comportamento físico dos braços montados em bancada era comparado com as posições calculadas pelo firmware, permitindo ajustar limites, corrigir desvios e garantir que o movimento matematicamente previsto podia ser reproduzido de forma segura pela estrutura real.
 
 \section{Eletrónica de controlo e alimentação}
 A arquitetura prevista separa a interface de utilizador e o cálculo de alto nível do controlo direto dos atuadores, cabendo ao Raspberry Pi 4B a responsabilidade pela HMI, pela monitorização e pelo envio de comandos ou posições, enquanto o ESP32-S3 atua como microcontrolador de tempo real, recebendo dados por comunicação série e convertendo-os em comandos para os servos.
 
-O sistema de alimentação foi definido considerando pelo menos dois níveis: \SI{5}{\volt} para o Raspberry Pi 4B e o ESP32-S3, e \SI{5}{\volt} a \SI{6}{\volt} para os servos. Durante a seleção dos atuadores também foi considerada a possibilidade de utilizar motores de passo, que exigiriam tensões superiores, por exemplo \SI{8}{\volt} a \SI{12}{\volt}, tendo sido estimados, para os servos, consumos nominais de cerca de 150 a \SI{250}{\milli\ampere} por unidade, com valores superiores em bloqueio.
+O sistema de alimentação foi definido considerando pelo menos dois níveis de tensão. O Raspberry Pi 4B e o ESP32-S3 são alimentados a \SI{5}{\volt}, enquanto os servos funcionam entre \SI{5}{\volt} e \SI{6}{\volt}. Durante a seleção dos atuadores também foi considerada a possibilidade de utilizar motores de passo, que exigiriam tensões superiores, por exemplo \SI{8}{\volt} a \SI{12}{\volt}, tendo sido estimados, para os servos, consumos nominais de cerca de 150 a \SI{250}{\milli\ampere} por unidade, com valores superiores em bloqueio.
 
 Foi considerada a utilização de uma UPS/HAT para o Raspberry Pi, permitindo alimentação pelos pinos de \SI{5}{\volt} e transição para bateria em caso de falha, tendo sido analisada a opção de um HAT de gestão de energia do tipo Suptronics X1209, por combinar alimentação, bateria e gestão de entrada no mesmo módulo. O ESP32, por sua vez, pode ser alimentado pelo Raspberry Pi através de USB-C, mantendo simultaneamente a ligação série necessária à comunicação.
 
@@ -95,7 +160,7 @@ Para acomodar o Raspberry Pi 4B e a fonte de alimentação de forma compacta e r
   \label{fig:raspberry-pi-caixa}
 \end{figure}
 
-\section{Integração mecânica e segurança}
+\subsection{Integração mecânica e segurança}
 A integração mecânica deve garantir que o movimento é transmitido à árvore brônquica sem esforços excessivos, folgas significativas ou interferência com a passagem do broncoscópio, devendo a estrutura permitir ainda acesso para manutenção, limpeza e substituição de peças. Do ponto de vista de segurança, os limites de curso do manipulador e os limites angulares dos servos devem ser definidos no firmware, evitando posições impossíveis ou capazes de danificar o modelo.
 
 A fase de montagem começou pela impressão das peças estruturais em PLA preto, incluindo a base circular, os braços superiores, os elos de ligação e a plataforma móvel central. Numa primeira fase, a estrutura foi montada sem servos para verificar folgas, alinhamento das articulações e comportamento geométrico do conjunto (\cref{fig:delta-estrutura-mecanica}), etapa que permitiu identificar zonas onde era necessário rever tolerâncias e confirmar que os braços articulados rodavam sem bloqueio.
