@@ -1615,6 +1615,7 @@ loadBrightness();
             <div class="client-mov-field"><label>Espera final (s)</label><input type="number" step="0.1" min="0" id="client_espera_fim"></div>
             <div class="client-mov-field"><label>Amplitude X</label><input type="number" step="0.1" min="0" id="client_amp_x"></div>
             <div class="client-mov-field"><label>Amplitude Y</label><input type="number" step="0.1" min="0" id="client_amp_y"></div>
+            <div class="client-mov-field" id="client_extra_wrap" style="display:none"><label>Rotação α (°)</label><input type="number" step="1" id="client_alpha_deg"></div>
           </div>
           <div class="client-mov-hint clean" id="clientMovHint">Sem alterações.</div>
         </div>
@@ -1682,9 +1683,9 @@ loadBrightness();
           <div class="mov-fields">
             <div class="mov-field"><label>Semi-eixo maior (a)</label><input type="number" step="0.1" id="c1_a"></div>
             <div class="mov-field"><label>Semi-eixo menor (b)</label><input type="number" step="0.1" id="c1_b"></div>
-            <div class="mov-field"><label>Centro X (xc)</label><div class="mov-field-inline"><input type="number" step="0.1" id="c1_xc"><button class="mov-auto-clear" id="c1_xc_auto_clear" type="button" onclick="movResetAutoCenter('xc')">X</button></div></div>
-            <div class="mov-field"><label>Centro Y (yc)</label><div class="mov-field-inline"><input type="number" step="0.1" id="c1_yc"><button class="mov-auto-clear" id="c1_yc_auto_clear" type="button" onclick="movResetAutoCenter('yc')">X</button></div></div>
+            <div class="mov-field"><label>Distância R (auto)</label><div class="mov-field-inline"><input type="number" step="0.1" id="c1_R"><button class="mov-auto-clear" id="c1_R_auto_clear" type="button" onclick="movResetAutoCenter('R')">X</button></div></div>
             <div class="mov-field"><label>Rotação α (°)</label><input type="number" step="1" id="c1_alpha_deg"></div>
+            <div class="mov-field"><label>Ajuste fino δ (°)</label><input type="number" step="1" id="c1_delta_deg"></div>
             <div class="mov-field"><label>Nº pontos</label><input type="number" step="1" min="2" id="c1_n_pontos"></div>
             <div class="mov-field"><label>Sentido</label>
               <select id="c1_sentido">
@@ -1851,7 +1852,7 @@ let _movDirtyGroups = {};
 let _movPointDirty = {};
 let _movDirtyLevels = {};
 let _movConfigLoaded = false;
-let _movManualCenter = {xc: false, yc: false};
+let _movManualCenter = {R: false};
 let _movApplyingAutoCenter = false;
 
 const MOV_CHAVES = ['respiracao', 'batimento', 'tosse', 'vibracao_tosse'];
@@ -1922,11 +1923,11 @@ document.querySelectorAll('#movDevModal input[type="number"]').forEach(input => 
     input.addEventListener('click', () => showNumericKeypad(input, 'movement'));
     input.addEventListener('input', () => {
         updateKeypadDisplay();
-        if ((input.id === 'c1_xc' || input.id === 'c1_yc') && !_movApplyingAutoCenter) {
-            _movManualCenter[input.id === 'c1_xc' ? 'xc' : 'yc'] = true;
+        if (input.id === 'c1_R' && !_movApplyingAutoCenter) {
+            _movManualCenter.R = true;
             movUpdateAutoCenterButtons();
         }
-        if (['c1_a', 'c1_b', 'c1_alpha_deg', 'c1_n_pontos'].includes(input.id) && !_movApplyingAutoCenter) {
+        if (['c1_a', 'c1_b', 'c1_delta_deg', 'c1_n_pontos'].includes(input.id) && !_movApplyingAutoCenter) {
             movApplyAutoCenters();
         }
         movRefreshDirty();
@@ -1955,6 +1956,11 @@ const CLIENT_MOVEMENTS = {
             cfg.curva1 = cfg.curva1 || {};
             cfg.curva1.a = x;
             cfg.curva1.b = y;
+        },
+        readExtra: cfg => cfg.curva1?.alpha_deg ?? 0,
+        writeExtra: (cfg, v) => {
+            cfg.curva1 = cfg.curva1 || {};
+            cfg.curva1.alpha_deg = v;
         },
     },
     respiracao: {
@@ -1996,6 +2002,7 @@ const CLIENT_FIELD_IDS = [
     'client_espera_fim',
     'client_amp_x',
     'client_amp_y',
+    'client_alpha_deg',
 ];
 
 function cloneConfig(obj) {
@@ -2027,22 +2034,25 @@ function clientMovReadFieldsIntoConfig() {
     mov.espera_inicio = clientMovNum('client_espera_inicio');
     mov.espera_fim = clientMovNum('client_espera_fim');
     def.writeAmp(_clientMovConfig, clientMovNum('client_amp_x'), clientMovNum('client_amp_y'));
+    if (def.writeExtra) def.writeExtra(_clientMovConfig, clientMovNum('client_alpha_deg'));
 }
 
 function clientMovSnapshotKey(key, cfg) {
     const def = CLIENT_MOVEMENTS[key];
     const mov = (cfg || {})[def.movKey] || {};
     const amp = def.readAmp(cfg || {});
-    return clientMovSnapshotValues(mov, amp);
+    const extra = def.readExtra ? def.readExtra(cfg || {}) : null;
+    return clientMovSnapshotValues(mov, amp, extra);
 }
 
-function clientMovSnapshotValues(mov, amp) {
+function clientMovSnapshotValues(mov, amp, extra) {
     return JSON.stringify({
         periodo: Number(mov.periodo || 0),
         espera_inicio: Number(mov.espera_inicio || 0),
         espera_fim: Number(mov.espera_fim || 0),
         amp_x: Number(amp.x || 0),
         amp_y: Number(amp.y || 0),
+        extra: extra === null ? null : Number(extra || 0),
     });
 }
 
@@ -2091,6 +2101,7 @@ function clientMovRefreshDirtyInputs() {
         client_espera_fim: Number(savedMov.espera_fim || 0),
         client_amp_x: Number(savedAmp.x || 0),
         client_amp_y: Number(savedAmp.y || 0),
+        client_alpha_deg: Number((def.readExtra ? def.readExtra(_clientMovSaved || {}) : 0) || 0),
     };
     CLIENT_FIELD_IDS.forEach(id => {
         const input = document.getElementById(id);
@@ -2112,6 +2123,9 @@ function clientMovRenderActive() {
     clientMovSetVal('client_espera_fim', mov.espera_fim);
     clientMovSetVal('client_amp_x', amp.x);
     clientMovSetVal('client_amp_y', amp.y);
+    const extraWrap = document.getElementById('client_extra_wrap');
+    if (extraWrap) extraWrap.style.display = def.readExtra ? '' : 'none';
+    if (def.readExtra) clientMovSetVal('client_alpha_deg', def.readExtra(_clientMovConfig));
     document.querySelectorAll('[data-client-mov-tab]').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.clientMovTab === _clientMovActive);
     });
@@ -2182,7 +2196,11 @@ function clientMovAmpChanged(key) {
     const def = CLIENT_MOVEMENTS[key];
     const current = def.readAmp(_clientMovConfig || {});
     const sent = def.readAmp(_clientMovSent || {});
-    return !movSameValue(current.x, sent.x) || !movSameValue(current.y, sent.y);
+    let changed = !movSameValue(current.x, sent.x) || !movSameValue(current.y, sent.y);
+    if (def.readExtra) {
+        changed = changed || !movSameValue(def.readExtra(_clientMovConfig || {}), def.readExtra(_clientMovSent || {}));
+    }
+    return changed;
 }
 
 function clientMovApplyCalcResult(res) {
@@ -2361,8 +2379,7 @@ function movRefreshDirty() {
     document.querySelectorAll('#movDevModal input, #movDevModal select').forEach(input => {
         const path = movInputPath(input);
         const currentValue = movInputCurrentValue(input);
-        const autoCenterField = (input.id === 'c1_xc' && !_movManualCenter.xc) ||
-            (input.id === 'c1_yc' && !_movManualCenter.yc);
+        const autoCenterField = (input.id === 'c1_R' && !_movManualCenter.R);
         const changedFromSent = path && !autoCenterField ? !movSameValue(currentValue, movValueAt(_movSentConfig, path)) : false;
         const changedFromSaved = path && !autoCenterField ? !movSameValue(currentValue, movValueAt(_movSavedConfig, path)) : false;
         const level = changedFromSent ? 'red' : (changedFromSaved ? 'yellow' : '');
@@ -2424,14 +2441,10 @@ function movDevSelect(key) {
 function movAutoCenterValues() {
     const a = Number(String(document.getElementById('c1_a')?.value || 0).replace(',', '.')) || 0;
     const b = Number(String(document.getElementById('c1_b')?.value || 0).replace(',', '.')) || 0;
-    const alphaDeg = Number(String(document.getElementById('c1_alpha_deg')?.value || 0).replace(',', '.')) || 0;
-    const alpha = alphaDeg * Math.PI / 180;
-    const apices = [Math.PI];
-    if (b > a) apices[0] = Math.PI * 1.5;
-    const u = apices[0];
-    const baseX = a * Math.cos(u) * Math.cos(alpha) - b * Math.sin(u) * Math.sin(alpha);
-    const baseY = a * Math.cos(u) * Math.sin(alpha) + b * Math.sin(u) * Math.cos(alpha);
-    return {xc: -baseX, yc: -baseY};
+    const deltaDeg = Number(String(document.getElementById('c1_delta_deg')?.value || 0).replace(',', '.')) || 0;
+    const delta = deltaDeg * Math.PI / 180;
+    const R = (a * b) / Math.sqrt((b ** 2) * Math.cos(delta) ** 2 + (a ** 2) * Math.sin(delta) ** 2);
+    return {R: R};
 }
 
 function movSetCenterValue(field, value) {
@@ -2442,7 +2455,7 @@ function movSetCenterValue(field, value) {
 }
 
 function movUpdateAutoCenterButtons() {
-    ['xc', 'yc'].forEach(field => {
+    ['R'].forEach(field => {
         document.getElementById(`c1_${field}_auto_clear`)?.classList.toggle('visible', !!_movManualCenter[field]);
     });
 }
@@ -2450,8 +2463,7 @@ function movUpdateAutoCenterButtons() {
 function movApplyAutoCenters() {
     const values = movAutoCenterValues();
     _movApplyingAutoCenter = true;
-    if (!_movManualCenter.xc) movSetCenterValue('xc', values.xc);
-    if (!_movManualCenter.yc) movSetCenterValue('yc', values.yc);
+    if (!_movManualCenter.R) movSetCenterValue('R', values.R);
     _movApplyingAutoCenter = false;
     movUpdateAutoCenterButtons();
 }
@@ -2474,8 +2486,7 @@ function movCarregarConfig() {
             movPreencherCampos(config);
             movCriarSeccoesMovimentos(config);
             _movManualCenter = {
-                xc: !!config.curva1?.xc_manual,
-                yc: !!config.curva1?.yc_manual,
+                R: !!config.curva1?.r_manual,
             };
             movApplyAutoCenters();
             movDevSelect(_movDevActive);
@@ -2494,8 +2505,8 @@ function movPreencherCampos(config) {
         if (el && val !== undefined) el.value = val;
     };
     // curvas
-    set('c1_a', c1.a); set('c1_b', c1.b); set('c1_xc', c1.xc); set('c1_yc', c1.yc);
-    set('c1_alpha_deg', c1.alpha_deg); set('c1_n_pontos', c1.n_pontos);
+    set('c1_a', c1.a); set('c1_b', c1.b); set('c1_R', c1.R);
+    set('c1_alpha_deg', c1.alpha_deg); set('c1_delta_deg', c1.delta_deg); set('c1_n_pontos', c1.n_pontos);
     set('c1_sentido', c1.sentido);
     set('c2_altura', c2.altura); set('c2_largura', c2.largura);
     set('c2_n_pontos', c2.n_pontos); set('c2_theta_deg', c2.theta_deg);
@@ -2529,11 +2540,11 @@ function movLerCampos() {
     const str = id => document.getElementById(id)?.value || '';
     const data = {
         curva1: {
-            a: num('c1_a'), b: num('c1_b'), xc: num('c1_xc'), yc: num('c1_yc'),
-            alpha_deg: num('c1_alpha_deg'), n_pontos: int('c1_n_pontos'),
+            a: num('c1_a'), b: num('c1_b'), R: num('c1_R'),
+            alpha_deg: num('c1_alpha_deg'), delta_deg: num('c1_delta_deg'),
+            n_pontos: int('c1_n_pontos'),
             sentido: str('c1_sentido'),
-            xc_manual: !!_movManualCenter.xc,
-            yc_manual: !!_movManualCenter.yc,
+            r_manual: !!_movManualCenter.R,
         },
         curva2: {
             altura: num('c2_altura'), largura: num('c2_largura'),
@@ -2609,8 +2620,7 @@ function movCalcular(options={}) {
         if (res.curva1) {
             _movConfig.curva1 = {...(_movConfig.curva1 || {}), ...res.curva1};
             _movApplyingAutoCenter = true;
-            if (!_movManualCenter.xc) movSetCenterValue('xc', _movConfig.curva1.xc);
-            if (!_movManualCenter.yc) movSetCenterValue('yc', _movConfig.curva1.yc);
+            if (!_movManualCenter.R) movSetCenterValue('R', _movConfig.curva1.R);
             _movApplyingAutoCenter = false;
         }
         if (res.pontos_c1) {
@@ -2703,8 +2713,7 @@ function movRecarregarESP() {
                 movPreencherCampos(_movConfig);
                 movCriarSeccoesMovimentos(_movConfig);
                 _movManualCenter = {
-                    xc: !!_movConfig.curva1?.xc_manual,
-                    yc: !!_movConfig.curva1?.yc_manual,
+                    R: !!_movConfig.curva1?.r_manual,
                 };
                 movApplyAutoCenters();
                 movDevSelect(_movDevActive);

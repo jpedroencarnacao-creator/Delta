@@ -5,30 +5,16 @@ Este projeto tem como objetivo desenvolver um modelo articulado de uma árvore b
 
 O desenvolvimento realizado permitiu consolidar os requisitos do sistema, segundo os quais o modelo deve ser acessível, modular, fácil de montar e capaz de reproduzir movimentos relevantes durante uma broncoscopia flexível. Para esta versão, foram priorizados três fenómenos, respiração, batimento cardíaco e tosse, tendo outros efeitos, como deformação localizada do lúmen, estenose e resistência ao contacto com o broncoscópio, sido identificados como importantes mas reservados para trabalho futuro devido à maior complexidade mecânica.
 
-\section{Principais contributos}
-Os principais contributos do trabalho são:
-\begin{itemize}
-  \item definição de requisitos para um simulador dinâmico de árvore brônquica;
-  \item identificação dos movimentos fisiológicos mais relevantes para uma primeira versão funcional;
-  \item escolha de uma arquitetura mecânica baseada em manipuladores delta;
-  \item definição da arquitetura eletrónica com Raspberry Pi 4B, ESP32-S3, servos e sistema de alimentação;
-  \item desenvolvimento de uma arquitetura de firmware baseada em estruturas de trajetória, instâncias de execução e máquinas de estados;
-  \item desenvolvimento de uma HMI para seleção de modos, envio de comandos, monitorização da comunicação série e configuração de movimentos;
-  \item integração lógica da tosse como evento temporário sobreposto ao movimento respiratório.
-\end{itemize}
-
 \section{Limitações}
 O protótipo ainda apresenta limitações importantes, desde logo porque o realismo material é limitado pelos processos de impressão disponíveis e pelos filamentos acessíveis. A solução de movimento em três eixos simplifica a dinâmica real da árvore traqueobrônquica, que inclui deformações locais, variações de calibre e interação com o broncoscópio, e a validação quantitativa dos movimentos também depende de medições experimentais futuras, nomeadamente amplitudes reais, repetibilidade, ruído, aquecimento e estabilidade da alimentação.
 
-Outra limitação é a ausência, nesta fase, de feedback sensorial: sem sensores de contacto, força ou posição externa, o sistema depende essencialmente do comando aberto dos servos e das validações geométricas implementadas no firmware. Isto é aceitável para uma primeira prova de conceito, mas limita a simulação de resistência ao avanço do broncoscópio.
+\hl{(ainda tenho de terminar esta parte)}
 
 \section{Trabalho futuro}
-A linha mais importante de evolução diz respeito ao modelo físico da árvore brônquica. A versão atual não simula deformação ativa do lúmen, variação de calibre ao longo do ciclo respiratório, estenoses localizadas ou resistência ao avanço do broncoscópio. Estes fenómenos têm impacto direto na perceção visual e tátil durante o procedimento real, mas exigem materiais com propriedades mecânicas controladas, atuadores distribuídos ao longo da estrutura e uma estratégia de controlo mais complexa. A integração de filamentos com diferentes durezas em zonas específicas do modelo, combinada com pequenos atuadores de deformação local, constitui a principal direção técnica para uma segunda versão.
+A linha mais importante de evolução diz respeito ao modelo físico da árvore brônquica. A versão atual não simula deformação ativa do lúmen, variação de calibre ao longo do ciclo respiratório, estenoses localizadas ou resistência ao avanço do broncoscópio. Estes fenómenos têm impacto direto na perceção visual e tátil durante o procedimento real, mas exigem materiais com propriedades mecânicas controladas, atuadores distribuídos ao longo da estrutura e uma estratégia de controlo mais complexa. A integração de filamentos com diferentes durezas em zonas específicas do modelo, combinada com pequenos atuadores de deformação local, constitui a principal direção técnica para uma segunda versão. Esta direção já foi parcialmente explorada durante o desenvolvimento da eletrónica, tendo sido equacionada a utilização de motores de passo dedicados à deformação das paredes, conforme descrito na \cref{sec:eletronica-alimentacao}. A abordagem foi, no entanto, abandonada nesta versão, sobretudo devido ao comportamento predominantemente plástico do filamento MorPhlex utilizado e à complexidade acrescida de uma arquitetura de alimentação com dois níveis de tensão, permanecendo por isso como uma direção válida para uma futura iteração, idealmente associada a materiais com comportamento mais elástico.
 
-No plano da eletrónica e da segurança, a adição de sensores de fim de curso, medição de corrente dos servos e possível feedback de posição permitiria detetar sobrecargas e posições impossíveis, aumentar a robustez do sistema e abrir caminho para simulação de resistência ao contacto com as paredes internas. Estes elementos não foram integrados nesta versão por razões de complexidade e tempo de desenvolvimento, mas a arquitetura de firmware está organizada de forma a facilitar a sua adição.
-
-A seleção de materiais flexíveis para a árvore brônquica deve ser aprofundada em versões futuras, comparando TPU, TPE, PEBA e outros filamentos quanto à facilidade de impressão, elasticidade, durabilidade e sensação tátil durante a navegação endoscópica. Esta análise, que nesta versão ficou limitada a testes qualitativos, beneficiaria de ensaios mecânicos sistemáticos.
+\hl{(ainda tenho de terminar esta parte)}
 
 A interface gráfica no Raspberry Pi tem margem de evolução significativa: personalização de cenários, envio completo de trajetórias para o ESP32 por comunicação série, armazenamento de perfis de treino em ficheiro e monitorização mais detalhada do estado interno do firmware. A arquitetura Flask/SocketIO já utilizada facilita a adição de novas páginas e funcionalidades sem alterar a lógica de baixo nível.
 
-Por fim, a validação com profissionais de saúde, iniciada de forma qualitativa em junho de 2026, deve ser aprofundada com uma metodologia estruturada. Esta avaliação é essencial para perceber se o movimento gerado tem valor pedagógico real, que aspetos do simulador são mais importantes para o treino de videobroncofibroscopia e que limitações da versão atual têm mais impacto na usabilidade clínica.
+Por fim, a validação com profissionais de saúde, iniciada de forma qualitativa numa fase preliminar, deve ser aprofundada com uma metodologia estruturada. Esta avaliação é essencial para perceber se o movimento gerado tem valor pedagógico real, que aspetos do simulador são mais importantes para o treino de videobroncofibroscopia e que limitações da versão atual têm mais impacto na usabilidade clínica.

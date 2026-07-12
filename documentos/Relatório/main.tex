@@ -15,6 +15,7 @@
 \usepackage{subcaption}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc,fit}
+\usepackage{float}
 \usepackage{colortbl}
 \usepackage{soul}
 \sethlcolor{yellow}
@@ -25,7 +26,14 @@
 \Crefname{figure}{Figura}{Figuras}
 \crefname{table}{tabela}{tabelas}
 \Crefname{table}{Tabela}{Tabelas}
+\crefname{section}{secção}{secções}
+\Crefname{section}{Secção}{Secções}
+\crefname{subsection}{secção}{secções}
+\Crefname{subsection}{Secção}{Secções}
 \usepackage[backend=biber,style=numeric-comp,sorting=none]{biblatex}
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
 
 \geometry{margin=2.5cm}
 \onehalfspacing
@@ -40,7 +48,7 @@
   linkcolor=black,
   citecolor=black,
   urlcolor=blue,
-  pdftitle={Modelo Articulado de uma Árvore Brônquica},
+  pdftitle={Modelo Físico e Dinâmico de Simulação de Árvore Brônquica para Treino de Broncoscopia},
   pdfauthor={João Pedro Coelho Encarnação},
 }
 
@@ -49,7 +57,7 @@
   per-mode=symbol
 }
 
-\title{Modelo Articulado de uma Árvore Brônquica}
+\title{Modelo físico e dinâmico de simulação de árvore brônquica para treino de broncoscopia}
 \author{João Pedro Coelho Encarnação}
 \date{2025/2026}
 \renewcommand{\contentsname}{Índice Geral}
@@ -97,7 +105,7 @@
   {\Large João Pedro Coelho Encarnação\par}
 
   \vspace{3.0cm}
-  {\LARGE\bfseries Modelo Articulado de uma Árvore Brônquica\par}
+  {\Large\bfseries Modelo Físico e Dinâmico de Simulação de Árvore Brônquica para Treino de Broncoscopia\par}
 
   \vfill
   \includegraphics[width=0.48\textwidth]{Logo_ISE/ISE_Cor.png}\par
@@ -122,7 +130,7 @@
   {\Large João Pedro Coelho Encarnação\par}
 
   \vspace{2.0cm}
-  {\LARGE\bfseries Modelo Articulado de uma Árvore Brônquica\par}
+  {\Large\bfseries Modelo Físico e Dinâmico de Simulação de Árvore Brônquica para Treino de Broncoscopia\par}
 
   \vspace{1.6cm}
   \begin{flushright}
@@ -156,30 +164,13 @@ A preencher na versão final.
 A preencher na versão final.
 
 \chapter*{Resumo}
-O presente relaório descreve o desenvolvimento de um modelo articulado de uma árvore brônquica para apoio á simulação e treino de videobroncofibroscopia. O trabalho parte da necessidade de criar uma plataforma física de treino que permita representar, de forma controlada e realista, movimentos internos observáveis durante o procedimento, combinando tecnicas como:
-\begin{itemize}
-  \item impressão 3D;
-  \item atuação mecânica;
-  \item controlo eletrónico;
-  \item software embarcado;
-  \item interface homem-máquina.
-\end{itemize}
-A solução foi organizada em duas secções:
-\begin{itemize}
-  \item Modelo dinâmico $\rightarrow$ constituído pela árvore brônquica impressa em 3D, pelos manipuladores delta, pelos servo-motores e pelo microcontrolador ESP32-S3;
-  \item HMI $\rightarrow$ alojada num Raspberry Pi 4B, responsável por permitir ao utilizador controlar o sistema de forma simples e intuitiva, sem necessidade de memorizar comandos internos ou valores.
-\end{itemize}
+O presente relatório descreve o desenvolvimento de um modelo articulado de uma árvore brônquica para apoio à simulação e ao treino de videobroncofibroscopia, um trabalho que parte da necessidade de criar uma plataforma física de treino capaz de representar, de forma controlada e realista, os movimentos internos observáveis durante o procedimento, combinando técnicas como a impressão 3D, a atuação mecânica, o controlo eletrónico, o software embarcado e a interface homem-máquina.
 
-No modelo dinâmico foram implementados alguns perfis de movimento tais como: 
-\begin{itemize}
-  \item Respiração;
-  \item Batimento cardíaco;
-  \item Tosse.
-\end{itemize}
-Toda a implementação recorreu a estruturas de trajetórias, máquinas de estados, comunicação série e Equações de Cinemática Inversa para converter posições desejadas nos ângulos dos manipuladores. A interface gráfica por sua vez, permite selecionar modos de funcionamento, bem como estados de funcionamento(iniciar ou interromper o ensaio), outras funcionalidades como: estabelecer e acompanhar a comunicação série com o ESP32 e preparar os parâmetros de movimento também se encontram implementadas, dando uma grande quantidade de ferramentas para os operadores. Durante todo o desenvolvimento foram validados, testados e modificados os varios blocos fundamentais dos sistemas já mencionados em ambos, modelo dinamico e HMI. Identificando-se no final as  principais limitações do protótipo atual e possíveis sugesões de melhorias a considerar no futuro.
+A solução foi organizada em duas partes complementares. O Modelo Físico, constituído pela árvore brônquica impressa em 3D, pelos manipuladores delta, pelos servo-motores e pelo microcontrolador ESP32-S3, executa fisicamente os movimentos, enquanto a HMI, alojada num Raspberry Pi 4B, é responsável por permitir ao utilizador controlar o sistema de forma simples e intuitiva, sem necessidade de memorizar comandos internos ou valores.
 
-\chapter*{Abstract}
+No Modelo Físico foram implementados vários perfis de movimento, nomeadamente a respiração, o batimento cardíaco e a tosse, recorrendo a estruturas de trajetórias, a máquinas de estados, a comunicação série e a equações de cinemática inversa para converter as posições desejadas nos ângulos dos manipuladores. A interface gráfica, por sua vez, permite selecionar modos de funcionamento e estados de operação, como iniciar ou interromper o ensaio, além de disponibilizar outras funcionalidades, entre as quais estabelecer e acompanhar a comunicação série com o ESP32 e preparar os parâmetros de movimento, colocando à disposição dos operadores um conjunto alargado de ferramentas.
 
+Ao longo de todo o desenvolvimento foram validados, testados e modificados os vários blocos fundamentais de ambos os sistemas, o Modelo Físico e a HMI, identificando-se no final as principais limitações do protótipo atual e as sugestões de melhoria a considerar no futuro.
 
 \cleardoublepage
 \addtocontents{toc}{\protect\noindent\protect\hfill\textbf{Página}\protect\par\protect\vspace{0.3em}}
@@ -190,22 +181,40 @@ Toda a implementação recorreu a estruturas de trajetórias, máquinas de estad
 \addcontentsline{toc}{chapter}{Lista de Abreviaturas e Termos}
 \chapter*{Lista de Abreviaturas e Termos}
 \begin{description}
+  \item[CA] Corrente Alternada; tipo de alimentação elétrica ligada à entrada da fonte de alimentação do sistema.
+  \item[CAD] \textit{Computer-Aided Design}; desenho assistido por computador, usado no tratamento do modelo 3D da árvore brônquica.
+  \item[CHUA] Centro Hospitalar Universitário do Algarve; instituição parceira que forneceu os dados clínicos e anatómicos usados no projeto.
+  \item[DEV] \textit{Development}; modo de utilização da HMI que dá acesso a ferramentas de depuração e de envio manual de comandos.
+  \item[DTR] \textit{Data Terminal Ready}; sinal de controlo da porta série que pode provocar o reset do ESP32-S3.
+  \item[EEPROM] \textit{Electrically Erasable Programmable Read-Only Memory}; memória não volátil usada para guardar configurações persistentes do firmware.
   \item[ESP32-S3] Microcontrolador usado para executar o firmware, interpretar comandos e gerar os sinais de controlo.
-  \item[GPIO] \textit{General Purpose Input/Output}; pinos digitais usados para ligação a periféricos.
-  \item[PWM] \textit{Pulse Width Modulation}; técnica usada para controlar os servos através da largura de pulso.
-  \item[UART] \textit{Universal Asynchronous Receiver/Transmitter}; interface de comunicação série usada entre o Raspberry Pi e o ESP32-S3.
-  \item[HMI] \textit{Human Machine Interface}; interface homem-máquina usada para permitir ao utilizador controlar o modelo dinâmico através do Raspberry Pi.
+  \item[FDM] \textit{Fused Deposition Modeling}; tecnologia de impressão 3D por extrusão de filamento termoplástico, usada na maioria das peças do projeto.
   \item[FSM] \textit{Finite State Machine}; máquina de estados finitos usada para organizar a lógica de movimento, leitura série e interpretação de comandos.
+  \item[GPIO] \textit{General Purpose Input/Output}; pinos digitais usados para ligação a periféricos.
+  \item[HAT] \textit{Hardware Attached on Top}; placa de expansão para Raspberry Pi, acoplada aos pinos GPIO para adicionar ferramentas, periféricos ou capacidade de processamento.
+  \item[HMI] \textit{Human Machine Interface}; interface homem-máquina usada para permitir ao utilizador controlar o modelo físico através do Raspberry Pi.
   \item[IK] \textit{Inverse Kinematics}; cinemática inversa, usada para converter coordenadas cartesianas em ângulos dos servos.
+  \item[JSON] \textit{JavaScript Object Notation}; formato usado para guardar as configurações dos movimentos definidas na interface.
   \item[LiPo] Bateria de polímero de lítio.
   \item[MG90S] Servo motor de engrenagens metálicas com um grau de liberdade de aproximadamente \(180^\circ\).
-  \item[PLA] Filamento de impressão 3D de ácido polilático, usado sobretudo pela facilidade de impressão e rigidez.
+  \item[PCB] \textit{Printed Circuit Board}; placa de circuito impresso.
   \item[PEBA] Filamento de impressão 3D de polieter-bloco-amida, elastómero termoplástico flexível e leve.
-  \item[TPU] Filamento de impressão 3D de poliuretano termoplástico, usado em peças flexíveis e elásticas.
-  \item[TPE] Filamento de impressão 3D de elastómero termoplástico, família de materiais com comportamento elástico semelhante a borracha.
+  \item[PETG] \textit{Polyethylene Terephthalate Glycol}; filamento de impressão 3D rígido, compatível com o processo FDM.
+  \item[PLA] Filamento de impressão 3D de ácido polilático, usado sobretudo pela facilidade de impressão e rigidez.
+  \item[PVA] \textit{Polyvinyl Alcohol}; filamento de impressão 3D solúvel em água, considerado como material de suporte.
+  \item[PWM] \textit{Pulse Width Modulation}; técnica usada para controlar os servos através da largura de pulso.
+  \item[QR] \textit{Quick Response}; código usado para aceder rapidamente à interface móvel a partir de um telemóvel ou tablet.
+  \item[RGB] \textit{Red, Green, Blue}; sistema de cor usado no LED de indicação de estado.
+  \item[RTS] \textit{Request To Send}; sinal de controlo da porta série que pode provocar o reset do ESP32-S3.
+  \item[SLA] \textit{Stereolithography}; tecnologia de impressão 3D por cura de resina fotopolimérica com luz ultravioleta.
+  \item[SLS] \textit{Selective Laser Sintering}; tecnologia de impressão 3D por sinterização seletiva de material em pó.
+  \item[STL] Formato de ficheiro de malha 3D usado para representar a geometria de superfície da árvore brônquica antes da impressão.
+  \item[TAC] Tomografia Axial Computorizada; tecnologia de imagem médica usada para obter o modelo tridimensional da árvore brônquica.
   \item[TPC] Filamento de impressão 3D de copoliéster termoplástico, material flexível usado em peças elásticas e funcionais.
+  \item[TPE] Filamento de impressão 3D de elastómero termoplástico, família de materiais com comportamento elástico semelhante a borracha.
+  \item[TPU] Filamento de impressão 3D de poliuretano termoplástico, usado em peças flexíveis e elásticas.
+  \item[UART] \textit{Universal Asynchronous Receiver/Transmitter}; interface de comunicação série usada entre o Raspberry Pi e o ESP32-S3.
   \item[UPS] \textit{Uninterruptible Power Supply}; sistema de alimentação que mantém o equipamento ligado durante falhas ou interrupções temporárias da alimentação principal.
-  \item[HAT] \textit{Hardware Attached on Top}; placa de expansão para Raspberry Pi, acoplada aos pinos GPIO para adicionar ferramentas, periféricos ou capacidade de processamento.
 \end{description}
 
 \cleardoublepage
@@ -230,7 +239,6 @@ Toda a implementação recorreu a estruturas de trajetórias, máquinas de estad
 \nocite{*}
 \printbibliography[heading=bibintoc,title={Bibliografia}]
 
-\appendix
 \input{anexos/anexos}
 
 \end{document}

@@ -2,13 +2,12 @@
   "curva1": {
     "a": 5,
     "b": 2,
-    "xc": 3.5355339059327378,
-    "yc": 3.5355339059327373,
+    "R": 5,
     "alpha_deg": 45,
+    "delta_deg": 0,
     "n_pontos": 10,
     "sentido": "cw",
-    "xc_manual": false,
-    "yc_manual": false
+    "r_manual": false
   },
   "curva2": {
     "altura": 20,

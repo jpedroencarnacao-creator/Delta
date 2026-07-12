@@ -1,66 +1,22 @@
 \chapter{Testes e Análise de Resultados}
 
-\section*{Nota sobre o estado atual do capítulo}
-\addcontentsline{toc}{section}{Nota sobre o estado atual do capítulo}
-Este capítulo encontra-se em desenvolvimento por falta de informação experimental completa, uma vez que, nesta fase do relatório, ainda não existem resultados quantitativos suficientes para apresentar uma análise final de desempenho. Assim, o capítulo descreve o plano de testes, os critérios de aceitação e a informação que deve ser recolhida nas próximas iterações do projeto.
-
-\section{Plano de testes}
-O plano de testes foi definido para validar separadamente o modelo mecânico, a eletrónica, o firmware e a integração completa, seguindo uma estratégia que consiste em testar primeiro cada subsistema de forma isolada e, depois, combinar progressivamente respiração, batimento cardíaco e tosse.
-
-Para cada ensaio devem ser registados: configuração usada, período, amplitude, número de pontos da trajetória, modo de operação, comportamento observado, eventuais falhas, temperatura dos atuadores, estabilidade da alimentação e repetibilidade do movimento. A comparação deve ser feita com os valores-alvo definidos para os movimentos representados no protótipo.
+Este capítulo apresenta os testes realizados até ao momento, focados nas duas áreas já validadas de forma mais consistente: o comportamento do modelo físico impresso e a integração dos movimentos representados no protótipo.
 
 \section{Testes do modelo físico}
-Os primeiros testes devem confirmar se o modelo impresso mantém a geometria pretendida e se permite a passagem adequada do broncoscópio, observando-se ainda deformações, zonas frágeis, arestas, dificuldade de limpeza e resistência ao manuseamento. No caso de materiais flexíveis, deve também ser avaliada a relação entre flexibilidade e estabilidade dimensional.
+Os primeiros testes confirmaram se o modelo impresso mantém a geometria pretendida e se permite a passagem adequada do broncoscópio, observando-se ainda deformações, zonas frágeis, arestas, dificuldade de limpeza e resistência ao manuseamento. No caso de materiais flexíveis, foi também avaliada a relação entre flexibilidade e estabilidade dimensional.
 
-O teste inicial em PLA serve como prova de conceito da geometria e da montagem, ainda que, por ser um material rígido, não represente a solução final para realismo mecânico. Por isso, ensaios posteriores com TPU, TPE ou outros filamentos flexíveis devem comparar facilidade de impressão, acabamento, deformação elástica e resistência à repetição dos movimentos.
+O teste inicial em PLA serviu como prova de conceito da geometria e da montagem, ainda que, por ser um material rígido, não representasse a solução final para realismo mecânico. Por isso, os ensaios posteriores com TPU, TPE ou outros filamentos flexíveis compararam facilidade de impressão, acabamento, deformação elástica e resistência à repetição dos movimentos.
 
-\section{Testes dos atuadores e da estrutura delta}
-Os servos devem ser testados antes da integração com a árvore brônquica, incluindo verificação de resposta angular, limites de curso, sentido de rotação, ruído, aquecimento e repetibilidade. A seguir, deve ser testado o manipulador delta sem carga, confirmando se a cinemática inversa produz movimentos coerentes nos eixos \(X\), \(Y\) e \(Z\).
-
-Depois da montagem com o modelo, os ensaios devem verificar se os movimentos esperados são obtidos sem folgas excessivas nem bloqueios. As amplitudes de referência são 5 a \SI{10}{\milli\metre} para respiração ao nível da traqueia, 1 a \SI{3}{\milli\metre} para batimento cardíaco e valores superiores, de curta duração, para tosse. Se o deslocamento real for inferior ao pretendido, deve ser ajustada a amplitude dos pontos da trajetória ou a geometria de ligação.
-
-\section{Testes de alimentação}
-A alimentação deve ser validada em três condições, repouso, movimento nominal e situação de maior esforço, tendo em conta que, para os servos, foram estimados consumos nominais de cerca de 150 a \SI{250}{\milli\ampere} por unidade e correntes superiores em bloqueio. Assim, a fonte dos servos deve ser dimensionada para picos e não apenas para consumo médio.
-
-O Raspberry Pi 4B e o ESP32-S3 devem manter alimentação estável durante a comunicação e durante o acionamento dos motores. A utilização de UPS/HAT deve ser testada abrindo e fechando a alimentação principal, confirmando se o sistema tem tempo para guardar estado, alertar ou encerrar de forma controlada.
-
-\section{Testes de software}
-Os testes de software devem começar pela inicialização das estruturas \texttt{MotionStorage} e \texttt{MotionInstance}, cujas funções de depuração devem confirmar o número de pontos, período, pausas, índices e ponteiros. Em seguida, a FSM de movimento deve ser testada com trajetórias simples, verificando se os estados evoluem de forma esperada e se a interpolação entre pontos é contínua.
-
-A FSM de comandos deve ser testada com entradas série conhecidas, de forma a que cada comando produza apenas a alteração prevista: ativar respiração, ativar batimento, ativar modo combinado, disparar tosse ou alterar parâmetros. Já os comandos com parâmetros numéricos devem ser testados com valores válidos, valores limite e entradas incompletas.
-
-\section{Testes de comunicação série}
-Durante o desenvolvimento foi identificado que a abertura da porta série por Python ou pelo monitor série pode provocar reset do ESP32, pelo que este efeito deve ser controlado durante os ensaios. Um teste simples consiste em imprimir um contador no \texttt{setup()} e observar se este é reiniciado quando a porta é aberta, o que permite distinguir falhas de firmware de resets causados pela interface USB/serial.
-
-No lado Python, a leitura deve remover caracteres de fim de linha com \texttt{strip()} e evitar imprimir mensagens vazias. A comunicação deve ser validada em dois sentidos: mensagens enviadas pelo ESP32 para monitorização e comandos enviados pelo computador ou Raspberry Pi para selecionar modos.
-
-\section{Testes de integração dos movimentos}
-A integração deve ser feita por etapas: primeiro executa-se apenas respiração, verificando periodicidade, amplitude e suavidade; depois adiciona-se o batimento cardíaco, que deve aparecer como pequena oscilação sobreposta; por fim, testa-se a tosse, que deve alterar temporariamente o comportamento da respiração e ativar vibração ou perturbação curta.
-
-O modo combinado é o mais importante para avaliar o realismo, pois aproxima o comportamento de um ambiente endoscópico dinâmico. Neste modo, devem ser observados conflitos entre movimentos, saturação dos servos, perda de suavidade e eventuais posições impossíveis da cinemática inversa.
-
-\section{Critérios de aceitação}
-Para esta fase do projeto, os critérios de aceitação podem ser definidos de forma funcional:
-\begin{itemize}
-  \item o sistema arranca sem movimentos inesperados perigosos;
-  \item os servos respondem dentro dos limites definidos;
-  \item a respiração apresenta movimento cíclico, suave e repetível;
-  \item o batimento acrescenta uma oscilação de pequena amplitude;
-  \item a tosse produz um evento curto e abrupto, recuperando depois para o estado normal;
-  \item os comandos série selecionam os modos sem bloquear o firmware;
-  \item a alimentação mantém tensão estável durante os movimentos.
-\end{itemize}
-
-\section{Informação experimental em falta}
-Para transformar este plano numa análise final de resultados, falta recolher dados quantitativos. Em particular, devem ser medidos deslocamentos reais nos eixos \(X\), \(Y\) e \(Z\), frequência efetiva dos movimentos, erro entre posição desejada e posição observada, consumo elétrico, aquecimento dos servos, estabilidade da fonte e tempo de resposta aos comandos série.
-
-Também falta documentar a avaliação visual do movimento com o broncoscópio introduzido no modelo. Esta etapa é importante porque o realismo percebido não depende apenas da amplitude mecânica, mas também da forma como o movimento aparece na imagem endoscópica.
-
-Foi realizada uma sessão preliminar de observação com um profissional de saúde, em que o broncoscópio foi introduzido no modelo impresso em 3D enquanto o sistema estava ativo (\cref{fig:teste-medico}). Esta sessão permitiu obter uma primeira avaliação qualitativa da disposição dos ramos, do espaço disponível para a progressão da sonda e da perceção de movimento durante o funcionamento do manipulador. As observações desta sessão ajudaram a identificar aspetos a melhorar na geometria do modelo e no comportamento do sistema, mas os dados quantitativos ainda não foram recolhidos de forma sistemática.
+Foi ainda realizada uma sessão preliminar de observação com um profissional de saúde, em que o broncoscópio foi introduzido no modelo impresso em 3D enquanto o sistema estava ativo (\cref{fig:teste-medico}). Esta sessão permitiu obter uma primeira avaliação qualitativa da disposição dos ramos, do espaço disponível para a progressão da sonda e da perceção de movimento durante o funcionamento do manipulador. As observações desta sessão ajudaram a identificar aspetos a melhorar na geometria do modelo e no comportamento do sistema, ainda que os dados quantitativos não tenham sido recolhidos de forma sistemática.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.82\textwidth]{fotos/teste_medico_broncoscopio.jpg}
-  \caption{Sessão de observação preliminar com profissional de saúde: broncoscópio introduzido no modelo de árvore brônquica impresso em 3D enquanto o sistema de controlo estava ativo, junho de 2026.}
+  \caption{Sessão de observação preliminar com profissional de saúde: broncoscópio introduzido no modelo de árvore brônquica impresso em 3D enquanto o sistema de controlo estava ativo.}
   \label{fig:teste-medico}
 \end{figure}
+
+\section{Testes de integração dos movimentos}
+A integração foi feita por etapas. Primeiro executou-se apenas a respiração, verificando periodicidade, amplitude e suavidade. Depois foi adicionado o batimento cardíaco, que deve aparecer como pequena oscilação sobreposta. Por fim, testou-se a tosse, que altera temporariamente o comportamento da respiração e ativa uma vibração ou perturbação curta.
+
+O modo combinado é o mais importante para avaliar o realismo, pois aproxima o comportamento de um ambiente broncoscópico dinâmico. Neste modo, foram observados conflitos entre movimentos, saturação dos servos, perda de suavidade e eventuais posições impossíveis da cinemática inversa.

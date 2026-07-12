@@ -2,7 +2,7 @@
 #include <Adafruit_NeoPixel.h>
 #include <ESP32Servo.h>
 #include <math.h>
-#include <EEPROM.h>   // biblioteca EEPROM
+#include <EEPROM.h>   
 #include <string.h>
 
 
@@ -53,7 +53,7 @@ Manipulador_Config delta_1_Cfg = {
     .servoOffsetZ = 0.0f,  // <- mm 
     .angleMin = 0.78539816339744830961566084581988f, //45 degrees
     .angleMax = 3.9269908169872415480783042290994f, //225 degrees
-    .rotationOffsetZ = -15.0f * PI / 180.0f, //-75 degrees in radians
+    .rotationOffsetZ = -15.0f * PI / 180.0f, //conversion to RAD's
 
     // calibração de PWM
     .servo1MinPulse = 520,
@@ -80,7 +80,7 @@ Manipulador_Config delta_2_Cfg = {
     .servoOffsetZ = 0.0f,
     .angleMin = 0.78539816339744830961566084581988f, //45 degrees
     .angleMax = 3.9269908169872415480783042290994f, //225 degrees
-    .rotationOffsetZ = -45.0f * PI / 180.0f, //-45 degrees in radians
+    .rotationOffsetZ = -45.0f * PI / 180.0f, //conversion to RAD's
 
     // calibração de PWM
     //Servo_1 -> thetta3
@@ -109,10 +109,10 @@ float Z_test_calibration[] = {40.0, 40.0, 50.0, 60.0, 60.0, 60.0, 60.0, 60.0, 60
 const int N_test_calibration = 9;
 
 //bat
-float X_test[] = {15.607,  14.923,  13.995,  12.845,  11.503, 10.000,  6.665,  1.464,  -2.965,  -5.000, -5.659, -6.056, -6.180, -6.029, -5.607, -4.923, -3.995, -2.845, -1.503,  0.000,   3.335,  8.536,  12.965,  15.000, 15.659, 16.056, 16.180, 16.029};
-float Y_test[] = {15.607,  16.029,  16.180,  16.056,  15.659, 15.000, 12.965,  8.536,   3.335,   0.000, -1.503, -2.845, -3.995, -4.923, -5.607, -6.029, -6.180, -6.056, -5.659, -5.000,  -2.965,  1.464,   6.665,  10.000, 11.503, 12.845, 13.995, 14.923};
-float Z_test[] = {  0.0,    0.0,    0.0,    0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,    0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,   0.0,    0.0};
-const int N_test = 28;
+float X_test[] = {-0.000, 0.054, 0.601, 1.556, 2.776, 4.074, 5.252, 6.131, 6.578, 6.524, 5.977, 5.022, 3.802, 2.504, 1.326, 0.447};
+float Y_test[] = {0.000, 0.631, 1.347, 2.041, 2.607, 2.957, 3.040, 2.842, 2.394, 1.764, 1.047, 0.353, -0.212, -0.563, -0.646, -0.448};
+float Z_test[] = {0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000};
+const int N_test = 16;
 float T_period = 0.3f; 
 float T_pausedt = 0.6f; 
 
@@ -324,7 +324,11 @@ void Iniciate_Tosse_Move() { //Serve para copiar os valores definidos mais acima
     //Serial.print("RESP N_point ->global: ");
     //Serial.println(Resp_move.N_points);
 }
-   */ 
+   
+
+*/
+
+
 void Iniciate_Bat_Instance() { //Serve para arrancar a structure de temporaria de runtime
     Bat_inst.def           = &Bat_move;
     Bat_inst.currentIndex  = 0;
@@ -433,58 +437,14 @@ bool Fusao_plus_IK_D2(const Coordinate& respi, const Coordinate& batim , const C
 void FSM_Motion_Update(boolean start, MotionInstance& inst, unsigned long nowMs);
 void FSM_Serial_reader(unsigned long nowMs);
 void FSM_Serial_Command(unsigned long nowMs);
-void Preparacao_Tosse();
+void FSM_preparacao_tosse(bool start, unsigned long nowMs);
+//void Preparacao_Tosse();
 void Calcular_Index0(MotionStorage& m, Coordinate& idx0);
 void AtualizarTosseAleatoria(unsigned long nowMs);
 bool PosicaoValidaParaTosse(const MotionInstance& inst, const MotionStorage& m);
 //----------------------------------------------------
 
-//--Declaração dos comandos de leitura
-//char commands
-#define Scomand_start_Program 's'
-#define Scomand_stop_Program 'p'
-#define Scomand_GRIPPER 3
-#define Scomand_ABSOLUTE_CARTESIAN_LINEAR 4
-#define Scomand_SET_PROGRAM_ARRAY 5
-#define Scomand_REQUEST_READY_FLAG 6
 
-//String commands
-#define Mcomand_JOG_X 'x'
-#define Mcomand_JOG_Y 'y'
-#define COMMAND_JOG_Z 'z'
-#define COMMAND_GRIPPER_ASCII 'g'
-#define COMMAND_STATUS 's' 
-#define COMMAND_REPORT_COMMANDS 'r'
-#define COMMAND_ADD_POSITION 'p'
-#define COMMAND_SET_STEP_DELAY 'd'
-#define COMMAND_SET_STEP_INCREMENT 'i'
-#define COMMAND_CLEAR_ARRAY 'c'
-#define COMMAND_EXECUTE 'e'
-#define COMMAND_EXECUTE_JOINT 'j'
-#define COMMAND_EXECUTE_TIME 't'
-#define COMMAND_SET_US_INCREMENT_LINEAR 'u'
-#define COMMAND_SET_US_INCREMENT_JOINT 'U'
-#define COMMAND_STEP_FORWARD '>'
-#define COMMAND_STEP_BACKWARD '<'
-#define COMMAND_JUMP_TO_START '['
-#define COMMAND_JUMP_TO_END ']'
-#define COMMAND_EDIT_ARRAY 'P'
-#define COMMAND_ADD_DELAY 'D'
-#define COMMAND_MOVE_HOME 'h'
-#define COMMAND_PRINT_FILE 'f'
-#define COMMAND_PING_PONG 'o'
-#define COMMAND_SERVO_CALIBRATION 'C'
-#define COMMAND_SET_SERVO 'S'
-
-//EEPROM commands
-#define Ecomand_SET_LINK_2 'L'
-#define Ecomand_SET_END_EFFECTOR_TYPE 'E'
-#define Ecomand_SET_AXIS_DIRECTION 'A'
-#define Ecomand_SET_HOME_X 'X'
-#define Ecomand_SET_HOME_Y 'Y'
-#define Ecomand_SET_HOME_Z 'Z'
-#define Ecomand_SET_HOME_GRIPPER 'G'
-#define Ecomand_SET_GRIPPER_MIN_MAX 'M'
 
 
 
@@ -547,6 +507,46 @@ bool ST_ready_out = false;
 
 
 
+
+//Funções de armazenamento das structures
+void saveBatToEEPROM() {
+  EEPROM.put(EEPROM_ADDR_BAT, Bat_move);
+  EEPROM.commit();  // em ESP32; em Arduino UNO não é necessário
+}
+
+void saveRespToEEPROM() {
+  EEPROM.put(EEPROM_ADDR_RESP, Resp_move);
+  EEPROM.commit();
+}
+
+void saveTosseToEEPROM() {
+  EEPROM.put(EEPROM_ADDR_TOSSE, Tosse_move);
+  EEPROM.commit();
+}
+
+
+//Funções de carregamento das structures
+void loadBatFromEEPROM() {
+  EEPROM.get(EEPROM_ADDR_BAT, Bat_move);
+  // Depois de ler, convém recalcular dtMs e pausas caso só tenhas mudado period/T_pause.
+  Bat_move.updateDtMs();
+  Bat_move.updateDt_PauseMs();
+}
+
+void loadRespFromEEPROM() {
+  EEPROM.get(EEPROM_ADDR_RESP, Resp_move);
+  Resp_move.updateDtMs();
+  Resp_move.updateDt_PauseMs();
+}
+
+void loadTosseFromEEPROM() {
+  EEPROM.get(EEPROM_ADDR_TOSSE, Tosse_move);
+  Tosse_move.updateDtMs();
+  Tosse_move.updateDt_PauseMs();
+}
+
+
+
 boolean trig_display_fsm(float at, short int Td){
 static short int state; //state internal to the state machine
 static float pt; //var. internal to the state machine
@@ -603,11 +603,7 @@ switch (state) {
     case 0:
       counter = 0;
       CH_Command_Out = '\0'; 
-      //Serial.print("CH_Command_IN no state 0 do reader:");
-      //Serial.println(CH_Command_IN);
-      //Serial.println(" ");
-      //Serial.print("CH_Command_Out no state 0 do reader:");
-     // Serial.println(CH_Command_Out);
+      
 
       if(Serial.available() > 0 && Mode == 'S'){state = 1;} 
       if(Serial.available() > 0 && Mode == 'M'){state = 6;} 
@@ -674,9 +670,9 @@ switch (state) {
     }
     ST_BUS[n] = (char)c;
 
-    Serial.print("ST_Bus char = '");
+    //Serial.print("ST_Bus char = '");
     Serial.print(ST_BUS[n]);
-    Serial.print("'  code = ");
+    //Serial.print("'  code = ");
     Serial.println(c);
 
 
@@ -694,7 +690,7 @@ switch (state) {
     break;
 
     case 8: 
-    Serial.print("ST_Bus completo: ");
+    //Serial.print("ST_Bus completo: ");
     Serial.println(ST_BUS);
     maxCopy = n;
     if (maxCopy >= (int)sizeof(ST_Command_Out)) {
@@ -703,7 +699,7 @@ switch (state) {
     strncpy(ST_Command_Out, ST_BUS, maxCopy);
   
     ST_ready_out = true;
-    Serial.println("ST_ready_out ativado");
+    //Serial.println("ST_ready_out ativado");
     if(1){state = 9;}
     break;
 
@@ -713,15 +709,9 @@ switch (state) {
     //ST_Command_Out[maxCopy] = '\0';
     CH_Command_Out = '\0'; 
     n = 0;
-    //Serial.print("leitrua do CH_Command_IN á saida do reader string:");
-    //Serial.println(CH_Command_IN);
-    //Serial.print("leitrua do CH_Command_Out á saida do reader string:");
-    //Serial.print("Antes do reset, CH_Command_Out = ");
-    //Serial.println(CH_Command_Out);
+    
     CH_Command_Out = '\0';
-    //Serial.print("Depois do reset, CH_Command_Out = ");
-    //Serial.println(CH_Command_Out);
-    //Serial.println(CH_Bus);
+    
 
     if(LineReady_IN == true){state = 0;}
     break;
@@ -782,6 +772,8 @@ switch (state) {
       if(CH_Command_IN == 'L' || CH_Command_IN == 'l'){state = 5;}
       if(CH_Command_IN == 'M' || CH_Command_IN == 'm'){state = 14;}
       if(CH_Command_IN == 'W' || CH_Command_IN == 'w'){state = 22;}
+      if(CH_Command_IN == 'g' || CH_Command_IN == 'G'){state = 45;}
+      if(CH_Command_IN == 'c' || CH_Command_IN == 'C'){state = 46;}
     break;
 
 
@@ -908,8 +900,8 @@ switch (state) {
       Serial.println("Comando Lt");
       LineReady_Out = true;
       CH_Command_Out = '\0';
-      debugPrintMove(Bat_move,  "Tosse_move");   //ainda é preciso implementar
-      debugPrintInstance(Bat_inst,  "Tosse_inst");  //ainda é preciso implementar
+      debugPrintMove(Tosse_move,  "Tosse_move");   //ainda é preciso implementar
+      debugPrintInstance(Tosse_inst,  "Tosse_inst");  //ainda é preciso implementar
       //Serial.println("Sem nada");  //Retirar quando estiver implementado 
       
       if(1){state = 4;}
@@ -921,10 +913,12 @@ switch (state) {
       LineReady_Out = true;
       CH_Command_Out = '\0';
       debugPrintMove(Bat_move,  "Bat_move");
-      debugPrintMove(Resp_move, "Resp_move"); 
+      debugPrintMove(Resp_move, "Resp_move");
+      debugPrintMove(Tosse_move,  "Tosse_move"); 
       debugPrintInstance(Bat_inst,  "Bat_inst");
       debugPrintInstance(Resp_inst, "Resp_inst");
-      Serial.println("Sem Tosse");  //Retirar quando estiver implementado a tosse
+      debugPrintInstance(Tosse_inst,  "Tosse_inst"); 
+     // Serial.println("Sem Tosse");  //Retirar quando estiver implementado a tosse
       
       if(1){state = 4;}
     break;
@@ -966,6 +960,9 @@ switch (state) {
             Bat_inst.active = true;
             Resp_inst.active = true;
             Tosse_inst.active = true;
+            Bat_inst.Individual_start_comand = 1;
+            Resp_inst.Individual_start_comand = 1;
+            Tosse_inst.Individual_start_comand = 0;
 
             Index_mult_R.X = 1.0;
             Index_mult_R.Y = 1.0;
@@ -982,6 +979,9 @@ switch (state) {
             Bat_inst.active = true;
             Resp_inst.active = true;
             Tosse_inst.active = false;
+            Bat_inst.Individual_start_comand = 1;
+            Resp_inst.Individual_start_comand = 1;
+            Tosse_inst.Individual_start_comand = 0;
 
             Index_mult_R.X = 1.0;
             Index_mult_R.Y = 1.0;
@@ -998,6 +998,9 @@ switch (state) {
             Bat_inst.active = false;
             Resp_inst.active = true;
             Tosse_inst.active = false;
+            Bat_inst.Individual_start_comand = 0;
+            Resp_inst.Individual_start_comand = 1;
+            Tosse_inst.Individual_start_comand = 0;
 
             Index_mult_R.X = 1.0;
             Index_mult_R.Y = 1.0;
@@ -1014,6 +1017,9 @@ switch (state) {
             Bat_inst.active = true;
             Resp_inst.active = false;
             Tosse_inst.active = false;
+            Bat_inst.Individual_start_comand = 1;
+            Resp_inst.Individual_start_comand = 0;
+            Tosse_inst.Individual_start_comand = 0;
 
             Index_mult_R.X = 0.0;
             Index_mult_R.Y = 0.0;
@@ -1030,6 +1036,9 @@ switch (state) {
             Bat_inst.active = false;
             Resp_inst.active = false;
             Tosse_inst.active = false;
+            Bat_inst.Individual_start_comand = 0;
+            Resp_inst.Individual_start_comand = 0;
+            Tosse_inst.Individual_start_comand = 0;
             
             Index_mult_R.X = 0.0;
             Index_mult_R.Y = 0.0;
@@ -1050,7 +1059,7 @@ switch (state) {
       Mode = 'M';
       Serial.println("Comando Mode multiple characters");
       start_comand = 0;
-      Serial.println("start command Desativo");
+     // Serial.println("start command Desativo");
       LineReady_Out = true;
       
       if(1){state = 23;}
@@ -1063,13 +1072,13 @@ switch (state) {
     break;
 
     case 24: 
-      Serial.println("state 24");
+      //Serial.println("state 24");
       ST_ready_out = false;
-      Serial.println("ST_Bus ST_ready_out desativado");
+     // Serial.println("ST_Bus ST_ready_out desativado");
       n = 0;
 
-      Serial.print("ST_Command_IN: ");
-      Serial.println(ST_Command_IN);
+      //Serial.print("ST_Command_IN: ");
+     // Serial.println(ST_Command_IN);
 
       if(ST_Command_IN[n] == 'R'){state = 25;}
       if(ST_Command_IN[n] == 'B'){state = 26;}
@@ -1077,7 +1086,7 @@ switch (state) {
     break;
 
     case 25: 
-    Serial.println("state 25");
+    //Serial.println("state 25");
       currentMove = &Resp_move;
       currentInst = &Resp_inst;
 
@@ -1086,7 +1095,7 @@ switch (state) {
 
 
     case 26: 
-    Serial.println("state 26");
+    //Serial.println("state 26");
       currentMove = &Bat_move;
       currentInst = &Bat_inst;
 
@@ -1095,7 +1104,7 @@ switch (state) {
 
 
     case 27: 
-    Serial.println("state 27");
+    //Serial.println("state 27");
       currentMove = &Tosse_move;
       currentInst = &Tosse_inst;
 
@@ -1103,7 +1112,7 @@ switch (state) {
     break;
 
     case 28: //procura das Tags
-    Serial.println("state 28 tags");
+    //Serial.println("state 28 tags");
       n++;
 
       if(strncmp(&ST_Command_IN[n], "n_pnt", 5) == 0){state = 29;}        //Variavel n_pontos
@@ -1264,24 +1273,33 @@ switch (state) {
     break;
 
     case 44: 
-      Serial.println("state 44 saida:");
+      //Serial.println("state 44 saida:");
       Mode = 'S';
       LineReady_Out = true;
-      Serial.print("leitrua do ST_Command_IN á saida do state 44:");
-      Serial.println(ST_Command_IN);
-      Serial.print("leitrua do ST_Command_Out á saida do state 44:");
-      Serial.println(ST_Command_Out);
       memset(ST_Command_Out, 0, sizeof(ST_Command_Out));
-      //memset(ST_BUS,         0, sizeof(ST_BUS));
-      Serial.print("leitura mode:");
-      Serial.println(Mode);
-      Serial.print("leitrua do ST_Command_IN á saida do state 44:");
-      Serial.println(ST_Command_IN);
-      Serial.print("leitrua do ST_Command_Out á saida do state 44:");
-      Serial.println(ST_Command_Out);
-
+      Serial.println("saida do modo de escrita de dados");
 
       if(1){state = 4;}
+    break;
+
+    case 45:
+    saveBatToEEPROM();
+    saveRespToEEPROM();
+    saveTosseToEEPROM();
+    Serial.println("eeprom salvado");
+    LineReady_Out = true;
+
+    if(1){state = 4;}
+    break;
+
+    case 46:
+     loadBatFromEEPROM();
+     loadRespFromEEPROM();
+     loadTosseFromEEPROM();
+    Serial.println("eeprom carregado");
+    LineReady_Out = true;
+
+    if(1){state = 4;}
     break;
     
     
@@ -1289,43 +1307,6 @@ switch (state) {
 }
 }
 
-
-//Funções de armazenamento das structures
-void saveBatToEEPROM() {
-  EEPROM.put(EEPROM_ADDR_BAT, Bat_move);
-  EEPROM.commit();  // em ESP32; em Arduino UNO não é necessário
-}
-
-void saveRespToEEPROM() {
-  EEPROM.put(EEPROM_ADDR_RESP, Resp_move);
-  EEPROM.commit();
-}
-
-void saveTosseToEEPROM() {
-  EEPROM.put(EEPROM_ADDR_TOSSE, Tosse_move);
-  EEPROM.commit();
-}
-
-
-//Funções de carregamento das structures
-void loadBatFromEEPROM() {
-  EEPROM.get(EEPROM_ADDR_BAT, Bat_move);
-  // Depois de ler, convém recalcular dtMs e pausas caso só tenhas mudado period/T_pause.
-  Bat_move.updateDtMs();
-  Bat_move.updateDt_PauseMs();
-}
-
-void loadRespFromEEPROM() {
-  EEPROM.get(EEPROM_ADDR_RESP, Resp_move);
-  Resp_move.updateDtMs();
-  Resp_move.updateDt_PauseMs();
-}
-
-void loadTosseFromEEPROM() {
-  EEPROM.get(EEPROM_ADDR_TOSSE, Tosse_move);
-  Tosse_move.updateDtMs();
-  Tosse_move.updateDt_PauseMs();
-}
 
 
 
@@ -1365,7 +1346,14 @@ void setup() {
   debugPrintMove(Bat_move, "Bat_move"); 
   debugPrintMove(Tosse_move, "Tosse_move");
 
-  
+    //Iniciate_Bat_Move();
+    //Iniciate_Resp_Move();
+    //Iniciate_Tosse_Move();
+
+    //saveBatToEEPROM();
+    //saveRespToEEPROM();
+    //saveTosseToEEPROM();
+    //Serial.println("eeprom salvado");
 
   // Nas execuções seguintes, podes preferir:
    loadBatFromEEPROM();
@@ -1409,12 +1397,13 @@ float tempo_inicial = millis();
 
   
     unsigned long now1 = millis();
-    trig_serial_OUT = trig_display_fsm(actual_time,100);
+    trig_serial_OUT = trig_display_fsm(actual_time,60);
     FSM_Serial_reader(now1);
     FSM_Serial_Command(now1);
 
     AtualizarTosseAleatoria(now1);  // gera sinal_tossir aleatório
-    Preparacao_Tosse();              // converte sinal_tossir em tosse real 
+    //Preparacao_Tosse();              // converte sinal_tossir em tosse real 
+    FSM_preparacao_tosse(start_comand, now1);
 
     unsigned long now2 = millis();
     FSM_Motion_Update(start_comand , Bat_inst, now2);
@@ -1442,12 +1431,18 @@ float tempo_inicial = millis();
 float tempo_final = millis();
 float demora = tempo_final - tempo_inicial;
 Clock_loop++;
-if(trig_serial_IN == 1 && Safe_comand == 1){
+if(trig_serial_IN == 1 && Safe_comand == 0){
   
-    Serial.print("Estado da leitura:");
-    Serial.println(state_test);
-    Serial.print("Estado da Interpertação:");
-    Serial.println(state_test2);
+    Serial.print("X da tosse: ");
+    Serial.print(Lerp_Tosse_OUT.X);
+    Serial.print("      Y da tosse: ");
+    Serial.print(Lerp_Tosse_OUT.Y);
+    Serial.print("      Z da tosse: ");
+    Serial.println(Lerp_Tosse_OUT.Z);
+    Serial.println(" ");
+    Serial.println(" ");
+    //Serial.print("Estado da vibraçao:");
+    //Serial.println(state_test2);
     //Serial.print("ST_Command_IN: ");
     //Serial.println(ST_Command_Out);
     //Serial.print("ST_ready_out: ");
@@ -1545,14 +1540,7 @@ bool inverse_kinematics(Manipulador_Config& cfg, float xt, float yt, float zt){
 
 
 bool inverse_kinematics_1(float xt, float yt, float zt, float rotation_offset_Z, float& Servo_angle){
-      //Serial.print("x:");
-       // Serial.print(xt);
-       // Serial.print(" y:");
-       // Serial.print(yt);
-       // Serial.print(" z:");
-       // Serial.print(zt);
-       //  Serial.println("");
-       //  delay (100);
+    
     zt -= servo_offset_z; 
     float x = xt;
     float y = yt;
@@ -1819,7 +1807,7 @@ void FSM_Motion_Update(boolean start, MotionInstance& inst, unsigned long nowMs)
       //Serial.println("-----------------------------------------------intermed state");
       if (m.n_Points <= 1 || m.period <= 0.0f) {inst.state = 1;}
       if(inst.Direction==1 && start==1 && inst.Individual_start_comand == 1){inst.state = 2;}
-      if(start==0 || inst.Individual_start_comand == 0){inst.state = 0;}
+      if(start==0 && inst.Individual_start_comand == 0){inst.state = 0;}
     break;
 
     case 2:
@@ -1864,7 +1852,7 @@ void FSM_Motion_Update(boolean start, MotionInstance& inst, unsigned long nowMs)
       else if (inst.Direction == 1 && m.Dt_pauseMs_End != 0) {inst.state = 8;}
       else {
         if (m.bidirectional == true) { inst.state = 6; }
-        else if (m.bidirectional != true && m.Dt_pauseMs_Ini != 0 && m.Dt_pauseMs_End != 0) { inst.state = 1; }
+        else if (m.bidirectional != true && m.Dt_pauseMs_Ini == 0 && m.Dt_pauseMs_End == 0) { inst.state = 1; }
       }
     break;
 
@@ -1944,9 +1932,9 @@ void FSM_Motion_Update(boolean start, MotionInstance& inst, unsigned long nowMs)
 
 
 bool Fusao_plus_IK_D1(const Coordinate& respi, const Coordinate& batim , const Coordinate& tosse) {
-    float X_total = 1.0f * respi.X + 0.2f * batim.X + -15.0f + Index0.X*Index_mult_R.X + tosse.X;
-    float Y_total = 1.0f * respi.Y + 0.2f * batim.Y + -5.0f + Index0.Y*Index_mult_R.Y + tosse.X;
-    float Z_total = 1.0f * respi.Z * Resp_inst.Z_amp_mult + 0.2f * batim.Z +  45.0f + Index0.Z*Index_mult_R.Z + tosse.X;
+    float X_total = 1.0f * respi.X + 1.0f * batim.X + -15.0f + Index0.X*Index_mult_R.X + tosse.X;
+    float Y_total = 1.0f * respi.Y + 1.0f * batim.Y + -5.0f + Index0.Y*Index_mult_R.Y + tosse.X;
+    float Z_total = 1.0f * respi.Z * Resp_inst.Z_amp_mult + 1.0f * batim.Z +  45.0f + Index0.Z*Index_mult_R.Z + tosse.X;
 
     //float X_total = -15.0f;
     //float Y_total = -10.0f;
@@ -2038,7 +2026,7 @@ void AtualizarTosseAleatoria(unsigned long nowMs) {
 }
 
 
-
+/*
 void Preparacao_Tosse() {
     if (start_comand == 0) {
         sinal_tossir         = false;
@@ -2071,6 +2059,7 @@ void Preparacao_Tosse() {
 
         Tosse_signal        = 1;
         Tosse_em_preparacao = true;
+        
 
         return;
     }
@@ -2089,7 +2078,88 @@ void Preparacao_Tosse() {
         sinal_tossir        = false;
     }
 }
+*/
 
+void FSM_preparacao_tosse(bool start, unsigned long nowMs) {
+    static short int state = 0;
+    short int estadoResp = Resp_inst.state;
+
+    switch (state) {
+
+    case 0:
+        // reset total
+        sinal_tossir        = false;
+        Tosse_em_preparacao = false;
+        Tosse_signal        = 0;
+        Resp_inst.Z_amp_mult = 1.0f;   // garantir reset se programa parar
+
+        if (start == true) {
+            state = 1;
+        }
+        break;
+
+    case 1:
+        // estado de espera: respiração válida e à espera de sinal de tosse
+        if (!Resp_inst.active || Resp_inst.def == nullptr) {
+            state = 0;   // se respiração ficar inválida, volta a reset
+        }
+        else if (sinal_tossir && !Tosse_em_preparacao) {
+            state = 2;   // novo sinal de tosse → preparar
+        }
+        break;
+
+    case 2:
+        // preparar tosse: guardar padrão e alterar parâmetros
+        Resp_period_padrao      = Resp_move.period;
+        Resp_T_pause_Ini_padrao = Resp_move.T_pause_Ini;
+
+        // alterar para tosse
+        Resp_move.period      = 0.30f;   // segundos
+        Resp_move.T_pause_Ini = 0.0f;    // segundos
+        Resp_inst.Z_amp_mult  = 1.50f;   // aumentar amplitude em Z
+
+        Resp_move.updateDtMs();
+        Resp_move.updateDt_PauseMs();
+
+        Tosse_signal        = 1;
+        Tosse_em_preparacao = true;
+
+        Tosse_inst.Individual_start_comand = 1;
+
+        state = 3;   // passa a aguardar fim da tosse / desligar
+        break;
+
+    case 3:
+        // tosse ativa: aguardar fim ou desligar
+        estadoResp = Resp_inst.state;
+        if ((Tosse_em_preparacao && estadoResp == 1) || start == false) {
+            state = 4;   // fim da tosse ou sistema desligado → voltar ao padrão
+        }
+        break;
+
+    case 4:
+        // repor valores padrão e limpar flags
+        Resp_move.period      = Resp_period_padrao;
+        Resp_move.T_pause_Ini = Resp_T_pause_Ini_padrao;
+        Resp_inst.Z_amp_mult  = 1.0f;   // volta a 1.0
+
+        Resp_move.updateDtMs();
+        Resp_move.updateDt_PauseMs();
+
+        Tosse_signal        = 0;
+        Tosse_em_preparacao = false;
+        sinal_tossir        = false;
+        Tosse_inst.Individual_start_comand = 0;
+
+        // decidir próximo estado conforme start
+        if (start == false) {
+            state = 0;
+        } else { // start == true
+            state = 1;
+        }
+        break;
+    }
+}
 
 void debugPrintMove(const MotionStorage& move, const char* name) {
     Serial.print("=== ");

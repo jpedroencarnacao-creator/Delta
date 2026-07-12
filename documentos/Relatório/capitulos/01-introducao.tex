@@ -1,28 +1,27 @@
 \chapter{Introdução}
 
-\hl{Falta reescrever a apresentação/preparação inicial deste capitulo aqui
-Deve ser algo facil de perceber e de "digerir".}
+Este documento descreve o trabalho desenvolvido no âmbito de um projeto final de curso, dedicado à conceção de um modelo físico e dinâmico de árvore brônquica para treino de broncoscopia, apresentando de seguida o contexto que motivou esta escolha, os objetivos traçados e a forma como o presente relatório se encontra organizado.
 
 \section{Enquadramento}
-A broncoscopia flexível é um procedimento essencial em Pneumologia, Anestesiologia, Medicina Intensiva e Cirurgia Torácica, cuja execução exige coordenação psicomotora, reconhecimento anatómico, capacidade de navegação endoscópica e tomada de decisão num ambiente clínico variável. Por esse motivo, a simulação tem sido proposta como uma etapa relevante no treino de novos médicos na área, permitindo suavizar a curva de aprendizagem, possibilitar treinos repetidos e aumentar a segurança antes da prática em doentes reais \hl{(será que vale apenas falar já aqui sobre as opções atuais dos vários treinos de simuladores??)} \parencite{Davoudi2008,Kennedy2013,Fielding2014,Nilsson2017,Gopal2018}.
+A broncoscopia flexível é um procedimento essencial em Pneumologia, Anestesiologia, Medicina Intensiva e Cirurgia Torácica, cuja execução exige coordenação psicomotora, reconhecimento anatómico, capacidade de navegação broncoscópica e tomada de decisão num ambiente clínico variável. Por esse motivo, a simulação tem sido proposta como uma etapa relevante no treino de novos médicos na área, permitindo suavizar a curva de aprendizagem, possibilitar treinos repetidos e aumentar a segurança antes da prática em doentes reais \parencite{Davoudi2008,Kennedy2013,Fielding2014,Nilsson2017,Gopal2018}.
 
-O projeto apresentado neste relatório teve origem numa proposta de trabalho elaborada pela equipa de Pneumologia do Centro Hospitalar Universitário do Algarve \parencite{Barros2023}, que identificou a necessidade de um modelo de simulação de árvore brônquica, impresso em 3D e de baixo custo, para treino de broncoscopia flexível. A partir dessa proposta, o objetivo deste trabalho passou a ser o desenvolvimento de um modelo articulado de uma árvore brônquica, capaz de reproduzir, de forma legítima, os movimentos observáveis durante as broncoscopias, partindo da utilidade já reconhecida dos modelos físicos impressos em 3D e acrescentando-lhes uma componente dinâmica, de modo a aproximar a experiência de treino das condições reais de observação endoscópica \parencite{Pedersen2017,Fu2023}.
+O projeto apresentado neste relatório teve origem numa proposta de trabalho elaborada pela equipa de Pneumologia do Centro Hospitalar Universitário do Algarve \parencite{Barros2023}, que identificou a necessidade de um modelo de simulação de árvore brônquica, impresso em 3D e de baixo custo, para treino de broncoscopia flexível. A partir dessa proposta, o objetivo deste trabalho passou a ser o desenvolvimento de um modelo articulado de uma árvore brônquica, capaz de reproduzir, de forma legítima, os movimentos observáveis durante as broncoscopias, partindo da utilidade já reconhecida dos modelos físicos impressos em 3D e acrescentando-lhes uma componente dinâmica, de modo a aproximar a experiência de treino das condições reais de observação broncoscópica \parencite{Pedersen2017,Fu2023}.
 
 O projeto foi dividido em duas secções complementares:
 \begin{itemize}
-  \item O Modelo Dinâmico, que inclui todo o sistema de controlo e atuação motora, dividido em vários manipuladores delta, bem como o próprio modelo 3D da árvore brônquica;
-  \item A HMI, ou interface homem-máquina, alojada num Raspberry Pi 4B com um monitor touchscreen, cuja função é permitir que o utilizador controle o modelo dinâmico de forma simples, intuitiva e natural, através de botões e menus dedicados, sem necessidade de conhecer os comandos da comunicação série entre os dois blocos.
+  \item O Modelo Físico, que inclui todo o sistema de controlo e atuação motora, dividido em vários manipuladores delta, bem como o próprio modelo 3D da árvore brônquica;
+  \item A HMI, ou interface homem-máquina, alojada num Raspberry Pi 4B com um monitor touchscreen, cuja função é permitir que o utilizador controle o modelo físico de forma simples, intuitiva e natural, através de botões e menus dedicados, sem necessidade de conhecer os comandos da comunicação série entre os dois blocos.
 \end{itemize}
 
 \section{Motivação}
 Existem vários simuladores comerciais de broncoscopia, contudo estes facilmente podem apresentar custos monetários extremamente elevados, o que limita a sua disponibilidade e acessibilidade em contextos de ensino e treino, razão pela qual a impressão 3D surge como uma forte alternativa, ao permitir criar modelos anatómicos acessíveis, personalizáveis e adaptáveis a diferentes níveis de dificuldade \parencite{Pedersen2017,Fu2023}. Contudo, muitos destes modelos físicos permanecem estáticos, falhando na representação de fenómenos como a deslocação respiratória das vias aéreas, a variação de calibre dos brônquios, as pequenas oscilações induzidas pelo coração e as perturbações rápidas associadas à tosse, resultantes da resposta do corpo humano à inserção de um corpo externo nos brônquios \parencite{Heinbecker1927,Ellis1936,Chen2015,Gunatilaka2020}.
 
-A motivação central deste trabalho consistiu, portanto, na capacidade de combinar a acessibilidade e a versatilidade dos modelos físicos impressos em 3D com a possibilidade de implementação de movimentos anatómicos legítimos, comprovando assim a viabilidade de um simulador dinâmico realista, algo inovador quando comparado aos simuladores estáticos comuns.
+A motivação central deste trabalho consistiu, portanto, na capacidade de combinar a acessibilidade e a versatilidade dos modelos físicos impressos em 3D com a possibilidade de implementação de movimentos anatómicos legítimos, comprovando assim a viabilidade de um simulador dinâmico e mecanicamente atuado, uma abordagem que, tanto quanto foi possível apurar junto da literatura disponível, ainda não se encontra documentada.
 
 \section{Objetivos}
-Este projeto pretendia investigar, desenvolver, construir e documentar um protótipo articulado de uma árvore brônquica para treino de videobroncofibroscopia.
+Este projeto pretende investigar, desenvolver, construir e documentar um protótipo articulado de uma árvore brônquica para treino de videobroncofibroscopia.
 
-Os seus objetivos específicos foram:
+Os seus objetivos específicos são:
 \begin{itemize}
   \item estudar requisitos anatómicos, mecânicos e pedagógicos para os simuladores de broncoscopia;
   \item desenvolver um plano e uma estrutura física compatível com impressão 3D e atuação mecânica;
@@ -34,15 +33,7 @@ Os seus objetivos específicos foram:
 \end{itemize}
 
 \section{Metodologia}
-A metodologia do trabalho combina revisão bibliográfica, definição de requisitos, desenvolvimento iterativo de hardware, desenvolvimento de software embutido e preparação de testes funcionais. \hl{não sei o que escrever mais aqui...}
+Este projeto seguiu uma metodologia iterativa de desenvolvimento, começando por uma revisão bibliográfica alargada e pela definição dos requisitos anatómicos, mecânicos e pedagógicos do simulador. A primeira metade do tempo dedicado ao projeto centrou-se no modelo físico da árvore brônquica, a peça impressa em 3D construída e refinada ao longo de várias iterações, validadas em conjunto com a equipa médica responsável pelo projeto, um investimento de tempo que se justifica pela quantidade de tentativas, materiais e geometrias necessárias até se alcançar uma solução anatomicamente fiel e mecanicamente viável. Só a partir daí o restante hardware e o software foram desenvolvidos, ocupando a segunda metade do projeto, em paralelo e por camadas sucessivas, com protótipos intermédios a validar decisões de projeto antes de avançar para a fase seguinte, permitindo corrigir limitações identificadas em cada etapa em vez de as arrastar até ao final do processo. Esta abordagem culminou numa fase de testes e de validação experimental do protótipo final, descrita em detalhe no capítulo 5.
 
 \section{Organização do relatório}
-O relatório está organizado em seis capítulos: 
-\begin{itemize}
-  \item Capítulo 1: Apresenta o enquadramento, a motivação e os objetivos;
-  \item Capítulo 2: Revisão do estado da arte, incluindo treino por simulação, impressão 3D e movimentos observáveis durante a broncoscopia;
-  \item Capítulo 3: Descreve o desenvolvimento do hardware;
-  \item Capítulo 4: Apresenta estrutura de software, configurações internas, máquinas de estados e todo o sistema por detrás da HMI;
-  \item Capítulo 5: Reúne o plano de testes e identifica a informação experimental ainda em falta;
-  \item Capítulo 6: Sintetiza as conclusões e melhorias futuras.
-\end{itemize}
+O relatório está organizado em seis capítulos. O primeiro apresenta o enquadramento, a motivação e os objetivos do projeto, enquanto o segundo reúne a revisão do estado da arte, abordando o treino por simulação, a impressão 3D e os movimentos observáveis durante a broncoscopia. O terceiro capítulo descreve o desenvolvimento do hardware, seguindo-se no quarto capítulo a apresentação da arquitetura de software, dos movimentos representados no protótipo, da cinemática inversa, das máquinas de estados, da comunicação série e de todo o sistema por detrás da HMI. O quinto capítulo apresenta os testes realizados ao modelo físico e à integração dos movimentos, terminando o relatório no sexto capítulo, onde se sintetizam as conclusões e as melhorias futuras a considerar.

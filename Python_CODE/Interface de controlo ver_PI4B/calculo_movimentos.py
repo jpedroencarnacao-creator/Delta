@@ -21,14 +21,14 @@ from mpl_toolkits.mplot3d import Axes3D   # noqa: F401 — necessário para proj
 # PARÂMETROS — TODAS AS VARIÁVEIS MODIFICÁVEIS ESTÃO AQUI EM CIMA
 # ===========================================================================
 
-# --- Curva 1: Elipse Rotacionada ---
+# --- Curva 1: Elipse com deslocamento orbital ---
 # Usada por: Respiração, Batimento Cardíaco
 DEFAULTS_CURVA1 = {
-    'a':           5,       # semi-eixo maior
+    'a':           3,       # semi-eixo maior
     'b':           2,       # semi-eixo menor
-    'xc':          3.6,     # centro X da elipse
-    'yc':          3.6,     # centro Y da elipse
-    'alpha_deg':   45,      # rotação da elipse em graus
+    'R':           3.6,     # distância do centro da elipse à origem (deslocamento orbital)
+    'alpha_deg':   20,      # ângulo orbital (posição e orientação da elipse), em graus
+    'delta_deg':   0,       # ajuste fino da rotação interna da elipse, em graus (por padrão 0)
     'n_curva':     300,     # nº de pontos para desenhar a curva contínua
     'n_pontos':    10,      # nº de pontos de passagem enviados ao ESP32
     'sentido':     'ccw',   # 'ccw' = anti-horário | 'cw' = horário
@@ -58,25 +58,26 @@ DEFAULTS_CURVA3 = {
 # FUNÇÕES DE CÁLCULO
 # ===========================================================================
 
-def calcular_centro_auto_curva1(params=None):
-    """Calcula o centro que coloca o apice principal da elipse em X=0, Y=0."""
+def calcular_r_auto_curva1(params=None):
+    """Calcula a distância orbital R que ancora o vértice de referência da elipse em X=0, Y=0,
+    para qualquer ângulo alpha (ver dedução no relatório, secção 4.4)."""
     p = {**DEFAULTS_CURVA1, **(params or {})}
-    alpha = np.radians(p['alpha_deg'])
-    u = np.pi if p['a'] >= p['b'] else 1.5 * np.pi
-    base_x = p['a'] * np.cos(u) * np.cos(alpha) - p['b'] * np.sin(u) * np.sin(alpha)
-    base_y = p['a'] * np.cos(u) * np.sin(alpha) + p['b'] * np.sin(u) * np.cos(alpha)
-    return -base_x, -base_y
+    delta = np.radians(p['delta_deg'])
+    a, b = p['a'], p['b']
+    return (a * b) / np.sqrt(b ** 2 * np.cos(delta) ** 2 + a ** 2 * np.sin(delta) ** 2)
 
 
 def calcular_curva1(params=None):
-    """Curva 1: elipse rotacionada no plano XY.
+    """Curva 1: elipse com deslocamento orbital (R, alpha) no plano XY.
     Devolve (x_curva, y_curva, x_pontos, y_pontos)."""
     p = {**DEFAULTS_CURVA1, **(params or {})}
     alpha = np.radians(p['alpha_deg'])
+    delta = np.radians(p['delta_deg'])
+    phi = alpha + delta
 
     def elipse(u):
-        x = p['xc'] + p['a'] * np.cos(u) * np.cos(alpha) - p['b'] * np.sin(u) * np.sin(alpha)
-        y = p['yc'] + p['a'] * np.cos(u) * np.sin(alpha) + p['b'] * np.sin(u) * np.cos(alpha)
+        x = p['R'] * np.cos(alpha) + p['a'] * np.cos(u) * np.cos(phi) - p['b'] * np.sin(u) * np.sin(phi)
+        y = p['R'] * np.sin(alpha) + p['a'] * np.cos(u) * np.sin(phi) + p['b'] * np.sin(u) * np.cos(phi)
         return x, y
 
     u_curva  = np.linspace(0, 2 * np.pi, p['n_curva'])
@@ -224,12 +225,8 @@ def gerar_graficos(params_c1=None, params_c2=None, params_c3=None):
     p1 = {**DEFAULTS_CURVA1, **(params_c1 or {})}
     p2 = {**DEFAULTS_CURVA2, **(params_c2 or {})}
     p3 = {**DEFAULTS_CURVA3, **(params_c3 or {})}
-    if not p1.get('xc_manual', False) or not p1.get('yc_manual', False):
-        auto_xc, auto_yc = calcular_centro_auto_curva1(p1)
-        if not p1.get('xc_manual', False):
-            p1['xc'] = auto_xc
-        if not p1.get('yc_manual', False):
-            p1['yc'] = auto_yc
+    if not p1.get('r_manual', False):
+        p1['R'] = calcular_r_auto_curva1(p1)
 
     # --- calcular curvas ---
     x_c1, y_c1, xp1, yp1   = calcular_curva1(p1)
@@ -246,9 +243,12 @@ def gerar_graficos(params_c1=None, params_c2=None, params_c3=None):
     # Curva 1 — 2D
     # -----------------------------------------------------------------------
     def _plot_c1_2d(ax):
+        alpha_c1 = np.radians(p1['alpha_deg'])
+        centro_x1 = p1['R'] * np.cos(alpha_c1)
+        centro_y1 = p1['R'] * np.sin(alpha_c1)
         ax.plot(x_c1, y_c1, color='blue', linewidth=2, label='curva 1')
         ax.scatter(xp1, yp1, color='red', s=60, label='pontos')
-        ax.scatter([p1['xc']], [p1['yc']], color='green', s=70, label='centro')
+        ax.scatter([centro_x1], [centro_y1], color='green', s=70, label='centro')
         for i, (x, y) in enumerate(zip(xp1, yp1)):
             ax.text(x + 0.1, y + 0.1, str(i), fontsize=8)
         ax.axhline(0, color='gray', linewidth=0.6)

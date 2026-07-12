@@ -1,16 +1,42 @@
-\chapter{Anexos}
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Apêndice}
+\chapter*{Apêndice}
 
-\section{Anexo A: Desenhos técnicos e modelo 3D}
+\section*{Lista de materiais}
+A \cref{tab:componentes-hardware} resume os componentes principais previstos para o sistema.
+
+{\renewcommand{\thetable}{A.1}
+\begin{table}[htbp]
+  \centering
+  \caption{Componentes principais previstos para o sistema.}
+  \label{tab:componentes-hardware}
+  \footnotesize
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.8cm}>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{5.4cm}@{}}
+    \toprule
+    \textbf{Componente} & \textbf{Função} & \textbf{Observações} \\
+    \midrule
+    Raspberry Pi 4B & Interface e coordenação & Envia comandos ou posições para o ESP32 \\
+    \rowcolor{gray!12}
+    ESP32-S3 & Controlo dos atuadores & Executa FSMs e gera comandos para servos \\
+    Servo-motores & Atuação mecânica & Seis unidades distribuídas pelos dois manipuladores delta \\
+    \rowcolor{gray!12}
+    Driver Servo-motores & Interface de potência/comando & Cada driver comanda três servo-motores de um manipulador delta \\
+    UPS/HAT & Gestão de energia & Alimentação do Raspberry Pi e transição para bateria \\
+    \rowcolor{gray!12}
+    Fonte de Alimentação 5\,V--10\,A & Alimentação principal & Recebe 230\,V e fornece 5\,V ao sistema \\
+    LiPo Battery 2100\,mA 3,7\,V & Alimentação de reserva & Bateria associada ao sistema UPS/HAT \\
+    \bottomrule
+  \end{tabular}
+\end{table}}
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Anexos}
+\chapter*{Anexos}
+
+\section*{A.1\quad Desenhos técnicos e modelo 3D}
 Incluir vistas do modelo, ficheiros CAD relevantes, parâmetros de impressão 3D e notas de montagem.
 
-\section{Anexo B: Lista de materiais}
-Incluir lista completa de peças, fornecedores, referências, quantidades e custos.
-
-\section{Anexo C: Datasheets}
-Incluir datasheets dos principais componentes eletrónicos, atuadores, drivers e fonte de alimentação.
-
-\section{Anexo D: Código e configurações}
+\section*{A.2\quad Código e configurações}
 Incluir excertos relevantes de firmware, ficheiros de configuração, mapas de pinos e instruções de carregamento.
-
-\section{Anexo E: Protocolos de teste}
-Incluir grelhas de teste, formulários de avaliação, tabelas de resultados brutos e notas de calibração.

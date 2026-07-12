@@ -1454,7 +1454,7 @@
       \field{volume}{8}
       \field{year}{2018}
       \verb{doi}
-      \verb 10.1038/s41598-018-22540-1
+      \verb 10.1038/s41598-018-23193-w
       \endverb
       \keyw{oscilacoes-cardiogenicas,fluxo-de-ar,imagem-sincrotrao}
     \endentry
@@ -1648,10 +1648,6 @@
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{title}{Simulador de Broncoscopia}
-      \field{urlday}{6}
-      \field{urlmonth}{7}
-      \field{urlyear}{2026}
-      \field{urldateera}{ce}
       \verb{urlraw}
       \verb https://plan3d.cl/product/simulador-de-broncoscopia/
       \endverb
@@ -1659,6 +1655,62 @@
       \verb https://plan3d.cl/product/simulador-de-broncoscopia/
       \endverb
       \keyw{modelo-estatico,comercial}
+    \endentry
+    \entry{TruCorpAirSim}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=fc685824affbe197b41d3417c30d6780}{%
+           family={{TruCorp}},
+           familyi={T\bibinitperiod}}}%
+      }
+      \strng{namehash}{fc685824affbe197b41d3417c30d6780}
+      \strng{fullhash}{fc685824affbe197b41d3417c30d6780}
+      \strng{fullhashraw}{fc685824affbe197b41d3417c30d6780}
+      \strng{bibnamehash}{fc685824affbe197b41d3417c30d6780}
+      \strng{authorbibnamehash}{fc685824affbe197b41d3417c30d6780}
+      \strng{authornamehash}{fc685824affbe197b41d3417c30d6780}
+      \strng{authorfullhash}{fc685824affbe197b41d3417c30d6780}
+      \strng{authorfullhashraw}{fc685824affbe197b41d3417c30d6780}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{{AirSim} Bronchi}
+      \verb{urlraw}
+      \verb https://trucorp.com/product/airsim-bronchi/
+      \endverb
+      \verb{url}
+      \verb https://trucorp.com/product/airsim-bronchi/
+      \endverb
+      \keyw{modelo-estatico,comercial,manequim}
+    \endentry
+    \entry{PatUS5597310A}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=ba6b7658984ff4ae7be6c755c8c645b7}{%
+           family={{USPTO}},
+           familyi={U\bibinitperiod}}}%
+      }
+      \strng{namehash}{ba6b7658984ff4ae7be6c755c8c645b7}
+      \strng{fullhash}{ba6b7658984ff4ae7be6c755c8c645b7}
+      \strng{fullhashraw}{ba6b7658984ff4ae7be6c755c8c645b7}
+      \strng{bibnamehash}{ba6b7658984ff4ae7be6c755c8c645b7}
+      \strng{authorbibnamehash}{ba6b7658984ff4ae7be6c755c8c645b7}
+      \strng{authornamehash}{ba6b7658984ff4ae7be6c755c8c645b7}
+      \strng{authorfullhash}{ba6b7658984ff4ae7be6c755c8c645b7}
+      \strng{authorfullhashraw}{ba6b7658984ff4ae7be6c755c8c645b7}
+      \field{extraname}{1}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{Patente US5597310A}
+      \field{title}{Teaching model of the bronchial and lungs useful for teaching the biology of those organs}
+      \verb{urlraw}
+      \verb https://patents.google.com/patent/US5597310A/en
+      \endverb
+      \verb{url}
+      \verb https://patents.google.com/patent/US5597310A/en
+      \endverb
+      \keyw{patente,modelo-estatico,arvore-bronquica}
     \endentry
     \entry{Giannaccini2017}{inproceedings}{}{}
       \name{author}{6}{}{%
@@ -1804,6 +1856,41 @@
       \endverb
       \keyw{simulador-pulmonar,eletromecanico,xpulm}
     \endentry
+    \entry{Chang2010}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=b3cc280c5ef49873fc5f449e2c684eaa}{%
+           family={Chang},
+           familyi={C\bibinitperiod},
+           given={Jina},
+           giveni={J\bibinitperiod}}}%
+        {{hash=dafbdc9e00f20ee72a39c866de317030}{%
+           family={Suh},
+           familyi={S\bibinitperiod},
+           given={Tae-Suk},
+           giveni={T\bibinithyphendelim S\bibinitperiod}}}%
+        {{hash=f2126713d53ace1bda1bb4049ecdc4c5}{%
+           family={Lee},
+           familyi={L\bibinitperiod},
+           given={Dong-Soo},
+           giveni={D\bibinithyphendelim S\bibinitperiod}}}%
+      }
+      \strng{namehash}{ffa26d9903c74873c2fcda12c1acc575}
+      \strng{fullhash}{ffa26d9903c74873c2fcda12c1acc575}
+      \strng{fullhashraw}{ffa26d9903c74873c2fcda12c1acc575}
+      \strng{bibnamehash}{ffa26d9903c74873c2fcda12c1acc575}
+      \strng{authorbibnamehash}{ffa26d9903c74873c2fcda12c1acc575}
+      \strng{authornamehash}{ffa26d9903c74873c2fcda12c1acc575}
+      \strng{authorfullhash}{ffa26d9903c74873c2fcda12c1acc575}
+      \strng{authorfullhashraw}{ffa26d9903c74873c2fcda12c1acc575}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Journal of Applied Clinical Medical Physics}
+      \field{title}{Development of a deformable lung phantom for the evaluation of deformable registration}
+      \field{year}{2010}
+      \keyw{fantoma-deformavel,radioterapia,pulmao}
+    \endentry
     \entry{Zhao2025}{article}{}{}
       \name{author}{6}{}{%
         {{hash=dee8e04a9b7fcc739a707549489a5d06}{%
@@ -1868,17 +1955,13 @@
       \strng{authornamehash}{ba6b7658984ff4ae7be6c755c8c645b7}
       \strng{authorfullhash}{ba6b7658984ff4ae7be6c755c8c645b7}
       \strng{authorfullhashraw}{ba6b7658984ff4ae7be6c755c8c645b7}
-      \field{extraname}{1}
+      \field{extraname}{2}
       \field{sortinit}{3}
       \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{howpublished}{Patente US5975748A}
       \field{title}{Servo lung simulator and related control method}
-      \field{urlday}{7}
-      \field{urlmonth}{7}
-      \field{urlyear}{2026}
-      \field{urldateera}{ce}
       \verb{urlraw}
       \verb https://patents.google.com/patent/US5975748A/en
       \endverb
@@ -1887,7 +1970,7 @@
       \endverb
       \keyw{patente,servo-piston,mecanica-pulmonar}
     \endentry
-    \entry{PatCN107346634B}{online}{}{}
+    \entry{PatCN101447141B}{online}{}{}
       \name{author}{1}{}{%
         {{hash=e2904d9d8e715dca8e4147f0aa7150b8}{%
            family={{CNIPA}},
@@ -1906,12 +1989,65 @@
       \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
+      \field{howpublished}{Patente CN101447141B}
+      \field{title}{Chest retraction simulating device and medical patient simulator having the device}
+      \verb{urlraw}
+      \verb https://patents.google.com/patent/CN101447141B/en
+      \endverb
+      \verb{url}
+      \verb https://patents.google.com/patent/CN101447141B/en
+      \endverb
+      \keyw{patente,atuacao-toracica}
+    \endentry
+    \entry{PatEP2430628B1}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=79e8e56d43f34eb7698bfb7535d1b37a}{%
+           family={{EPO}},
+           familyi={E\bibinitperiod}}}%
+      }
+      \strng{namehash}{79e8e56d43f34eb7698bfb7535d1b37a}
+      \strng{fullhash}{79e8e56d43f34eb7698bfb7535d1b37a}
+      \strng{fullhashraw}{79e8e56d43f34eb7698bfb7535d1b37a}
+      \strng{bibnamehash}{79e8e56d43f34eb7698bfb7535d1b37a}
+      \strng{authorbibnamehash}{79e8e56d43f34eb7698bfb7535d1b37a}
+      \strng{authornamehash}{79e8e56d43f34eb7698bfb7535d1b37a}
+      \strng{authorfullhash}{79e8e56d43f34eb7698bfb7535d1b37a}
+      \strng{authorfullhashraw}{79e8e56d43f34eb7698bfb7535d1b37a}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{Patente EP2430628B1}
+      \field{title}{Ensemble d'apprentissage et simulateur de torse de nourrisson pour l'apprentissage du geste de la kinésithérapie respiratoire}
+      \verb{urlraw}
+      \verb https://patents.google.com/patent/EP2430628B1/fr
+      \endverb
+      \verb{url}
+      \verb https://patents.google.com/patent/EP2430628B1/fr
+      \endverb
+      \keyw{patente,simulador-torso-lactente}
+    \endentry
+    \entry{PatCN107346634B}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=e2904d9d8e715dca8e4147f0aa7150b8}{%
+           family={{CNIPA}},
+           familyi={C\bibinitperiod}}}%
+      }
+      \strng{namehash}{e2904d9d8e715dca8e4147f0aa7150b8}
+      \strng{fullhash}{e2904d9d8e715dca8e4147f0aa7150b8}
+      \strng{fullhashraw}{e2904d9d8e715dca8e4147f0aa7150b8}
+      \strng{bibnamehash}{e2904d9d8e715dca8e4147f0aa7150b8}
+      \strng{authorbibnamehash}{e2904d9d8e715dca8e4147f0aa7150b8}
+      \strng{authornamehash}{e2904d9d8e715dca8e4147f0aa7150b8}
+      \strng{authorfullhash}{e2904d9d8e715dca8e4147f0aa7150b8}
+      \strng{authorfullhashraw}{e2904d9d8e715dca8e4147f0aa7150b8}
+      \field{extraname}{2}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
       \field{howpublished}{Patente CN107346634B}
       \field{title}{Full-automatic high-simulation body position drainage simulation training model}
-      \field{urlday}{7}
-      \field{urlmonth}{7}
-      \field{urlyear}{2026}
-      \field{urldateera}{ce}
       \verb{urlraw}
       \verb https://patents.google.com/patent/CN107346634B/en
       \endverb
@@ -1938,15 +2074,11 @@
       \strng{authornamehash}{906497692b0c6c5ef94cf2504883b55a}
       \strng{authorfullhash}{906497692b0c6c5ef94cf2504883b55a}
       \strng{authorfullhashraw}{906497692b0c6c5ef94cf2504883b55a}
-      \field{sortinit}{3}
-      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{title}{WKA (Waseda-Kyoto Kagaku Airway) airway management training robot series}
-      \field{urlday}{7}
-      \field{urlmonth}{7}
-      \field{urlyear}{2026}
-      \field{urldateera}{ce}
       \verb{urlraw}
       \verb https://link.springer.com/article/10.1007/s11548-008-0238-1
       \endverb
@@ -2012,11 +2144,7 @@
       \field{labeltitlesource}{title}
       \field{eprinttype}{arxiv}
       \field{title}{Stop Holding Your Breath: CT-Informed Gaussian Splatting for Dynamic Bronchoscopy}
-      \field{urlday}{7}
-      \field{urlmonth}{7}
-      \field{urlyear}{2026}
       \field{year}{2026}
-      \field{urldateera}{ce}
       \verb{eprint}
       \verb 2604.28179
       \endverb
@@ -2138,179 +2266,143 @@
       \field{year}{2012}
       \keyw{simulador-virtual,haptica,tese}
     \endentry
-    \entry{TinkersProjects2018}{software}{}{}
+    \entry{FormlabsFlexible80A}{online}{}{}
       \name{author}{1}{}{%
-        {{hash=312495e244c91855d4827b73b634b887}{%
-           family={Bailes},
-           familyi={B\bibinitperiod},
-           given={William},
-           giveni={W\bibinitperiod}}}%
+        {{hash=2a7911a2a12f596efba89330d50093d6}{%
+           family={{Formlabs}},
+           familyi={F\bibinitperiod}}}%
       }
-      \strng{namehash}{312495e244c91855d4827b73b634b887}
-      \strng{fullhash}{312495e244c91855d4827b73b634b887}
-      \strng{fullhashraw}{312495e244c91855d4827b73b634b887}
-      \strng{bibnamehash}{312495e244c91855d4827b73b634b887}
-      \strng{authorbibnamehash}{312495e244c91855d4827b73b634b887}
-      \strng{authornamehash}{312495e244c91855d4827b73b634b887}
-      \strng{authorfullhash}{312495e244c91855d4827b73b634b887}
-      \strng{authorfullhashraw}{312495e244c91855d4827b73b634b887}
+      \strng{namehash}{2a7911a2a12f596efba89330d50093d6}
+      \strng{fullhash}{2a7911a2a12f596efba89330d50093d6}
+      \strng{fullhashraw}{2a7911a2a12f596efba89330d50093d6}
+      \strng{bibnamehash}{2a7911a2a12f596efba89330d50093d6}
+      \strng{authorbibnamehash}{2a7911a2a12f596efba89330d50093d6}
+      \strng{authornamehash}{2a7911a2a12f596efba89330d50093d6}
+      \strng{authorfullhash}{2a7911a2a12f596efba89330d50093d6}
+      \strng{authorfullhashraw}{2a7911a2a12f596efba89330d50093d6}
+      \field{extraname}{1}
       \field{sortinit}{4}
       \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{note}{Biblioteca Arduino de código aberto para cinemática direta e inversa de manipuladores delta}
-      \field{title}{Delta-Kinematics-Library}
-      \field{urlday}{3}
-      \field{urlmonth}{7}
-      \field{urlyear}{2026}
-      \field{year}{2018}
-      \field{urldateera}{ce}
+      \field{title}{Flexible 80A Resin}
       \verb{urlraw}
-      \verb https://github.com/tinkersprojects/Delta-Kinematics-Library
+      \verb https://formlabs.com/eu/products/flexible-80a-resin/
       \endverb
       \verb{url}
-      \verb https://github.com/tinkersprojects/Delta-Kinematics-Library
+      \verb https://formlabs.com/eu/products/flexible-80a-resin/
       \endverb
-      \keyw{manipulador-delta,codigo-fonte}
+      \keyw{resina-sla,flexivel,formlabs}
     \endentry
-    \entry{Nikanorov_HyperTriangle}{online}{}{}
+    \entry{InslogicFlexible70A}{online}{}{}
       \name{author}{1}{}{%
-        {{hash=8fe42cc9d2d0f1ff1aa7336ba6d56c9e}{%
-           family={Nikanorov},
-           familyi={N\bibinitperiod},
-           given={Alex},
-           giveni={A\bibinitperiod}}}%
+        {{hash=220cef89868a2064d6576f25509a3fab}{%
+           family={{Inslogic}},
+           familyi={I\bibinitperiod}}}%
       }
-      \strng{namehash}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
-      \strng{fullhash}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
-      \strng{fullhashraw}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
-      \strng{bibnamehash}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
-      \strng{authorbibnamehash}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
-      \strng{authornamehash}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
-      \strng{authorfullhash}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
-      \strng{authorfullhashraw}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
+      \strng{namehash}{220cef89868a2064d6576f25509a3fab}
+      \strng{fullhash}{220cef89868a2064d6576f25509a3fab}
+      \strng{fullhashraw}{220cef89868a2064d6576f25509a3fab}
+      \strng{bibnamehash}{220cef89868a2064d6576f25509a3fab}
+      \strng{authorbibnamehash}{220cef89868a2064d6576f25509a3fab}
+      \strng{authornamehash}{220cef89868a2064d6576f25509a3fab}
+      \strng{authorfullhash}{220cef89868a2064d6576f25509a3fab}
+      \strng{authorfullhashraw}{220cef89868a2064d6576f25509a3fab}
       \field{sortinit}{4}
       \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{note}{Tutorial online, HyperTriangle}
-      \field{title}{Delta robot kinematics}
-      \field{urlday}{3}
-      \field{urlmonth}{7}
-      \field{urlyear}{2026}
-      \field{urldateera}{ce}
+      \field{title}{Inslogic Flexible 70A Resin}
       \verb{urlraw}
-      \verb https://hypertriangle.com/~alex/delta-robot-tutorial/
+      \verb https://www.inslogic3d.com/products/inslogic-flexible-70a-resin
       \endverb
       \verb{url}
-      \verb https://hypertriangle.com/~alex/delta-robot-tutorial/
+      \verb https://www.inslogic3d.com/products/inslogic-flexible-70a-resin
       \endverb
-      \keyw{manipulador-delta,cinematica-inversa,tutorial}
+      \keyw{resina-sla,flexivel,inslogic}
     \endentry
-    \entry{Isaac2019Delta}{software}{}{}
+    \entry{LiqcreateFlexResins}{online}{}{}
       \name{author}{1}{}{%
-        {{hash=ae49d1a95d81a575fcc595b008b82d3e}{%
-           family={{isaac879}},
-           familyi={i\bibinitperiod}}}%
+        {{hash=912cc856f3fba8575e3bc014103705df}{%
+           family={{Liqcreate}},
+           familyi={L\bibinitperiod}}}%
       }
-      \strng{namehash}{ae49d1a95d81a575fcc595b008b82d3e}
-      \strng{fullhash}{ae49d1a95d81a575fcc595b008b82d3e}
-      \strng{fullhashraw}{ae49d1a95d81a575fcc595b008b82d3e}
-      \strng{bibnamehash}{ae49d1a95d81a575fcc595b008b82d3e}
-      \strng{authorbibnamehash}{ae49d1a95d81a575fcc595b008b82d3e}
-      \strng{authornamehash}{ae49d1a95d81a575fcc595b008b82d3e}
-      \strng{authorfullhash}{ae49d1a95d81a575fcc595b008b82d3e}
-      \strng{authorfullhashraw}{ae49d1a95d81a575fcc595b008b82d3e}
+      \strng{namehash}{912cc856f3fba8575e3bc014103705df}
+      \strng{fullhash}{912cc856f3fba8575e3bc014103705df}
+      \strng{fullhashraw}{912cc856f3fba8575e3bc014103705df}
+      \strng{bibnamehash}{912cc856f3fba8575e3bc014103705df}
+      \strng{authorbibnamehash}{912cc856f3fba8575e3bc014103705df}
+      \strng{authornamehash}{912cc856f3fba8575e3bc014103705df}
+      \strng{authorfullhash}{912cc856f3fba8575e3bc014103705df}
+      \strng{authorfullhashraw}{912cc856f3fba8575e3bc014103705df}
       \field{sortinit}{4}
       \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{note}{Repositório de código aberto; robô manipulador delta impresso em 3D controlado por Arduino Nano}
-      \field{title}{Delta-Robot}
-      \field{urlday}{3}
-      \field{urlmonth}{7}
-      \field{urlyear}{2026}
-      \field{year}{2019}
-      \field{urldateera}{ce}
+      \field{title}{Is there a flexible {SLA} 3D-printing resin?}
       \verb{urlraw}
-      \verb https://github.com/isaac879/Delta-Robot
+      \verb https://www.liqcreate.com/supportarticles/elastic-flexible-sla-resin/
       \endverb
       \verb{url}
-      \verb https://github.com/isaac879/Delta-Robot
+      \verb https://www.liqcreate.com/supportarticles/elastic-flexible-sla-resin/
       \endverb
-      \keyw{manipulador-delta,codigo-fonte,inspiracao}
+      \keyw{resina-sla,flexivel,liqcreate}
     \endentry
-    \entry{ZsomborMurray2004}{report}{}{}
+    \entry{FormlabsElastic50A}{online}{}{}
       \name{author}{1}{}{%
-        {{hash=4b90129d39f91e27bbe2ac53de61772d}{%
-           family={Zsombor-Murray},
-           familyi={Z\bibinithyphendelim M\bibinitperiod},
-           given={P.\bibnamedelimi J.},
-           giveni={P\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=2a7911a2a12f596efba89330d50093d6}{%
+           family={{Formlabs}},
+           familyi={F\bibinitperiod}}}%
       }
-      \list{institution}{1}{%
-        {McGill University, Centre for Intelligent Machines}%
-      }
-      \strng{namehash}{4b90129d39f91e27bbe2ac53de61772d}
-      \strng{fullhash}{4b90129d39f91e27bbe2ac53de61772d}
-      \strng{fullhashraw}{4b90129d39f91e27bbe2ac53de61772d}
-      \strng{bibnamehash}{4b90129d39f91e27bbe2ac53de61772d}
-      \strng{authorbibnamehash}{4b90129d39f91e27bbe2ac53de61772d}
-      \strng{authornamehash}{4b90129d39f91e27bbe2ac53de61772d}
-      \strng{authorfullhash}{4b90129d39f91e27bbe2ac53de61772d}
-      \strng{authorfullhashraw}{4b90129d39f91e27bbe2ac53de61772d}
+      \strng{namehash}{2a7911a2a12f596efba89330d50093d6}
+      \strng{fullhash}{2a7911a2a12f596efba89330d50093d6}
+      \strng{fullhashraw}{2a7911a2a12f596efba89330d50093d6}
+      \strng{bibnamehash}{2a7911a2a12f596efba89330d50093d6}
+      \strng{authorbibnamehash}{2a7911a2a12f596efba89330d50093d6}
+      \strng{authornamehash}{2a7911a2a12f596efba89330d50093d6}
+      \strng{authorfullhash}{2a7911a2a12f596efba89330d50093d6}
+      \strng{authorfullhashraw}{2a7911a2a12f596efba89330d50093d6}
+      \field{extraname}{2}
       \field{sortinit}{4}
       \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{title}{Descriptive Geometric Kinematic Analysis of Clavel's ``Delta'' Robot}
-      \field{urlday}{3}
-      \field{urlmonth}{7}
-      \field{urlyear}{2026}
-      \field{year}{2004}
-      \field{urldateera}{ce}
+      \field{title}{Introducing Elastic Resin: A Soft, Resilient 3D Printing Material}
       \verb{urlraw}
-      \verb https://cim.mcgill.ca/~paul/clavdelt.pdf
+      \verb https://formlabs.com/uk/blog/elastic-resin-soft-resilient-3d-printing/
       \endverb
       \verb{url}
-      \verb https://cim.mcgill.ca/~paul/clavdelt.pdf
+      \verb https://formlabs.com/uk/blog/elastic-resin-soft-resilient-3d-printing/
       \endverb
-      \keyw{manipulador-delta,cinematica-inversa,geometria}
+      \keyw{resina-sla,elastica,formlabs}
     \endentry
-    \entry{Hasanlu2025}{article}{}{}
-      \name{author}{2}{}{%
-        {{hash=b42ba49357abf1d203e86ce4b99d26c0}{%
-           family={Hasanlu},
-           familyi={H\bibinitperiod},
-           given={M.},
-           giveni={M\bibinitperiod}}}%
-        {{hash=725d15cdbf35d58e57a264310499129b}{%
-           family={Siavashi},
-           familyi={S\bibinitperiod},
-           given={M.},
-           giveni={M\bibinitperiod}}}%
+    \entry{FormlabsSilicone40A}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=2a7911a2a12f596efba89330d50093d6}{%
+           family={{Formlabs}},
+           familyi={F\bibinitperiod}}}%
       }
-      \strng{namehash}{cff48e85ea807a82af55a62f33b8f419}
-      \strng{fullhash}{cff48e85ea807a82af55a62f33b8f419}
-      \strng{fullhashraw}{cff48e85ea807a82af55a62f33b8f419}
-      \strng{bibnamehash}{cff48e85ea807a82af55a62f33b8f419}
-      \strng{authorbibnamehash}{cff48e85ea807a82af55a62f33b8f419}
-      \strng{authornamehash}{cff48e85ea807a82af55a62f33b8f419}
-      \strng{authorfullhash}{cff48e85ea807a82af55a62f33b8f419}
-      \strng{authorfullhashraw}{cff48e85ea807a82af55a62f33b8f419}
+      \strng{namehash}{2a7911a2a12f596efba89330d50093d6}
+      \strng{fullhash}{2a7911a2a12f596efba89330d50093d6}
+      \strng{fullhashraw}{2a7911a2a12f596efba89330d50093d6}
+      \strng{bibnamehash}{2a7911a2a12f596efba89330d50093d6}
+      \strng{authorbibnamehash}{2a7911a2a12f596efba89330d50093d6}
+      \strng{authornamehash}{2a7911a2a12f596efba89330d50093d6}
+      \strng{authorfullhash}{2a7911a2a12f596efba89330d50093d6}
+      \strng{authorfullhashraw}{2a7911a2a12f596efba89330d50093d6}
+      \field{extraname}{3}
       \field{sortinit}{4}
       \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{journaltitle}{Robotic Systems and Applications}
-      \field{number}{1}
-      \field{title}{Optimum kinematic--dynamic performance of the reconfigurable delta robot through genetic algorithm optimization}
-      \field{volume}{5}
-      \field{year}{2025}
-      \verb{doi}
-      \verb 10.21595/rsa.2025.24731
+      \field{title}{100\% Silicone {3D} Printing Made Accessible: Introducing Silicone 40A Resin}
+      \verb{urlraw}
+      \verb https://formlabs.com/blog/silicone-3d-printing-material-silicone-40a-resin/
       \endverb
-      \keyw{manipulador-delta,cinematica-inversa,otimizacao}
+      \verb{url}
+      \verb https://formlabs.com/blog/silicone-3d-printing-material-silicone-40a-resin/
+      \endverb
+      \keyw{resina-sla,silicone,formlabs}
     \endentry
     \entry{Kim2023}{article}{}{}
       \name{author}{7}{}{%
@@ -2358,21 +2450,326 @@
       \strng{authornamehash}{f311360ab58d5b8bd59aa8ac076b3d17}
       \strng{authorfullhash}{b8dd56b3f43141434f26c82c4ccdf92d}
       \strng{authorfullhashraw}{b8dd56b3f43141434f26c82c4ccdf92d}
-      \field{sortinit}{8}
-      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Physical and Engineering Sciences in Medicine}
       \field{title}{A novel computer modeling and simulation technique for bronchi motion tracking in human lungs under respiration}
       \field{volume}{46}
       \field{year}{2023}
-      \true{nocite}
       \field{pages}{1741\bibrangedash 1753}
       \range{pages}{13}
       \verb{doi}
       \verb 10.1007/s13246-023-01336-2
       \endverb
       \keyw{movimento-bronquico,modelacao-computacional,respiracao}
+    \endentry
+    \entry{Arcieri2016}{article}{}{}
+      \name{author}{10}{}{%
+        {{hash=4d86fe97cbec43323cc58523f38955af}{%
+           family={Arcieri},
+           familyi={A\bibinitperiod},
+           given={Luigi},
+           giveni={L\bibinitperiod}}}%
+        {{hash=ca68e29ab5d6133de9a3eab406d81bd3}{%
+           family={Serio},
+           familyi={S\bibinitperiod},
+           given={Paola},
+           giveni={P\bibinitperiod}}}%
+        {{hash=715209edfe0e0d498ed815f1a1d5b2cd}{%
+           family={Nenna},
+           familyi={N\bibinitperiod},
+           given={Raffaella},
+           giveni={R\bibinitperiod}}}%
+        {{hash=7a310ba996427c0766a4444f404a64d5}{%
+           family={Di\bibnamedelima Maurizio},
+           familyi={D\bibinitperiod\bibinitdelim M\bibinitperiod},
+           given={Marco},
+           giveni={M\bibinitperiod}}}%
+        {{hash=f120b753e435b3e9a1be0ca703b8a1b4}{%
+           family={Baggi},
+           familyi={B\bibinitperiod},
+           given={Roberto},
+           giveni={R\bibinitperiod}}}%
+        {{hash=ca7fa81e0feaa8b3d5cfce674a0007dd}{%
+           family={Assanta},
+           familyi={A\bibinitperiod},
+           given={Nadia},
+           giveni={N\bibinitperiod}}}%
+        {{hash=d42a673caaa396f31e6d1ca6b0dc32ce}{%
+           family={Moschetti},
+           familyi={M\bibinitperiod},
+           given={Riccardo},
+           giveni={R\bibinitperiod}}}%
+        {{hash=8b93874b167cf0cb45383cd6c45e23a1}{%
+           family={Noccioli},
+           familyi={N\bibinitperiod},
+           given={Bruno},
+           giveni={B\bibinitperiod}}}%
+        {{hash=52f0ceaba730a28359216417dddb9b08}{%
+           family={Mirabile},
+           familyi={M\bibinitperiod},
+           given={Lorenzo},
+           giveni={L\bibinitperiod}}}%
+        {{hash=bf009858c29a6e17c42e9efcf3779f60}{%
+           family={Murzi},
+           familyi={M\bibinitperiod},
+           given={Bruno},
+           giveni={B\bibinitperiod}}}%
+      }
+      \strng{namehash}{0f5b00fae29de88d3370318d1f9f7e44}
+      \strng{fullhash}{af6e8eb622db6966283ab658bbc642db}
+      \strng{fullhashraw}{af6e8eb622db6966283ab658bbc642db}
+      \strng{bibnamehash}{0f5b00fae29de88d3370318d1f9f7e44}
+      \strng{authorbibnamehash}{0f5b00fae29de88d3370318d1f9f7e44}
+      \strng{authornamehash}{0f5b00fae29de88d3370318d1f9f7e44}
+      \strng{authorfullhash}{af6e8eb622db6966283ab658bbc642db}
+      \strng{authorfullhashraw}{af6e8eb622db6966283ab658bbc642db}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Interactive CardioVascular and Thoracic Surgery}
+      \field{number}{5}
+      \field{title}{The role of posterior aortopexy in the treatment of left mainstem bronchus compression}
+      \field{volume}{23}
+      \field{year}{2016}
+      \field{pages}{699\bibrangedash 704}
+      \range{pages}{6}
+      \verb{doi}
+      \verb 10.1093/icvts/ivw209
+      \endverb
+      \keyw{compressao-bronquica,cardiaco,broncoscopia,brônquio-esquerdo}
+    \endentry
+    \entry{Chung2004}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=892f044a091327a2828c1c474fcfbc96}{%
+           family={Chung},
+           familyi={C\bibinitperiod},
+           given={Charles\bibnamedelima S.},
+           giveni={C\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=6f6c3b876cdac44c9ddabca5f83c770e}{%
+           family={Karamanoglu},
+           familyi={K\bibinitperiod},
+           given={Mustafa},
+           giveni={M\bibinitperiod}}}%
+        {{hash=b0ffd50e6af396c2bce88c3fb2ec8f77}{%
+           family={Kovács},
+           familyi={K\bibinitperiod},
+           given={Sándor\bibnamedelima J.},
+           giveni={S\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+      }
+      \strng{namehash}{aa0e1903cb2c348b859b9f6400843f0c}
+      \strng{fullhash}{aa0e1903cb2c348b859b9f6400843f0c}
+      \strng{fullhashraw}{aa0e1903cb2c348b859b9f6400843f0c}
+      \strng{bibnamehash}{aa0e1903cb2c348b859b9f6400843f0c}
+      \strng{authorbibnamehash}{aa0e1903cb2c348b859b9f6400843f0c}
+      \strng{authornamehash}{aa0e1903cb2c348b859b9f6400843f0c}
+      \strng{authorfullhash}{aa0e1903cb2c348b859b9f6400843f0c}
+      \strng{authorfullhashraw}{aa0e1903cb2c348b859b9f6400843f0c}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{American Journal of Physiology-Heart and Circulatory Physiology}
+      \field{number}{5}
+      \field{title}{Duration of diastole and its phases as a function of heart rate during supine bicycle exercise}
+      \field{volume}{287}
+      \field{year}{2004}
+      \field{pages}{H2003\bibrangedash H2008}
+      \range{pages}{-1}
+      \verb{doi}
+      \verb 10.1152/ajpheart.00404.2004
+      \endverb
+      \keyw{ciclo-cardiaco,diastole,frequencia-cardiaca}
+    \endentry
+    \entry{TinkersProjects2018}{software}{}{}
+      \name{author}{1}{}{%
+        {{hash=312495e244c91855d4827b73b634b887}{%
+           family={Bailes},
+           familyi={B\bibinitperiod},
+           given={William},
+           giveni={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{312495e244c91855d4827b73b634b887}
+      \strng{fullhash}{312495e244c91855d4827b73b634b887}
+      \strng{fullhashraw}{312495e244c91855d4827b73b634b887}
+      \strng{bibnamehash}{312495e244c91855d4827b73b634b887}
+      \strng{authorbibnamehash}{312495e244c91855d4827b73b634b887}
+      \strng{authornamehash}{312495e244c91855d4827b73b634b887}
+      \strng{authorfullhash}{312495e244c91855d4827b73b634b887}
+      \strng{authorfullhashraw}{312495e244c91855d4827b73b634b887}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Biblioteca Arduino de código aberto para cinemática direta e inversa de manipuladores delta}
+      \field{title}{Delta-Kinematics-Library}
+      \field{year}{2018}
+      \verb{urlraw}
+      \verb https://github.com/tinkersprojects/Delta-Kinematics-Library
+      \endverb
+      \verb{url}
+      \verb https://github.com/tinkersprojects/Delta-Kinematics-Library
+      \endverb
+      \keyw{manipulador-delta,codigo-fonte}
+    \endentry
+    \entry{Nikanorov_HyperTriangle}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=8fe42cc9d2d0f1ff1aa7336ba6d56c9e}{%
+           family={Nikanorov},
+           familyi={N\bibinitperiod},
+           given={Alex},
+           giveni={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
+      \strng{fullhash}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
+      \strng{fullhashraw}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
+      \strng{bibnamehash}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
+      \strng{authorbibnamehash}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
+      \strng{authornamehash}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
+      \strng{authorfullhash}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
+      \strng{authorfullhashraw}{8fe42cc9d2d0f1ff1aa7336ba6d56c9e}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Tutorial online, HyperTriangle}
+      \field{title}{Delta robot kinematics}
+      \verb{urlraw}
+      \verb https://hypertriangle.com/~alex/delta-robot-tutorial/
+      \endverb
+      \verb{url}
+      \verb https://hypertriangle.com/~alex/delta-robot-tutorial/
+      \endverb
+      \keyw{manipulador-delta,cinematica-inversa,tutorial}
+    \endentry
+    \entry{Isaac2019Delta}{software}{}{}
+      \name{author}{1}{}{%
+        {{hash=ae49d1a95d81a575fcc595b008b82d3e}{%
+           family={{isaac879}},
+           familyi={i\bibinitperiod}}}%
+      }
+      \strng{namehash}{ae49d1a95d81a575fcc595b008b82d3e}
+      \strng{fullhash}{ae49d1a95d81a575fcc595b008b82d3e}
+      \strng{fullhashraw}{ae49d1a95d81a575fcc595b008b82d3e}
+      \strng{bibnamehash}{ae49d1a95d81a575fcc595b008b82d3e}
+      \strng{authorbibnamehash}{ae49d1a95d81a575fcc595b008b82d3e}
+      \strng{authornamehash}{ae49d1a95d81a575fcc595b008b82d3e}
+      \strng{authorfullhash}{ae49d1a95d81a575fcc595b008b82d3e}
+      \strng{authorfullhashraw}{ae49d1a95d81a575fcc595b008b82d3e}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Repositório de código aberto; robô manipulador delta impresso em 3D controlado por Arduino Nano}
+      \field{title}{Delta-Robot}
+      \field{year}{2019}
+      \verb{urlraw}
+      \verb https://github.com/isaac879/Delta-Robot
+      \endverb
+      \verb{url}
+      \verb https://github.com/isaac879/Delta-Robot
+      \endverb
+      \keyw{manipulador-delta,codigo-fonte,inspiracao}
+    \endentry
+    \entry{ItayMiz2021}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=86499c18a494d0069b67fb5c48b1d7b9}{%
+           family={{ItayMiz e comunidade Stack Overflow}},
+           familyi={I\bibinitperiod}}}%
+      }
+      \strng{namehash}{86499c18a494d0069b67fb5c48b1d7b9}
+      \strng{fullhash}{86499c18a494d0069b67fb5c48b1d7b9}
+      \strng{fullhashraw}{86499c18a494d0069b67fb5c48b1d7b9}
+      \strng{bibnamehash}{86499c18a494d0069b67fb5c48b1d7b9}
+      \strng{authorbibnamehash}{86499c18a494d0069b67fb5c48b1d7b9}
+      \strng{authornamehash}{86499c18a494d0069b67fb5c48b1d7b9}
+      \strng{authorfullhash}{86499c18a494d0069b67fb5c48b1d7b9}
+      \strng{authorfullhashraw}{86499c18a494d0069b67fb5c48b1d7b9}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Resposta sobre controlo manual dos sinais DTR/RTS para evitar resets indesejados de placas Arduino/ESP32 durante a abertura da porta série}
+      \verb{urlraw}
+      \verb https://stackoverflow.com/a/68914329
+      \endverb
+      \verb{url}
+      \verb https://stackoverflow.com/a/68914329
+      \endverb
+      \keyw{comunicacao-serie,dtr-rts,stackoverflow}
+    \endentry
+    \entry{ZsomborMurray2004}{report}{}{}
+      \name{author}{1}{}{%
+        {{hash=4b90129d39f91e27bbe2ac53de61772d}{%
+           family={Zsombor-Murray},
+           familyi={Z\bibinithyphendelim M\bibinitperiod},
+           given={P.\bibnamedelimi J.},
+           giveni={P\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {McGill University, Centre for Intelligent Machines}%
+      }
+      \strng{namehash}{4b90129d39f91e27bbe2ac53de61772d}
+      \strng{fullhash}{4b90129d39f91e27bbe2ac53de61772d}
+      \strng{fullhashraw}{4b90129d39f91e27bbe2ac53de61772d}
+      \strng{bibnamehash}{4b90129d39f91e27bbe2ac53de61772d}
+      \strng{authorbibnamehash}{4b90129d39f91e27bbe2ac53de61772d}
+      \strng{authornamehash}{4b90129d39f91e27bbe2ac53de61772d}
+      \strng{authorfullhash}{4b90129d39f91e27bbe2ac53de61772d}
+      \strng{authorfullhashraw}{4b90129d39f91e27bbe2ac53de61772d}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Descriptive Geometric Kinematic Analysis of Clavel's ``Delta'' Robot}
+      \field{year}{2004}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://cim.mcgill.ca/~paul/clavdelt.pdf
+      \endverb
+      \verb{url}
+      \verb https://cim.mcgill.ca/~paul/clavdelt.pdf
+      \endverb
+      \keyw{manipulador-delta,cinematica-inversa,geometria}
+    \endentry
+    \entry{Hasanlu2025}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=b42ba49357abf1d203e86ce4b99d26c0}{%
+           family={Hasanlu},
+           familyi={H\bibinitperiod},
+           given={M.},
+           giveni={M\bibinitperiod}}}%
+        {{hash=725d15cdbf35d58e57a264310499129b}{%
+           family={Siavashi},
+           familyi={S\bibinitperiod},
+           given={M.},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{cff48e85ea807a82af55a62f33b8f419}
+      \strng{fullhash}{cff48e85ea807a82af55a62f33b8f419}
+      \strng{fullhashraw}{cff48e85ea807a82af55a62f33b8f419}
+      \strng{bibnamehash}{cff48e85ea807a82af55a62f33b8f419}
+      \strng{authorbibnamehash}{cff48e85ea807a82af55a62f33b8f419}
+      \strng{authornamehash}{cff48e85ea807a82af55a62f33b8f419}
+      \strng{authorfullhash}{cff48e85ea807a82af55a62f33b8f419}
+      \strng{authorfullhashraw}{cff48e85ea807a82af55a62f33b8f419}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Robotic Systems and Applications}
+      \field{number}{1}
+      \field{title}{Optimum kinematic--dynamic performance of the reconfigurable delta robot through genetic algorithm optimization}
+      \field{volume}{5}
+      \field{year}{2025}
+      \true{nocite}
+      \verb{doi}
+      \verb 10.21595/rsa.2025.24731
+      \endverb
+      \keyw{manipulador-delta,cinematica-inversa,otimizacao}
     \endentry
     \entry{DalNegro2013}{article}{}{}
       \name{author}{4}{}{%
@@ -2405,8 +2802,8 @@
       \strng{authornamehash}{005371a5ea0805eb4324fd26c1f38d2c}
       \strng{authorfullhash}{927d9f6ead970317df3fd9bd373c9446}
       \strng{authorfullhashraw}{927d9f6ead970317df3fd9bd373c9446}
-      \field{sortinit}{8}
-      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Multidisciplinary Respiratory Medicine}
@@ -2444,8 +2841,8 @@
       \strng{authornamehash}{b0ba332a50b6208ecc35ad913fbc4065}
       \strng{authorfullhash}{b0ba332a50b6208ecc35ad913fbc4065}
       \strng{authorfullhashraw}{b0ba332a50b6208ecc35ad913fbc4065}
-      \field{sortinit}{8}
-      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Biophysical Journal}
@@ -2456,107 +2853,6 @@
       \field{pages}{3030\bibrangedash 3042}
       \range{pages}{13}
       \keyw{broncoconstricao,complacencia,modelo-multiescala}
-    \endentry
-    \entry{PatCN101447141B}{online}{}{}
-      \name{author}{1}{}{%
-        {{hash=e2904d9d8e715dca8e4147f0aa7150b8}{%
-           family={{CNIPA}},
-           familyi={C\bibinitperiod}}}%
-      }
-      \strng{namehash}{e2904d9d8e715dca8e4147f0aa7150b8}
-      \strng{fullhash}{e2904d9d8e715dca8e4147f0aa7150b8}
-      \strng{fullhashraw}{e2904d9d8e715dca8e4147f0aa7150b8}
-      \strng{bibnamehash}{e2904d9d8e715dca8e4147f0aa7150b8}
-      \strng{authorbibnamehash}{e2904d9d8e715dca8e4147f0aa7150b8}
-      \strng{authornamehash}{e2904d9d8e715dca8e4147f0aa7150b8}
-      \strng{authorfullhash}{e2904d9d8e715dca8e4147f0aa7150b8}
-      \strng{authorfullhashraw}{e2904d9d8e715dca8e4147f0aa7150b8}
-      \field{extraname}{2}
-      \field{sortinit}{9}
-      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{howpublished}{Patente CN101447141B}
-      \field{title}{Chest retraction simulating device and medical patient simulator having the device}
-      \field{urlday}{7}
-      \field{urlmonth}{7}
-      \field{urlyear}{2026}
-      \field{urldateera}{ce}
-      \true{nocite}
-      \verb{urlraw}
-      \verb https://patents.google.com/patent/CN101447141B/en
-      \endverb
-      \verb{url}
-      \verb https://patents.google.com/patent/CN101447141B/en
-      \endverb
-      \keyw{patente,atuacao-toracica}
-    \endentry
-    \entry{PatEP2430628B1}{online}{}{}
-      \name{author}{1}{}{%
-        {{hash=79e8e56d43f34eb7698bfb7535d1b37a}{%
-           family={{EPO}},
-           familyi={E\bibinitperiod}}}%
-      }
-      \strng{namehash}{79e8e56d43f34eb7698bfb7535d1b37a}
-      \strng{fullhash}{79e8e56d43f34eb7698bfb7535d1b37a}
-      \strng{fullhashraw}{79e8e56d43f34eb7698bfb7535d1b37a}
-      \strng{bibnamehash}{79e8e56d43f34eb7698bfb7535d1b37a}
-      \strng{authorbibnamehash}{79e8e56d43f34eb7698bfb7535d1b37a}
-      \strng{authornamehash}{79e8e56d43f34eb7698bfb7535d1b37a}
-      \strng{authorfullhash}{79e8e56d43f34eb7698bfb7535d1b37a}
-      \strng{authorfullhashraw}{79e8e56d43f34eb7698bfb7535d1b37a}
-      \field{sortinit}{1}
-      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{howpublished}{Patente EP2430628B1}
-      \field{title}{Ensemble d'apprentissage et simulateur de torse de nourrisson pour l'apprentissage du geste de la kinésithérapie respiratoire}
-      \field{urlday}{7}
-      \field{urlmonth}{7}
-      \field{urlyear}{2026}
-      \field{urldateera}{ce}
-      \true{nocite}
-      \verb{urlraw}
-      \verb https://patents.google.com/patent/EP2430628B1/fr
-      \endverb
-      \verb{url}
-      \verb https://patents.google.com/patent/EP2430628B1/fr
-      \endverb
-      \keyw{patente,simulador-torso-lactente}
-    \endentry
-    \entry{PatUS5597310A}{online}{}{}
-      \name{author}{1}{}{%
-        {{hash=ba6b7658984ff4ae7be6c755c8c645b7}{%
-           family={{USPTO}},
-           familyi={U\bibinitperiod}}}%
-      }
-      \strng{namehash}{ba6b7658984ff4ae7be6c755c8c645b7}
-      \strng{fullhash}{ba6b7658984ff4ae7be6c755c8c645b7}
-      \strng{fullhashraw}{ba6b7658984ff4ae7be6c755c8c645b7}
-      \strng{bibnamehash}{ba6b7658984ff4ae7be6c755c8c645b7}
-      \strng{authorbibnamehash}{ba6b7658984ff4ae7be6c755c8c645b7}
-      \strng{authornamehash}{ba6b7658984ff4ae7be6c755c8c645b7}
-      \strng{authorfullhash}{ba6b7658984ff4ae7be6c755c8c645b7}
-      \strng{authorfullhashraw}{ba6b7658984ff4ae7be6c755c8c645b7}
-      \field{extraname}{2}
-      \field{sortinit}{1}
-      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{howpublished}{Patente US5597310A}
-      \field{title}{Teaching model of the bronchial and lungs useful for teaching the biology of those organs}
-      \field{urlday}{7}
-      \field{urlmonth}{7}
-      \field{urlyear}{2026}
-      \field{urldateera}{ce}
-      \true{nocite}
-      \verb{urlraw}
-      \verb https://patents.google.com/patent/US5597310A/en
-      \endverb
-      \verb{url}
-      \verb https://patents.google.com/patent/US5597310A/en
-      \endverb
-      \keyw{patente,modelo-estatico,arvore-bronquica}
     \endentry
   \enddatalist
 \endrefsection

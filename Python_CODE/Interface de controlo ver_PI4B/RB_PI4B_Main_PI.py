@@ -655,8 +655,8 @@ _movements_draft = None
 
 MOVEMENTS_DEFAULTS = {
     'curva1': {
-        'a': 5, 'b': 2, 'xc': 3.6, 'yc': 3.6,
-        'alpha_deg': 45, 'n_curva': 300, 'n_pontos': 10, 'sentido': 'ccw',
+        'a': 5, 'b': 2, 'R': 5, 'alpha_deg': 45, 'delta_deg': 0,
+        'n_curva': 300, 'n_pontos': 10, 'sentido': 'ccw',
     },
     'curva2': {
         'altura': 20, 'largura': 12, 'n_curva': 300,
@@ -1159,12 +1159,8 @@ def route_movements_calcular():
 
         resultado = cm.gerar_graficos(params_c1, params_c2, params_c3)
         config['curva1'] = {**config.get('curva1', {}), **params_c1}
-        if not params_c1.get('xc_manual', False) or not params_c1.get('yc_manual', False):
-            auto_xc, auto_yc = cm.calcular_centro_auto_curva1(params_c1)
-            if not params_c1.get('xc_manual', False):
-                config['curva1']['xc'] = auto_xc
-            if not params_c1.get('yc_manual', False):
-                config['curva1']['yc'] = auto_yc
+        if not params_c1.get('r_manual', False):
+            config['curva1']['R'] = cm.calcular_r_auto_curva1(params_c1)
 
         # guarda os pontos calculados nas configurações dos movimentos
         config['respiracao']['pontos_x'] = resultado['pontos_c2']['x']
