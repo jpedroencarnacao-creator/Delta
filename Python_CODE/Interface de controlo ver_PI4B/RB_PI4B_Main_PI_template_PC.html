@@ -327,6 +327,9 @@ hr { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
 }
 .wifi-item:hover { background: #f0f7f2; border-color: #4a7c59; }
 .wifi-item .ui-icon { margin-right: 0; width: 15px; height: 15px; flex-shrink: 0; }
+.wifi-item.state-connected  { background: #e6f7ea; border-color: var(--green-on); color: var(--green-on); }
+.wifi-item.state-error      { background: #fdeaea; border-color: var(--red-on);   color: var(--red-on); }
+.wifi-item.state-connecting { background: #fff3cd; border-color: #b8860b;         color: #b8860b; }
 
 /* Menu de conexão */
 .conn-menu {
@@ -694,6 +697,8 @@ function applySerialStage(stage) {
         btn.className    = 'conn-indicator ' + m.cls;
         btn.title        = m.tip;
     });
+    _serialStage = stage;
+    renderComList();
 }
 
 window.autoScroll = true;
@@ -1293,12 +1298,48 @@ function applySettingsView() {
     });
 }
 
+let _comPorts = [];
+let _serialStage = 'disconnected';
+
 function loadComPorts() {
     document.getElementById('comList').textContent = 'A procurar...';
     fetch('/info/com_ports').then(r => r.json()).then(data => {
-        document.getElementById('comList').innerHTML =
-            data.map(l => `<div style="margin:2px 0">${l}</div>`).join('');
+        _comPorts = Array.isArray(data) ? data : [];
+        renderComList();
     });
+}
+
+const COM_STATE_TAGS = {
+    connected:   {cls: 'state-connected',  text: ' (ligado)'},
+    connecting:  {cls: 'state-connecting', text: ' (a ligar...)'},
+    error:       {cls: 'state-error',      text: ' (erro)'},
+};
+
+function renderComList() {
+    const list = document.getElementById('comList');
+    if (!list) return;
+    if (!_comPorts.length) {
+        list.innerHTML = '<div style="color:#888">Nenhuma porta encontrada.</div>';
+        return;
+    }
+    list.innerHTML = _comPorts.map((p, i) => {
+        if (p.error) return `<div style="color:#d9534f">${p.description}</div>`;
+        const state = p.active ? COM_STATE_TAGS[_serialStage] : null;
+        const stateCls = state ? ` ${state.cls}` : '';
+        const activeTag = state ? ` <span style="font-weight:bold">${state.text}</span>` : '';
+        const desc = p.description ? ` <span style="color:#888">— ${p.description}</span>` : '';
+        return `<button class="wifi-item${stateCls}" onclick="onComPortClick(${i})"><span>${p.device}</span>${desc}${activeTag}</button>`;
+    }).join('');
+}
+
+function onComPortClick(index) {
+    const port = _comPorts[index];
+    if (!port || port.error || port.active) return;
+    fetch('/serial/select_port', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({device: port.device}),
+    }).then(() => loadComPorts());
 }
 
 let _wifiNetworks = [];
@@ -1760,7 +1801,7 @@ loadBrightness();
         </div>
 
         <div class="mov-section" data-dev-mov="batimento" data-dirty-group="batimento">
-          <h3>Batimento Cardíaco</h3>
+          <h3>Batimento Cardíaco [60–200 bpm]</h3>
           <div class="mov-fields">
             <div class="mov-field"><label>Período por minuto (bpm)</label><input type="number" step="1" min="0" id="batimento_bpm"></div>
             <div class="mov-field"><label>Duração da contração cardíaca (s)</label><input type="number" step="0.01" min="0" id="batimento_periodo"></div>
@@ -1788,7 +1829,7 @@ loadBrightness();
         </div>
 
         <div class="mov-section" data-dev-mov="respiracao" data-dirty-group="respiracao">
-          <h3>Respiração</h3>
+          <h3>Respiração [12–20 ciclo/min]</h3>
           <div class="mov-fields">
             <div class="mov-field"><label>Período por minuto (resp/min)</label><input type="number" step="1" min="0" id="respiracao_bpm"></div>
             <div class="mov-field"><label>Duração da respiração (s)</label><input type="number" step="0.01" min="0" id="respiracao_periodo" readonly></div>
@@ -2090,7 +2131,7 @@ document.getElementById('passwordInput').addEventListener('click', function() {
 
 const CLIENT_MOVEMENTS = {
     batimento: {
-        title: 'Batimento Cardíaco',
+        title: 'Batimento Cardíaco [60–200 bpm]',
         movKey: 'batimento',
         periodoMode: 'bpm',
         periodoLabel: 'Período por minuto (bpm)',
@@ -2108,7 +2149,7 @@ const CLIENT_MOVEMENTS = {
         },
     },
     respiracao: {
-        title: 'Respiração',
+        title: 'Respiração [12–20 ciclo/min]',
         movKey: 'respiracao',
         periodoMode: 'rpm',
         periodoLabel: 'Período por minuto (resp/min)',

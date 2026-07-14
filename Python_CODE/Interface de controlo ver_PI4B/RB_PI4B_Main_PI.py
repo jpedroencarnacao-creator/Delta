@@ -160,12 +160,19 @@ _ser           = None
 _serial_ready  = False
 
 
+_manual_serial_port = None
+
+
 def _detect_serial_port():
     """Tenta encontrar automaticamente a porta serie do ESP32 no Raspberry Pi.
 
     A ordem favorece portas USB com nomes persistentes em /dev/serial/by-id.
-    Tambem aceita override por variavel de ambiente PI4B_SERIAL_PORT.
+    Tambem aceita override manual (selecionado pelo utilizador na interface)
+    ou por variavel de ambiente PI4B_SERIAL_PORT.
     """
+    if _manual_serial_port:
+        return _manual_serial_port
+
     if SERIAL_PORT_ENV:
         return SERIAL_PORT_ENV
 
@@ -437,9 +444,16 @@ def generate_qr_base64(data):
 def list_com_ports():
     try:
         ports = list(serial.tools.list_ports.comports())
-        return [f'{p.device} — {p.description}' for p in ports] or ['Nenhuma porta encontrada.']
+        return [
+            {
+                'device': p.device,
+                'description': p.description or '',
+                'active': p.device == SERIAL_PORT,
+            }
+            for p in ports
+        ]
     except Exception as e:
-        return [f'Erro: {e}']
+        return [{'device': '', 'description': f'Erro: {e}', 'active': False, 'error': True}]
 
 
 def _run_cmd(args, timeout=5):
@@ -965,6 +979,20 @@ def route_serial_disconnect():
 def route_serial_reconnect():
     threading.Thread(target=do_reconnect_sync, daemon=True).start()
     return jsonify({'ok': True})
+
+
+@app.route('/serial/select_port', methods=['POST'])
+def route_serial_select_port():
+    """Define manualmente a porta série a usar (a partir da lista em Definições)
+    e religa imediatamente a essa porta."""
+    global _manual_serial_port
+    data   = request.get_json(force=True, silent=True) or {}
+    device = (data.get('device') or '').strip()
+    if not device:
+        return jsonify({'ok': False, 'error': 'Porta inválida.'}), 400
+    _manual_serial_port = device
+    threading.Thread(target=do_reconnect_sync, daemon=True).start()
+    return jsonify({'ok': True, 'device': device})
 
 
 def schedule_app_shutdown(delay=3.0):
