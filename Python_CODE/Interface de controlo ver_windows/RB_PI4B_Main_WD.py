@@ -488,12 +488,23 @@ MOVEMENTS_DEFAULTS = {
         'raio': 2, 'n_curva': 300, 'n_pontos': 10, 'sentido': 'ccw',
     },
     'respiracao': {
-        'periodo': 4.0, 'espera_inicio': 0.5, 'espera_fim': 0.5,
+        # 'periodo' = duração da respiração (variável, derivada de periodo_total
+        # pelas percentagens abaixo); 'periodo_total' = ciclo completo, definido
+        # pela interface em respirações/minuto. As percentagens vêm dos valores
+        # de referência do utilizador (0.5s/0.1s de pausas para um ciclo de 4.6s).
+        'periodo': 4.0, 'periodo_total': 4.6,
+        'pct_espera_inicio': 0.10869565217391305, 'pct_espera_fim': 0.02173913043478261,
+        'espera_inicio': 0.5, 'espera_fim': 0.1,
         'ponto_inicio': 0,
         'pontos_x': [], 'pontos_y': [], 'pontos_z': [],
     },
     'batimento': {
-        'periodo': 1.0, 'espera_inicio': 0.1, 'espera_fim': 0.1,
+        # 'periodo' = duração da contração cardíaca (constante fisiológica,
+        # só muda se o utilizador a editar diretamente); 'periodo_total' =
+        # ciclo completo, definido pela interface em batimentos/minuto.
+        # espera_inicio é sempre 0; espera_fim = periodo_total - periodo.
+        'periodo': 0.2, 'periodo_total': 0.9,
+        'espera_inicio': 0, 'espera_fim': 0.7,
         'ponto_inicio': 0,
         'pontos_x': [], 'pontos_y': [], 'pontos_z': [],
     },
@@ -948,6 +959,8 @@ def route_movements_calcular():
 
         resultado = cm.gerar_graficos(params_c1, params_c2, params_c3)
         config['curva1'] = {**config.get('curva1', {}), **params_c1}
+        config['curva2'] = {**config.get('curva2', {}), **params_c2}
+        config['curva3'] = {**config.get('curva3', {}), **params_c3}
         if not params_c1.get('r_manual', False):
             config['curva1']['R'] = cm.calcular_r_auto_curva1(params_c1)
 

@@ -55,10 +55,10 @@ body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text)
 .conn-indicator {
     font-size: 18px; padding: 6px 10px; border-radius: 8px;
     border: none; cursor: pointer; font-weight: bold;
-    width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+    width: 54px; height: 54px; display: flex; align-items: center; justify-content: center;
 }
-.conn-indicator svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-.conn-indicator .conn-dots { font-size: 18px; letter-spacing: 1px; line-height: 1; }
+.conn-indicator svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.conn-indicator .conn-dots { font-size: 24px; letter-spacing: 1px; line-height: 1; }
 .conn-off        { background: #e0e0e0; color: #888; }
 .conn-connecting { background: #fff3cd; color: #b8860b;
                    animation: blink 1s infinite; }
@@ -85,6 +85,27 @@ body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text)
     width: 100%; font-family: monospace; font-size: 13px;
     background: #1e1e1e; color: #d4d4d4; border: none;
     border-radius: 8px; padding: 10px; resize: none;
+}
+
+/* Barras de deslize maiores em todo o lado — mais fáceis de agarrar num ecrã pequeno */
+::-webkit-scrollbar {
+    width: 26px; height: 26px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.06);
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.35); border-radius: 9px;
+    border: 4px solid transparent; background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.5); background-clip: padding-box;
+}
+.serial-monitor::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3); background-clip: padding-box;
+}
+.serial-monitor::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.45); background-clip: padding-box;
 }
 
 /* Botão de controlo */
@@ -646,7 +667,10 @@ function applyState(s) {
         const tail = (s.history_tail || []).join(String.fromCharCode(10));
         if (mon.value !== tail) {
             mon.value = tail;
-            if (window.autoScroll) mon.scrollTop = mon.scrollHeight;
+            if (window.autoScroll) {
+                _monProgrammaticScroll = true;
+                mon.scrollTop = mon.scrollHeight;
+            }
         }
     }
 
@@ -673,15 +697,41 @@ function applySerialStage(stage) {
 }
 
 window.autoScroll = true;
+let _monProgrammaticScroll = false;
 
-function toggleAutoScroll() {
-    window.autoScroll = !window.autoScroll;
+function setAutoScroll(value) {
+    window.autoScroll = value;
     const btn = document.getElementById('scrollBtn');
     if (btn) {
         btn.classList.toggle('active', window.autoScroll);
         btn.title = 'Auto-scroll: ' + (window.autoScroll ? 'ON' : 'OFF');
     }
 }
+
+// Botão "seguir" — ao clicar, volta sempre ao fundo do monitor e retoma o
+// acompanhamento automático (independentemente do estado anterior).
+function toggleAutoScroll() {
+    setAutoScroll(true);
+    const mon = document.getElementById('serialMonitor');
+    if (mon) {
+        _monProgrammaticScroll = true;
+        mon.scrollTop = mon.scrollHeight;
+    }
+}
+
+// Se o utilizador deslizar manualmente para cima (a ler mensagens antigas),
+// pausa o acompanhamento automático para não "puxar" o ecrã de volta.
+(function() {
+    const mon = document.getElementById('serialMonitor');
+    if (!mon) return;
+    mon.addEventListener('scroll', () => {
+        if (_monProgrammaticScroll) { _monProgrammaticScroll = false; return; }
+        const distanceFromBottom = mon.scrollHeight - mon.scrollTop - mon.clientHeight;
+        if (distanceFromBottom > 20 && window.autoScroll) {
+            setAutoScroll(false);
+        }
+    });
+})();
 
 function sendAction(action, body={}) {
     fetch('/' + action, {
@@ -732,6 +782,12 @@ let activeKeypadInput = null;
 let activeKeypadKind = null;
 let keypadDragState = null;
 let pendingMovSendAllAction = null;
+
+// Posição do "cursor" nos campos de movimento/clientMovement, seguida por nós
+// (tal como na password) — o selectionStart do browser não avança de forma
+// fiável no ecrã tátil, por isso não confiamos nele para decidir onde inserir.
+let _keypadSelStart = 0;
+let _keypadSelEnd = 0;
 
 function startKeypadDrag(keypad, clientX, clientY) {
     if (!keypad) return;
@@ -799,6 +855,8 @@ function showNumericKeypad(input, kind) {
     activeKeypadKind = kind;
     if (typeof input.focus === 'function') input.focus({preventScroll: true});
     if ((kind === 'movement' || kind === 'clientMovement') && !sameInput) {
+        _keypadSelStart = 0;
+        _keypadSelEnd = (input.value || '').length;
         setTimeout(() => {
             try { input.select(); } catch (e) {}
         }, 0);
@@ -850,8 +908,8 @@ function keypadPress(value) {
         return;
     }
 
-    const start = activeKeypadInput.selectionStart ?? current.length;
-    const end = activeKeypadInput.selectionEnd ?? current.length;
+    const start = _keypadSelStart;
+    const end = _keypadSelEnd;
     if (activeKeypadKind === 'movement' || activeKeypadKind === 'clientMovement') {
         const selectedText = current.slice(start, end);
         if (value === '.' && current.includes('.') && !selectedText.includes('.')) return;
@@ -859,6 +917,7 @@ function keypadPress(value) {
     }
     activeKeypadInput.value = current.slice(0, start) + value + current.slice(end);
     const cursor = start + value.length;
+    _keypadSelStart = _keypadSelEnd = cursor;
     try { activeKeypadInput.setSelectionRange(cursor, cursor); } catch (e) {}
     activeKeypadInput.dispatchEvent(new Event('input', {bubbles: true}));
     updateKeypadDisplay();
@@ -870,8 +929,8 @@ function keypadCanAccept(value) {
         const current = activeKeypadInput.value || '';
         if (value === ',') value = '.';
         if (!/^[0-9.\-]$/.test(value)) return false;
-        const start = activeKeypadInput.selectionStart ?? current.length;
-        const end = activeKeypadInput.selectionEnd ?? current.length;
+        const start = _keypadSelStart;
+        const end = _keypadSelEnd;
         const selectedText = current.slice(start, end);
         if (value === '.' && current.includes('.') && !selectedText.includes('.')) return false;
         if (value === '-' && (start !== 0 || (current.includes('-') && !selectedText.includes('-')))) return false;
@@ -890,13 +949,15 @@ function keypadBackspace() {
         return;
     }
 
-    const start = activeKeypadInput.selectionStart ?? current.length;
-    const end = activeKeypadInput.selectionEnd ?? current.length;
+    const start = _keypadSelStart;
+    const end = _keypadSelEnd;
     if (start !== end) {
         activeKeypadInput.value = current.slice(0, start) + current.slice(end);
+        _keypadSelStart = _keypadSelEnd = start;
         try { activeKeypadInput.setSelectionRange(start, start); } catch (e) {}
     } else if (start > 0) {
         activeKeypadInput.value = current.slice(0, start - 1) + current.slice(end);
+        _keypadSelStart = _keypadSelEnd = start - 1;
         try { activeKeypadInput.setSelectionRange(start - 1, start - 1); } catch (e) {}
     }
     activeKeypadInput.dispatchEvent(new Event('input', {bubbles: true}));
@@ -906,6 +967,7 @@ function keypadBackspace() {
 function keypadClear() {
     if (!activeKeypadInput) return;
     activeKeypadInput.value = '';
+    _keypadSelStart = _keypadSelEnd = 0;
     activeKeypadInput.dispatchEvent(new Event('input', {bubbles: true}));
     updateKeypadDisplay();
 }
@@ -1491,6 +1553,9 @@ loadBrightness();
     outline: none; border-color: #4a7c59;
     box-shadow: 0 0 0 2px rgba(74,124,89,.2);
 }
+.mov-field input:read-only {
+    background: #f0f0f0; color: #777; cursor: default;
+}
 .mov-field-inline { display: flex; gap: 6px; align-items: center; }
 .mov-field-inline input { flex: 1; min-width: 0; }
 .mov-auto-clear {
@@ -1610,12 +1675,10 @@ loadBrightness();
         <div class="client-mov-card clean" id="clientMovCard">
           <h3 id="clientMovTitle">Batimento</h3>
           <div class="client-mov-fields">
-            <div class="client-mov-field"><label>Tempo do ciclo (s)</label><input type="number" step="0.1" min="0" id="client_periodo"></div>
-            <div class="client-mov-field"><label>Espera inicial (s)</label><input type="number" step="0.1" min="0" id="client_espera_inicio"></div>
-            <div class="client-mov-field"><label>Espera final (s)</label><input type="number" step="0.1" min="0" id="client_espera_fim"></div>
-            <div class="client-mov-field"><label>Amplitude X</label><input type="number" step="0.1" min="0" id="client_amp_x"></div>
-            <div class="client-mov-field"><label>Amplitude Y</label><input type="number" step="0.1" min="0" id="client_amp_y"></div>
-            <div class="client-mov-field" id="client_extra_wrap" style="display:none"><label>Rotação α (°)</label><input type="number" step="1" id="client_alpha_deg"></div>
+            <div class="client-mov-field"><label id="client_periodo_label">Período</label><input type="number" step="0.1" min="0" id="client_periodo"></div>
+            <div class="client-mov-field" id="client_amp_x_wrap"><label id="client_amp_x_label">Amplitude</label><input type="number" step="0.1" min="0" id="client_amp_x"></div>
+            <div class="client-mov-field" id="client_amp_y_wrap"><label id="client_amp_y_label">Amplitude Y</label><input type="number" step="0.1" min="0" id="client_amp_y"></div>
+            <div class="client-mov-field" id="client_extra_wrap" style="display:none"><label>Ângulo (°)</label><input type="number" step="1" id="client_alpha_deg"></div>
           </div>
           <div class="client-mov-hint clean" id="clientMovHint">Sem alterações.</div>
         </div>
@@ -1699,10 +1762,13 @@ loadBrightness();
         <div class="mov-section" data-dev-mov="batimento" data-dirty-group="batimento">
           <h3>Batimento Cardíaco</h3>
           <div class="mov-fields">
-            <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="batimento_periodo"></div>
-            <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="batimento_espera_inicio"></div>
-            <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="batimento_espera_fim"></div>
+            <div class="mov-field"><label>Período por minuto (bpm)</label><input type="number" step="1" min="0" id="batimento_bpm"></div>
+            <div class="mov-field"><label>Duração da contração cardíaca (s)</label><input type="number" step="0.01" min="0" id="batimento_periodo"></div>
             <div class="mov-field"><label>Ponto de início</label><input type="number" step="1" min="0" id="batimento_ponto_inicio"></div>
+          </div>
+          <div class="mov-fields" style="margin-top:8px">
+            <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.01" min="0" id="batimento_espera_inicio" readonly></div>
+            <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.01" min="0" id="batimento_espera_fim" readonly></div>
           </div>
           <div style="margin-top:6px;font-size:11px;color:#666">Pontos calculados:</div>
           <div class="mov-points" id="batimento_pts_x"><b>X:</b> —</div>
@@ -1724,10 +1790,14 @@ loadBrightness();
         <div class="mov-section" data-dev-mov="respiracao" data-dirty-group="respiracao">
           <h3>Respiração</h3>
           <div class="mov-fields">
-            <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="respiracao_periodo"></div>
-            <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="respiracao_espera_inicio"></div>
-            <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="respiracao_espera_fim"></div>
+            <div class="mov-field"><label>Período por minuto (resp/min)</label><input type="number" step="1" min="0" id="respiracao_bpm"></div>
+            <div class="mov-field"><label>Duração da respiração (s)</label><input type="number" step="0.01" min="0" id="respiracao_periodo" readonly></div>
             <div class="mov-field"><label>Ponto de início</label><input type="number" step="1" min="0" id="respiracao_ponto_inicio"></div>
+          </div>
+          <div style="margin-top:10px;font-size:12px;font-weight:bold;color:#4a7c59">Pausas <span id="respiracao_pct_label" style="font-weight:normal;color:#888"></span></div>
+          <div class="mov-fields" style="margin-top:4px">
+            <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.01" min="0" id="respiracao_espera_inicio"></div>
+            <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.01" min="0" id="respiracao_espera_fim"></div>
           </div>
           <div style="margin-top:6px;font-size:11px;color:#666">Pontos calculados:</div>
           <div class="mov-points" id="respiracao_pts_x"><b>X:</b> —</div>
@@ -1834,8 +1904,6 @@ loadBrightness();
       <button class="btn-ctrl gray" onclick="movCarregarConfig()"
               title="Descarta as alterações não guardadas e recarrega os valores guardados"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path></svg>Restaurar</button>
       <button class="btn-ctrl blue" onclick="movCalcular()"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M8 7h8M8 11h2M12 11h2M16 11h0M8 15h2M12 15h2M16 15h0"></path></svg>Calcular</button>
-      <button class="btn-ctrl gray" onclick="movRecarregarESP()"
-              title="Lê os dados do ESP32 e atualiza as configurações"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M5 21h14"></path></svg>Recarregar do ESP32</button>
       <button class="btn-ctrl blue" onclick="movGuardar()"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h12l2 2v16H5z"></path><path d="M8 3v6h8V3M8 21v-7h8v7"></path></svg>Guardar</button>
       <button class="btn-ctrl green" onclick="movEnviar()">Enviar</button>
     </div>
@@ -1882,6 +1950,72 @@ const MOV_SCALAR_TAGS = {
     ponto_inicio: 'STInd',
 };
 
+// ===========================================================================
+// Período por minuto (bpm/rpm) — camada intermédia para o Batimento e a
+// Respiração. O que é guardado e enviado ao ESP32 continua sempre em
+// segundos (periodo/espera_inicio/espera_fim); o "período por minuto" é só
+// uma forma alternativa de escrever o periodo_total.
+//   Batimento:  espera_inicio = 0; espera_fim = periodo_total - periodo
+//               (periodo = duração da contração, constante).
+//   Respiração: espera_inicio/espera_fim = periodo_total × percentagem
+//               (percentagens guardadas e atualizáveis em modo DEV).
+// ===========================================================================
+let _movRespPct = {inicio: 0.10869565217391305, fim: 0.02173913043478261};
+
+function movBpmParaSegundos(bpm) {
+    const n = Number(bpm);
+    return n > 0 ? 60 / n : 0;
+}
+function movSegundosParaBpm(seg) {
+    const n = Number(seg);
+    return n > 0 ? 60 / n : 0;
+}
+function movFmtSeg(v) {
+    return Math.round((Number(v) || 0) * 1000) / 1000;
+}
+function movNumField(id) {
+    return Number(String(document.getElementById(id)?.value || '').replace(',', '.')) || 0;
+}
+
+function movRecalcBatimentoPeriodos() {
+    const periodoTotal = movBpmParaSegundos(movNumField('batimento_bpm'));
+    const contracao = movNumField('batimento_periodo');
+    const esperaFim = Math.max(0, periodoTotal - contracao);
+    const esperaIni = document.getElementById('batimento_espera_inicio');
+    const esperaFimEl = document.getElementById('batimento_espera_fim');
+    if (esperaIni) esperaIni.value = 0;
+    if (esperaFimEl) esperaFimEl.value = movFmtSeg(esperaFim);
+}
+
+function movRecalcRespiracaoPctLabel() {
+    const el = document.getElementById('respiracao_pct_label');
+    if (el) el.textContent = `(${(_movRespPct.inicio * 100).toFixed(1)}% / ${(_movRespPct.fim * 100).toFixed(1)}%)`;
+}
+
+function movRecalcRespiracaoFromBpm() {
+    const periodoTotal = movBpmParaSegundos(movNumField('respiracao_bpm'));
+    const esperaInicio = periodoTotal * _movRespPct.inicio;
+    const esperaFim = periodoTotal * _movRespPct.fim;
+    const periodoNormal = Math.max(0, periodoTotal - esperaInicio - esperaFim);
+    const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = movFmtSeg(v); };
+    setVal('respiracao_espera_inicio', esperaInicio);
+    setVal('respiracao_espera_fim', esperaFim);
+    setVal('respiracao_periodo', periodoNormal);
+}
+
+function movRecalcRespiracaoFromPausas() {
+    const periodoTotal = movBpmParaSegundos(movNumField('respiracao_bpm'));
+    const esperaInicio = movNumField('respiracao_espera_inicio');
+    const esperaFim = movNumField('respiracao_espera_fim');
+    if (periodoTotal > 0) {
+        _movRespPct = {inicio: esperaInicio / periodoTotal, fim: esperaFim / periodoTotal};
+    }
+    const periodoNormal = Math.max(0, periodoTotal - esperaInicio - esperaFim);
+    const el = document.getElementById('respiracao_periodo');
+    if (el) el.value = movFmtSeg(periodoNormal);
+    movRecalcRespiracaoPctLabel();
+}
+
 function openMovementsModal() {
     const isDev = document.getElementById('modeBtn').classList.contains('dev');
     if (isDev) {
@@ -1919,6 +2053,7 @@ document.getElementById('movClientModal').addEventListener('click', function(e) 
 document.querySelectorAll('#movDevModal input[type="number"]').forEach(input => {
     input.type = 'text';
     input.setAttribute('inputmode', 'decimal');
+    if (input.readOnly) return; // valores calculados — não abrem o teclado
     input.addEventListener('focus', () => showNumericKeypad(input, 'movement'));
     input.addEventListener('click', () => showNumericKeypad(input, 'movement'));
     input.addEventListener('input', () => {
@@ -1929,6 +2064,15 @@ document.querySelectorAll('#movDevModal input[type="number"]').forEach(input => 
         }
         if (['c1_a', 'c1_b', 'c1_delta_deg', 'c1_n_pontos'].includes(input.id) && !_movApplyingAutoCenter) {
             movApplyAutoCenters();
+        }
+        if (input.id === 'batimento_bpm' || input.id === 'batimento_periodo') {
+            movRecalcBatimentoPeriodos();
+        }
+        if (input.id === 'respiracao_bpm') {
+            movRecalcRespiracaoFromBpm();
+        }
+        if (input.id === 'respiracao_espera_inicio' || input.id === 'respiracao_espera_fim') {
+            movRecalcRespiracaoFromPausas();
         }
         movRefreshDirty();
     });
@@ -1948,14 +2092,14 @@ const CLIENT_MOVEMENTS = {
     batimento: {
         title: 'Batimento Cardíaco',
         movKey: 'batimento',
-        readAmp: cfg => ({
-            x: cfg.curva1?.a ?? 0,
-            y: cfg.curva1?.b ?? 0,
-        }),
-        writeAmp: (cfg, x, y) => {
+        periodoMode: 'bpm',
+        periodoLabel: 'Período por minuto (bpm)',
+        ampXLabel: 'Amplitude do batimento cardíaco',
+        showAmpY: false,
+        readAmp: cfg => ({x: cfg.curva1?.a ?? 0, y: 0}),
+        writeAmp: (cfg, x) => {
             cfg.curva1 = cfg.curva1 || {};
             cfg.curva1.a = x;
-            cfg.curva1.b = y;
         },
         readExtra: cfg => cfg.curva1?.alpha_deg ?? 0,
         writeExtra: (cfg, v) => {
@@ -1966,6 +2110,11 @@ const CLIENT_MOVEMENTS = {
     respiracao: {
         title: 'Respiração',
         movKey: 'respiracao',
+        periodoMode: 'rpm',
+        periodoLabel: 'Período por minuto (resp/min)',
+        ampXLabel: 'Amplitude lateral',
+        ampYLabel: 'Amplitude de altura',
+        showAmpY: true,
         readAmp: cfg => ({
             x: cfg.curva2?.largura ?? 0,
             y: cfg.curva2?.altura ?? 0,
@@ -1979,13 +2128,17 @@ const CLIENT_MOVEMENTS = {
     tosse: {
         title: 'Tosse',
         movKey: 'tosse',
+        periodoMode: 'seconds',
+        periodoLabel: 'Período (s)',
+        ampXLabel: 'Raio',
+        showAmpY: false,
         readAmp: cfg => {
             const raio = cfg.curva3?.raio ?? 0;
-            return {x: raio, y: raio};
+            return {x: raio, y: 0};
         },
-        writeAmp: (cfg, x, y) => {
+        writeAmp: (cfg, x) => {
             cfg.curva3 = cfg.curva3 || {};
-            cfg.curva3.raio = Math.max(x, y);
+            cfg.curva3.raio = x;
         },
     },
 };
@@ -1998,8 +2151,6 @@ let _clientMovDirty = {};
 let _clientMovDraftTimer = null;
 const CLIENT_FIELD_IDS = [
     'client_periodo',
-    'client_espera_inicio',
-    'client_espera_fim',
     'client_amp_x',
     'client_amp_y',
     'client_alpha_deg',
@@ -2026,13 +2177,45 @@ function clientMovSetVal(id, val) {
     if (el) el.value = val ?? 0;
 }
 
+// Lê o campo "Período" do modo cliente (bpm/rpm/segundos consoante o
+// movimento) e escreve os valores finais em segundos — periodo,
+// espera_inicio, espera_fim — usados pelo resto do sistema e pelo ESP32.
+function clientMovAplicarPeriodo(def, mov, periodoVal) {
+    if (def.periodoMode === 'seconds') {
+        mov.periodo = periodoVal;
+        return;
+    }
+    const periodoTotal = movFmtSeg(movBpmParaSegundos(periodoVal));
+    mov.periodo_total = periodoTotal;
+    if (def.movKey === 'batimento') {
+        const contracao = Number(mov.periodo) || 0.2;
+        mov.periodo = contracao;
+        mov.espera_inicio = 0;
+        mov.espera_fim = movFmtSeg(Math.max(0, periodoTotal - contracao));
+    } else {
+        const pctIni = mov.pct_espera_inicio ?? _movRespPct.inicio;
+        const pctFim = mov.pct_espera_fim ?? _movRespPct.fim;
+        const esperaInicio = periodoTotal * pctIni;
+        const esperaFim = periodoTotal * pctFim;
+        mov.pct_espera_inicio = pctIni;
+        mov.pct_espera_fim = pctFim;
+        mov.espera_inicio = movFmtSeg(esperaInicio);
+        mov.espera_fim = movFmtSeg(esperaFim);
+        mov.periodo = movFmtSeg(Math.max(0, periodoTotal - esperaInicio - esperaFim));
+    }
+}
+
+// Devolve o valor a mostrar no campo "Período" (bpm/rpm ou segundos diretos).
+function clientMovPeriodoDisplay(def, mov) {
+    if (def.periodoMode === 'seconds') return mov.periodo ?? 0;
+    return mov.periodo_total ? movFmtSeg(movSegundosParaBpm(mov.periodo_total)) : 0;
+}
+
 function clientMovReadFieldsIntoConfig() {
     const def = CLIENT_MOVEMENTS[_clientMovActive];
     if (!def) return;
     const mov = _clientMovConfig[def.movKey] = _clientMovConfig[def.movKey] || {};
-    mov.periodo = clientMovNum('client_periodo');
-    mov.espera_inicio = clientMovNum('client_espera_inicio');
-    mov.espera_fim = clientMovNum('client_espera_fim');
+    clientMovAplicarPeriodo(def, mov, clientMovNum('client_periodo'));
     def.writeAmp(_clientMovConfig, clientMovNum('client_amp_x'), clientMovNum('client_amp_y'));
     if (def.writeExtra) def.writeExtra(_clientMovConfig, clientMovNum('client_alpha_deg'));
 }
@@ -2042,14 +2225,12 @@ function clientMovSnapshotKey(key, cfg) {
     const mov = (cfg || {})[def.movKey] || {};
     const amp = def.readAmp(cfg || {});
     const extra = def.readExtra ? def.readExtra(cfg || {}) : null;
-    return clientMovSnapshotValues(mov, amp, extra);
+    return clientMovSnapshotValues(def, mov, amp, extra);
 }
 
-function clientMovSnapshotValues(mov, amp, extra) {
+function clientMovSnapshotValues(def, mov, amp, extra) {
     return JSON.stringify({
-        periodo: Number(mov.periodo || 0),
-        espera_inicio: Number(mov.espera_inicio || 0),
-        espera_fim: Number(mov.espera_fim || 0),
+        periodo: Number(clientMovPeriodoDisplay(def, mov) || 0),
         amp_x: Number(amp.x || 0),
         amp_y: Number(amp.y || 0),
         extra: extra === null ? null : Number(extra || 0),
@@ -2096,9 +2277,7 @@ function clientMovRefreshDirtyInputs() {
     const savedMov = (_clientMovSaved || {})[def.movKey] || {};
     const savedAmp = def.readAmp(_clientMovSaved || {});
     const savedValues = {
-        client_periodo: Number(savedMov.periodo || 0),
-        client_espera_inicio: Number(savedMov.espera_inicio || 0),
-        client_espera_fim: Number(savedMov.espera_fim || 0),
+        client_periodo: Number(clientMovPeriodoDisplay(def, savedMov) || 0),
         client_amp_x: Number(savedAmp.x || 0),
         client_amp_y: Number(savedAmp.y || 0),
         client_alpha_deg: Number((def.readExtra ? def.readExtra(_clientMovSaved || {}) : 0) || 0),
@@ -2118,11 +2297,16 @@ function clientMovRenderActive() {
     const mov = _clientMovConfig[def.movKey] || {};
     const amp = def.readAmp(_clientMovConfig);
     document.getElementById('clientMovTitle').textContent = def.title;
-    clientMovSetVal('client_periodo', mov.periodo);
-    clientMovSetVal('client_espera_inicio', mov.espera_inicio);
-    clientMovSetVal('client_espera_fim', mov.espera_fim);
+    document.getElementById('client_periodo_label').textContent = def.periodoLabel;
+    document.getElementById('client_amp_x_label').textContent = def.ampXLabel;
+    clientMovSetVal('client_periodo', clientMovPeriodoDisplay(def, mov));
     clientMovSetVal('client_amp_x', amp.x);
-    clientMovSetVal('client_amp_y', amp.y);
+    const ampYWrap = document.getElementById('client_amp_y_wrap');
+    if (ampYWrap) ampYWrap.style.display = def.showAmpY ? '' : 'none';
+    if (def.showAmpY) {
+        document.getElementById('client_amp_y_label').textContent = def.ampYLabel;
+        clientMovSetVal('client_amp_y', amp.y);
+    }
     const extraWrap = document.getElementById('client_extra_wrap');
     if (extraWrap) extraWrap.style.display = def.readExtra ? '' : 'none';
     if (def.readExtra) clientMovSetVal('client_alpha_deg', def.readExtra(_clientMovConfig));
@@ -2324,6 +2508,10 @@ function movSameValue(a, b) {
 
 function movInputPath(input) {
     const id = input.id || '';
+    // campos "bpm/rpm" são só uma forma alternativa de escrever periodo_total —
+    // não têm caminho próprio no JSON, por isso ficam fora do sistema de "sujo"
+    // (o campo calculado correspondente, esse sim, já reflete a alteração).
+    if (id === 'batimento_bpm' || id === 'respiracao_bpm') return '';
     const curveMap = {
         c1_: 'curva1',
         c2_: 'curva2',
@@ -2526,6 +2714,16 @@ function movPreencherCampos(config) {
         upd(`${chave}_pts_y`, `<b>Y:</b> ${fmt(m.pontos_y) || '—'}`);
         upd(`${chave}_pts_z`, `<b>Z:</b> ${fmt(m.pontos_z) || '—'}`);
     });
+    // período por minuto (bpm/rpm) + percentagens da respiração
+    const bat = config.batimento || {};
+    const resp = config.respiracao || {};
+    set('batimento_bpm', bat.periodo_total ? movFmtSeg(movSegundosParaBpm(bat.periodo_total)) : '');
+    set('respiracao_bpm', resp.periodo_total ? movFmtSeg(movSegundosParaBpm(resp.periodo_total)) : '');
+    _movRespPct = {
+        inicio: resp.pct_espera_inicio ?? _movRespPct.inicio,
+        fim: resp.pct_espera_fim ?? _movRespPct.fim,
+    };
+    movRecalcRespiracaoPctLabel();
 }
 
 function movCriarSeccoesMovimentos(config) {
@@ -2563,6 +2761,10 @@ function movLerCampos() {
             ponto_inicio:  int(`${chave}_ponto_inicio`),
         };
     });
+    data.batimento.periodo_total = movFmtSeg(movBpmParaSegundos(num('batimento_bpm')));
+    data.respiracao.periodo_total = movFmtSeg(movBpmParaSegundos(num('respiracao_bpm')));
+    data.respiracao.pct_espera_inicio = _movRespPct.inicio;
+    data.respiracao.pct_espera_fim = _movRespPct.fim;
     return data;
 }
 
@@ -2699,30 +2901,6 @@ function _movAtualizarPontos(chave, pts) {
     upd(`${chave}_pts_x`, `<b>X:</b> ${fmt(pts.x)}`);
     upd(`${chave}_pts_y`, `<b>Y:</b> ${fmt(pts.y)}`);
     upd(`${chave}_pts_z`, `<b>Z:</b> ${fmt(pts.z)}`);
-}
-
-function movRecarregarESP() {
-    movSetStatus('A ler dados do ESP32...', '#b8860b');
-    fetch('/movements/reload_from_esp', { method: 'POST' })
-        .then(r => r.json())
-        .then(res => {
-            if (res.ok || res.config) {
-                _movConfig = cloneConfig(res.config || _movConfig);
-                _movSavedConfig = cloneConfig(_movConfig);
-                _movSentConfig = cloneConfig(_movConfig);
-                movPreencherCampos(_movConfig);
-                movCriarSeccoesMovimentos(_movConfig);
-                _movManualCenter = {
-                    R: !!_movConfig.curva1?.r_manual,
-                };
-                movApplyAutoCenters();
-                movDevSelect(_movDevActive);
-                movSetStatus('Dados do ESP32 carregados OK', '#28a745');
-            } else {
-                movSetStatus('Erro: ' + (res.error || (res.erros || []).join(', ')), '#d9534f');
-            }
-        })
-        .catch(() => movSetStatus('Sem resposta do ESP32.', '#d9534f'));
 }
 
 function movFormatValue(value, decimals=3) {

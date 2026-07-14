@@ -666,12 +666,23 @@ MOVEMENTS_DEFAULTS = {
         'raio': 2, 'n_curva': 300, 'n_pontos': 10, 'sentido': 'ccw',
     },
     'respiracao': {
-        'periodo': 4.0, 'espera_inicio': 0.5, 'espera_fim': 0.5,
+        # 'periodo' = duração da respiração (variável, derivada de periodo_total
+        # pelas percentagens abaixo); 'periodo_total' = ciclo completo, definido
+        # pela interface em respirações/minuto. As percentagens vêm dos valores
+        # de referência do utilizador (0.5s/0.1s de pausas para um ciclo de 4.6s).
+        'periodo': 4.0, 'periodo_total': 4.6,
+        'pct_espera_inicio': 0.10869565217391305, 'pct_espera_fim': 0.02173913043478261,
+        'espera_inicio': 0.5, 'espera_fim': 0.1,
         'ponto_inicio': 0,
         'pontos_x': [], 'pontos_y': [], 'pontos_z': [],
     },
     'batimento': {
-        'periodo': 1.0, 'espera_inicio': 0.1, 'espera_fim': 0.1,
+        # 'periodo' = duração da contração cardíaca (constante fisiológica,
+        # só muda se o utilizador a editar diretamente); 'periodo_total' =
+        # ciclo completo, definido pela interface em batimentos/minuto.
+        # espera_inicio é sempre 0; espera_fim = periodo_total - periodo.
+        'periodo': 0.2, 'periodo_total': 0.9,
+        'espera_inicio': 0, 'espera_fim': 0.7,
         'ponto_inicio': 0,
         'pontos_x': [], 'pontos_y': [], 'pontos_z': [],
     },
@@ -1025,6 +1036,7 @@ def route_movements_save():
     existing.update(data)
     save_movements(existing)
     clear_movements_draft()
+    send_serial('g')
     return jsonify({'ok': True})
 
 
@@ -1056,80 +1068,6 @@ def route_movements_draft_clear():
     return jsonify({'ok': True, 'config': load_movements()})
 
 
-@app.route('/movements/reload_from_esp', methods=['POST'])
-def route_movements_reload():
-    """Lê sequencialmente os dados de cada movimento diretamente do ESP32.
-    Envia lr → lê resposta → lb → lê resposta → lt → lê resposta.
-    Atualiza o JSON guardado com os dados recebidos."""
-    if serial_status['stage'] != 'connected':
-        return jsonify({'ok': False, 'error': 'ESP32 não está ligado.'}), 400
-
-    config = load_movements()
-    erros  = []
-
-    comandos = [
-        ('lr', 'respiracao'),
-        ('lb', 'batimento'),
-        ('lt', 'tosse'),
-    ]
-
-    for cmd, chave in comandos:
-        append_history(f'PI4B: {_command_with_terminator(cmd)}')
-        linhas = _send_and_wait(cmd, timeout=6.0)
-
-        if not linhas:
-            erros.append(f'Sem resposta para {cmd}')
-            continue
-
-        # tenta interpretar as linhas de resposta do ESP32
-        # formato esperado (a confirmar com o firmware real):
-        # periodo:4.0
-        # espera_inicio:0.5
-        # espera_fim:0.5
-        # ponto_inicio:0
-        # x:1.23,2.34,3.45,...
-        # y:0.12,0.23,...
-        # z:0.00,0.00,...
-        parsed = {}
-        for linha in linhas:
-            if ':' not in linha:
-                continue
-            chave_linha, _, valor_linha = linha.partition(':')
-            chave_linha = chave_linha.strip().lower()
-            valor_linha = valor_linha.strip()
-            if chave_linha in ('periodo', 'espera_inicio', 'espera_fim'):
-                try:
-                    parsed[chave_linha] = float(valor_linha)
-                except ValueError:
-                    pass
-            elif chave_linha == 'ponto_inicio':
-                try:
-                    parsed[chave_linha] = int(valor_linha)
-                except ValueError:
-                    pass
-            elif chave_linha in ('x', 'y', 'z'):
-                try:
-                    parsed[f'pontos_{chave_linha}'] = [
-                        float(v) for v in valor_linha.split(',') if v.strip()
-                    ]
-                except ValueError:
-                    pass
-
-        if parsed:
-            config[chave].update(parsed)
-            append_history(f'ESP32: dados {chave} recebidos ({len(parsed)} campos)')
-        else:
-            erros.append(f'Resposta de {cmd} não reconhecida')
-
-    save_movements(config)
-    clear_movements_draft()
-    return jsonify({
-        'ok': len(erros) == 0,
-        'config': config,
-        'erros': erros,
-    })
-
-
 @app.route('/movements/send_to_esp', methods=['POST'])
 def route_movements_send_to_esp():
     """Envia comandos W... para atualizar parametros dos movimentos no ESP32."""
@@ -1159,6 +1097,8 @@ def route_movements_calcular():
 
         resultado = cm.gerar_graficos(params_c1, params_c2, params_c3)
         config['curva1'] = {**config.get('curva1', {}), **params_c1}
+        config['curva2'] = {**config.get('curva2', {}), **params_c2}
+        config['curva3'] = {**config.get('curva3', {}), **params_c3}
         if not params_c1.get('r_manual', False):
             config['curva1']['R'] = cm.calcular_r_auto_curva1(params_c1)
 

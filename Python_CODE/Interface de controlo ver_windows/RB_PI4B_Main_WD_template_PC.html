@@ -1112,6 +1112,7 @@ fetch('/state').then(r => r.json()).then(applyState);
     outline: none; border-color: #4a7c59;
     box-shadow: 0 0 0 2px rgba(74,124,89,.2);
 }
+.mov-field input:read-only { background: #f0f0f0; color: #777; cursor: default; }
 .mov-field-inline { display: flex; gap: 6px; align-items: center; }
 .mov-field-inline input { flex: 1; min-width: 0; }
 .mov-auto-clear {
@@ -1214,12 +1215,10 @@ fetch('/state').then(r => r.json()).then(applyState);
         <div class="client-mov-card clean" id="clientMovCard">
           <h3 id="clientMovTitle">Batimento</h3>
           <div class="client-mov-fields">
-            <div class="client-mov-field"><label>Tempo do ciclo (s)</label><input type="number" step="0.1" min="0" id="client_periodo"></div>
-            <div class="client-mov-field"><label>Espera inicial (s)</label><input type="number" step="0.1" min="0" id="client_espera_inicio"></div>
-            <div class="client-mov-field"><label>Espera final (s)</label><input type="number" step="0.1" min="0" id="client_espera_fim"></div>
-            <div class="client-mov-field"><label>Amplitude X</label><input type="number" step="0.1" min="0" id="client_amp_x"></div>
-            <div class="client-mov-field"><label>Amplitude Y</label><input type="number" step="0.1" min="0" id="client_amp_y"></div>
-            <div class="client-mov-field" id="client_extra_wrap" style="display:none"><label>Rotação α (°)</label><input type="number" step="1" id="client_alpha_deg"></div>
+            <div class="client-mov-field"><label id="client_periodo_label">Período</label><input type="number" step="0.1" min="0" id="client_periodo"></div>
+            <div class="client-mov-field" id="client_amp_x_wrap"><label id="client_amp_x_label">Amplitude</label><input type="number" step="0.1" min="0" id="client_amp_x"></div>
+            <div class="client-mov-field" id="client_amp_y_wrap"><label id="client_amp_y_label">Amplitude Y</label><input type="number" step="0.1" min="0" id="client_amp_y"></div>
+            <div class="client-mov-field" id="client_extra_wrap" style="display:none"><label>Ângulo (°)</label><input type="number" step="1" id="client_alpha_deg"></div>
           </div>
           <div class="client-mov-hint clean" id="clientMovHint">Sem alterações.</div>
         </div>
@@ -1303,10 +1302,13 @@ fetch('/state').then(r => r.json()).then(applyState);
         <div class="mov-section" data-dev-mov="batimento" data-dirty-group="batimento">
           <h3>Batimento Cardíaco</h3>
           <div class="mov-fields">
-            <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="batimento_periodo"></div>
-            <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="batimento_espera_inicio"></div>
-            <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="batimento_espera_fim"></div>
+            <div class="mov-field"><label>Período por minuto (bpm)</label><input type="number" step="1" min="0" id="batimento_bpm"></div>
+            <div class="mov-field"><label>Duração da contração cardíaca (s)</label><input type="number" step="0.01" min="0" id="batimento_periodo"></div>
             <div class="mov-field"><label>Ponto de início</label><input type="number" step="1" min="0" id="batimento_ponto_inicio"></div>
+          </div>
+          <div class="mov-fields" style="margin-top:8px">
+            <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.01" min="0" id="batimento_espera_inicio" readonly></div>
+            <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.01" min="0" id="batimento_espera_fim" readonly></div>
           </div>
           <div style="margin-top:6px;font-size:11px;color:#666">Pontos calculados:</div>
           <div class="mov-points" id="batimento_pts_x"><b>X:</b> —</div>
@@ -1328,10 +1330,14 @@ fetch('/state').then(r => r.json()).then(applyState);
         <div class="mov-section" data-dev-mov="respiracao" data-dirty-group="respiracao">
           <h3>Respiração</h3>
           <div class="mov-fields">
-            <div class="mov-field"><label>Período (s)</label><input type="number" step="0.1" min="0" id="respiracao_periodo"></div>
-            <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.1" min="0" id="respiracao_espera_inicio"></div>
-            <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.1" min="0" id="respiracao_espera_fim"></div>
+            <div class="mov-field"><label>Período por minuto (resp/min)</label><input type="number" step="1" min="0" id="respiracao_bpm"></div>
+            <div class="mov-field"><label>Duração da respiração (s)</label><input type="number" step="0.01" min="0" id="respiracao_periodo" readonly></div>
             <div class="mov-field"><label>Ponto de início</label><input type="number" step="1" min="0" id="respiracao_ponto_inicio"></div>
+          </div>
+          <div style="margin-top:10px;font-size:12px;font-weight:bold;color:#4a7c59">Pausas <span id="respiracao_pct_label" style="font-weight:normal;color:#888"></span></div>
+          <div class="mov-fields" style="margin-top:4px">
+            <div class="mov-field"><label>Espera início (s)</label><input type="number" step="0.01" min="0" id="respiracao_espera_inicio"></div>
+            <div class="mov-field"><label>Espera fim (s)</label><input type="number" step="0.01" min="0" id="respiracao_espera_fim"></div>
           </div>
           <div style="margin-top:6px;font-size:11px;color:#666">Pontos calculados:</div>
           <div class="mov-points" id="respiracao_pts_x"><b>X:</b> —</div>
@@ -1484,6 +1490,72 @@ const MOV_SCALAR_TAGS = {
     ponto_inicio: 'STInd',
 };
 
+// ===========================================================================
+// Período por minuto (bpm/rpm) — camada intermédia para o Batimento e a
+// Respiração. O que é guardado e enviado ao ESP32 continua sempre em
+// segundos (periodo/espera_inicio/espera_fim); o "período por minuto" é só
+// uma forma alternativa de escrever o periodo_total.
+//   Batimento:  espera_inicio = 0; espera_fim = periodo_total - periodo
+//               (periodo = duração da contração, constante).
+//   Respiração: espera_inicio/espera_fim = periodo_total × percentagem
+//               (percentagens guardadas e atualizáveis em modo DEV).
+// ===========================================================================
+let _movRespPct = {inicio: 0.10869565217391305, fim: 0.02173913043478261};
+
+function movBpmParaSegundos(bpm) {
+    const n = Number(bpm);
+    return n > 0 ? 60 / n : 0;
+}
+function movSegundosParaBpm(seg) {
+    const n = Number(seg);
+    return n > 0 ? 60 / n : 0;
+}
+function movFmtSeg(v) {
+    return Math.round((Number(v) || 0) * 1000) / 1000;
+}
+function movNumField(id) {
+    return Number(String(document.getElementById(id)?.value || '').replace(',', '.')) || 0;
+}
+
+function movRecalcBatimentoPeriodos() {
+    const periodoTotal = movBpmParaSegundos(movNumField('batimento_bpm'));
+    const contracao = movNumField('batimento_periodo');
+    const esperaFim = Math.max(0, periodoTotal - contracao);
+    const esperaIni = document.getElementById('batimento_espera_inicio');
+    const esperaFimEl = document.getElementById('batimento_espera_fim');
+    if (esperaIni) esperaIni.value = 0;
+    if (esperaFimEl) esperaFimEl.value = movFmtSeg(esperaFim);
+}
+
+function movRecalcRespiracaoPctLabel() {
+    const el = document.getElementById('respiracao_pct_label');
+    if (el) el.textContent = `(${(_movRespPct.inicio * 100).toFixed(1)}% / ${(_movRespPct.fim * 100).toFixed(1)}%)`;
+}
+
+function movRecalcRespiracaoFromBpm() {
+    const periodoTotal = movBpmParaSegundos(movNumField('respiracao_bpm'));
+    const esperaInicio = periodoTotal * _movRespPct.inicio;
+    const esperaFim = periodoTotal * _movRespPct.fim;
+    const periodoNormal = Math.max(0, periodoTotal - esperaInicio - esperaFim);
+    const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = movFmtSeg(v); };
+    setVal('respiracao_espera_inicio', esperaInicio);
+    setVal('respiracao_espera_fim', esperaFim);
+    setVal('respiracao_periodo', periodoNormal);
+}
+
+function movRecalcRespiracaoFromPausas() {
+    const periodoTotal = movBpmParaSegundos(movNumField('respiracao_bpm'));
+    const esperaInicio = movNumField('respiracao_espera_inicio');
+    const esperaFim = movNumField('respiracao_espera_fim');
+    if (periodoTotal > 0) {
+        _movRespPct = {inicio: esperaInicio / periodoTotal, fim: esperaFim / periodoTotal};
+    }
+    const periodoNormal = Math.max(0, periodoTotal - esperaInicio - esperaFim);
+    const el = document.getElementById('respiracao_periodo');
+    if (el) el.value = movFmtSeg(periodoNormal);
+    movRecalcRespiracaoPctLabel();
+}
+
 function openMovementsModal() {
     const isDev = document.getElementById('modeBtn').classList.contains('dev');
     if (isDev) {
@@ -1521,6 +1593,7 @@ document.getElementById('movClientModal').addEventListener('click', function(e) 
 document.querySelectorAll('#movDevModal input[type="number"]').forEach(input => {
     input.type = 'text';
     input.setAttribute('inputmode', 'decimal');
+    if (input.readOnly) return;
     input.addEventListener('focus', () => showNumericKeypad(input, 'movement'));
     input.addEventListener('click', () => showNumericKeypad(input, 'movement'));
     input.addEventListener('input', () => {
@@ -1532,6 +1605,9 @@ document.querySelectorAll('#movDevModal input[type="number"]').forEach(input => 
         if (['c1_a', 'c1_b', 'c1_delta_deg', 'c1_n_pontos'].includes(input.id) && !_movApplyingAutoCenter) {
             movApplyAutoCenters();
         }
+        if (input.id === 'batimento_bpm' || input.id === 'batimento_periodo') movRecalcBatimentoPeriodos();
+        if (input.id === 'respiracao_bpm') movRecalcRespiracaoFromBpm();
+        if (input.id === 'respiracao_espera_inicio' || input.id === 'respiracao_espera_fim') movRecalcRespiracaoFromPausas();
         movRefreshDirty();
     });
     input.addEventListener('keyup', updateKeypadDisplay);
@@ -1550,14 +1626,14 @@ const CLIENT_MOVEMENTS = {
     batimento: {
         title: 'Batimento Cardíaco',
         movKey: 'batimento',
-        readAmp: cfg => ({
-            x: cfg.curva1?.a ?? 0,
-            y: cfg.curva1?.b ?? 0,
-        }),
-        writeAmp: (cfg, x, y) => {
+        periodoMode: 'bpm',
+        periodoLabel: 'Período por minuto (bpm)',
+        ampXLabel: 'Amplitude do batimento cardíaco',
+        showAmpY: false,
+        readAmp: cfg => ({x: cfg.curva1?.a ?? 0, y: 0}),
+        writeAmp: (cfg, x) => {
             cfg.curva1 = cfg.curva1 || {};
             cfg.curva1.a = x;
-            cfg.curva1.b = y;
         },
         readExtra: cfg => cfg.curva1?.alpha_deg ?? 0,
         writeExtra: (cfg, v) => {
@@ -1568,6 +1644,11 @@ const CLIENT_MOVEMENTS = {
     respiracao: {
         title: 'Respiração',
         movKey: 'respiracao',
+        periodoMode: 'rpm',
+        periodoLabel: 'Período por minuto (resp/min)',
+        ampXLabel: 'Amplitude lateral',
+        ampYLabel: 'Amplitude de altura',
+        showAmpY: true,
         readAmp: cfg => ({
             x: cfg.curva2?.largura ?? 0,
             y: cfg.curva2?.altura ?? 0,
@@ -1581,13 +1662,17 @@ const CLIENT_MOVEMENTS = {
     tosse: {
         title: 'Tosse',
         movKey: 'tosse',
+        periodoMode: 'seconds',
+        periodoLabel: 'Período (s)',
+        ampXLabel: 'Raio',
+        showAmpY: false,
         readAmp: cfg => {
             const raio = cfg.curva3?.raio ?? 0;
-            return {x: raio, y: raio};
+            return {x: raio, y: 0};
         },
-        writeAmp: (cfg, x, y) => {
+        writeAmp: (cfg, x) => {
             cfg.curva3 = cfg.curva3 || {};
-            cfg.curva3.raio = Math.max(x, y);
+            cfg.curva3.raio = x;
         },
     },
 };
@@ -1599,8 +1684,6 @@ let _clientMovDirty = {};
 let _clientMovDraftTimer = null;
 const CLIENT_FIELD_IDS = [
     'client_periodo',
-    'client_espera_inicio',
-    'client_espera_fim',
     'client_amp_x',
     'client_amp_y',
     'client_alpha_deg',
@@ -1627,13 +1710,45 @@ function clientMovSetVal(id, val) {
     if (el) el.value = val ?? 0;
 }
 
+// Lê o campo "Período" do modo cliente (bpm/rpm/segundos consoante o
+// movimento) e escreve os valores finais em segundos — periodo,
+// espera_inicio, espera_fim — usados pelo resto do sistema e pelo ESP32.
+function clientMovAplicarPeriodo(def, mov, periodoVal) {
+    if (def.periodoMode === 'seconds') {
+        mov.periodo = periodoVal;
+        return;
+    }
+    const periodoTotal = movFmtSeg(movBpmParaSegundos(periodoVal));
+    mov.periodo_total = periodoTotal;
+    if (def.movKey === 'batimento') {
+        const contracao = Number(mov.periodo) || 0.2;
+        mov.periodo = contracao;
+        mov.espera_inicio = 0;
+        mov.espera_fim = movFmtSeg(Math.max(0, periodoTotal - contracao));
+    } else {
+        const pctIni = mov.pct_espera_inicio ?? _movRespPct.inicio;
+        const pctFim = mov.pct_espera_fim ?? _movRespPct.fim;
+        const esperaInicio = periodoTotal * pctIni;
+        const esperaFim = periodoTotal * pctFim;
+        mov.pct_espera_inicio = pctIni;
+        mov.pct_espera_fim = pctFim;
+        mov.espera_inicio = movFmtSeg(esperaInicio);
+        mov.espera_fim = movFmtSeg(esperaFim);
+        mov.periodo = movFmtSeg(Math.max(0, periodoTotal - esperaInicio - esperaFim));
+    }
+}
+
+// Devolve o valor a mostrar no campo "Período" (bpm/rpm ou segundos diretos).
+function clientMovPeriodoDisplay(def, mov) {
+    if (def.periodoMode === 'seconds') return mov.periodo ?? 0;
+    return mov.periodo_total ? movFmtSeg(movSegundosParaBpm(mov.periodo_total)) : 0;
+}
+
 function clientMovReadFieldsIntoConfig() {
     const def = CLIENT_MOVEMENTS[_clientMovActive];
     if (!def) return;
     const mov = _clientMovConfig[def.movKey] = _clientMovConfig[def.movKey] || {};
-    mov.periodo = clientMovNum('client_periodo');
-    mov.espera_inicio = clientMovNum('client_espera_inicio');
-    mov.espera_fim = clientMovNum('client_espera_fim');
+    clientMovAplicarPeriodo(def, mov, clientMovNum('client_periodo'));
     def.writeAmp(_clientMovConfig, clientMovNum('client_amp_x'), clientMovNum('client_amp_y'));
     if (def.writeExtra) def.writeExtra(_clientMovConfig, clientMovNum('client_alpha_deg'));
 }
@@ -1643,14 +1758,12 @@ function clientMovSnapshotKey(key, cfg) {
     const mov = (cfg || {})[def.movKey] || {};
     const amp = def.readAmp(cfg || {});
     const extra = def.readExtra ? def.readExtra(cfg || {}) : null;
-    return clientMovSnapshotValues(mov, amp, extra);
+    return clientMovSnapshotValues(def, mov, amp, extra);
 }
 
-function clientMovSnapshotValues(mov, amp, extra) {
+function clientMovSnapshotValues(def, mov, amp, extra) {
     return JSON.stringify({
-        periodo: Number(mov.periodo || 0),
-        espera_inicio: Number(mov.espera_inicio || 0),
-        espera_fim: Number(mov.espera_fim || 0),
+        periodo: Number(clientMovPeriodoDisplay(def, mov) || 0),
         amp_x: Number(amp.x || 0),
         amp_y: Number(amp.y || 0),
         extra: extra === null ? null : Number(extra || 0),
@@ -1697,9 +1810,7 @@ function clientMovRefreshDirtyInputs() {
     const savedMov = (_clientMovSaved || {})[def.movKey] || {};
     const savedAmp = def.readAmp(_clientMovSaved || {});
     const savedValues = {
-        client_periodo: Number(savedMov.periodo || 0),
-        client_espera_inicio: Number(savedMov.espera_inicio || 0),
-        client_espera_fim: Number(savedMov.espera_fim || 0),
+        client_periodo: Number(clientMovPeriodoDisplay(def, savedMov) || 0),
         client_amp_x: Number(savedAmp.x || 0),
         client_amp_y: Number(savedAmp.y || 0),
         client_alpha_deg: Number((def.readExtra ? def.readExtra(_clientMovSaved || {}) : 0) || 0),
@@ -1719,11 +1830,16 @@ function clientMovRenderActive() {
     const mov = _clientMovConfig[def.movKey] || {};
     const amp = def.readAmp(_clientMovConfig);
     document.getElementById('clientMovTitle').textContent = def.title;
-    clientMovSetVal('client_periodo', mov.periodo);
-    clientMovSetVal('client_espera_inicio', mov.espera_inicio);
-    clientMovSetVal('client_espera_fim', mov.espera_fim);
+    document.getElementById('client_periodo_label').textContent = def.periodoLabel;
+    document.getElementById('client_amp_x_label').textContent = def.ampXLabel;
+    clientMovSetVal('client_periodo', clientMovPeriodoDisplay(def, mov));
     clientMovSetVal('client_amp_x', amp.x);
-    clientMovSetVal('client_amp_y', amp.y);
+    const ampYWrap = document.getElementById('client_amp_y_wrap');
+    if (ampYWrap) ampYWrap.style.display = def.showAmpY ? '' : 'none';
+    if (def.showAmpY) {
+        document.getElementById('client_amp_y_label').textContent = def.ampYLabel;
+        clientMovSetVal('client_amp_y', amp.y);
+    }
     const extraWrap = document.getElementById('client_extra_wrap');
     if (extraWrap) extraWrap.style.display = def.readExtra ? '' : 'none';
     if (def.readExtra) clientMovSetVal('client_alpha_deg', def.readExtra(_clientMovConfig));
@@ -1927,6 +2043,7 @@ function movSameValue(a, b) {
 
 function movInputPath(input) {
     const id = input.id || '';
+    if (id === 'batimento_bpm' || id === 'respiracao_bpm') return '';
     const curveMap = {
         c1_: 'curva1',
         c2_: 'curva2',
@@ -2128,6 +2245,15 @@ function movPreencherCampos(config) {
         upd(`${chave}_pts_y`, `<b>Y:</b> ${fmt(m.pontos_y) || '—'}`);
         upd(`${chave}_pts_z`, `<b>Z:</b> ${fmt(m.pontos_z) || '—'}`);
     });
+    const bat = config.batimento || {};
+    const resp = config.respiracao || {};
+    set('batimento_bpm', bat.periodo_total ? movFmtSeg(movSegundosParaBpm(bat.periodo_total)) : '');
+    set('respiracao_bpm', resp.periodo_total ? movFmtSeg(movSegundosParaBpm(resp.periodo_total)) : '');
+    _movRespPct = {
+        inicio: resp.pct_espera_inicio ?? _movRespPct.inicio,
+        fim: resp.pct_espera_fim ?? _movRespPct.fim,
+    };
+    movRecalcRespiracaoPctLabel();
 }
 
 function movCriarSeccoesMovimentos(config) {
@@ -2165,6 +2291,10 @@ function movLerCampos() {
             ponto_inicio:  int(`${chave}_ponto_inicio`),
         };
     });
+    data.batimento.periodo_total = movFmtSeg(movBpmParaSegundos(num('batimento_bpm')));
+    data.respiracao.periodo_total = movFmtSeg(movBpmParaSegundos(num('respiracao_bpm')));
+    data.respiracao.pct_espera_inicio = _movRespPct.inicio;
+    data.respiracao.pct_espera_fim = _movRespPct.fim;
     return data;
 }
 
