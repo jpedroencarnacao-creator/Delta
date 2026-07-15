@@ -7,6 +7,7 @@
 \usepackage{geometry}
 \usepackage{setspace}
 \usepackage{graphicx}
+\usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{amsmath}
@@ -17,8 +18,7 @@
 \usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc,fit}
 \usepackage{float}
 \usepackage{colortbl}
-\usepackage{soul}
-\sethlcolor{yellow}
+\usepackage{listings}
 \shorthandoff{"}
 \usepackage{hyperref}
 \usepackage[nameinlink,noabbrev]{cleveref}
@@ -30,6 +30,8 @@
 \Crefname{section}{Secção}{Secções}
 \crefname{subsection}{secção}{secções}
 \Crefname{subsection}{Secção}{Secções}
+\crefname{chapter}{capítulo}{capítulos}
+\Crefname{chapter}{Capítulo}{Capítulos}
 \usepackage[backend=biber,style=numeric-comp,sorting=none]{biblatex}
 
 \setcounter{secnumdepth}{3}
@@ -55,6 +57,40 @@
 \sisetup{
   output-decimal-marker={,},
   per-mode=symbol
+}
+
+\lstdefinestyle{codigoanexo}{
+  language=C++,
+  basicstyle=\scriptsize\ttfamily,
+  numbers=left,
+  numberstyle=\tiny\color{gray!75},
+  stepnumber=1,
+  numbersep=8pt,
+  frame=single,
+  framerule=0.3pt,
+  rulecolor=\color{gray!55},
+  breaklines=true,
+  breakatwhitespace=false,
+  columns=fullflexible,
+  keepspaces=true,
+  tabsize=2,
+  showstringspaces=false,
+  keywordstyle=\color{blue!55!black},
+  commentstyle=\color{green!40!black},
+  stringstyle=\color{red!45!black},
+  extendedchars=true,
+  inputencoding=utf8,
+  literate=
+    {á}{{\'a}}1 {à}{{\`a}}1 {ã}{{\~a}}1 {â}{{\^a}}1
+    {Á}{{\'A}}1 {À}{{\`A}}1 {Ã}{{\~A}}1 {Â}{{\^A}}1
+    {é}{{\'e}}1 {ê}{{\^e}}1 {É}{{\'E}}1 {Ê}{{\^E}}1
+    {í}{{\'i}}1 {Í}{{\'I}}1
+    {ó}{{\'o}}1 {õ}{{\~o}}1 {ô}{{\^o}}1
+    {Ó}{{\'O}}1 {Õ}{{\~O}}1 {Ô}{{\^O}}1
+    {ú}{{\'u}}1 {Ú}{{\'U}}1
+    {ç}{{\c c}}1 {Ç}{{\c C}}1
+    {º}{{$^\circ$}}1 {°}{{$^\circ$}}1
+    {π}{{$\pi$}}1 {“}{{``}}1 {”}{{''}}1 {→}{{$\rightarrow$}}1
 }
 
 \title{Modelo físico e dinâmico de simulação de árvore brônquica para treino de broncoscopia}
@@ -93,11 +129,16 @@
 
 \begin{document}
 
+\renewcommand{\crefpairconjunction}{ e }
+\renewcommand{\crefmiddleconjunction}{, }
+\renewcommand{\creflastconjunction}{ e }
+
 \shorthandoff{"}
 
 \hypersetup{pageanchor=false}
 
 \begin{titlepage}
+  \begingroup
   \centering
   \thispagestyle{empty}
   \vspace*{1.0cm}
@@ -114,6 +155,7 @@
   {\large Instituto Superior de Engenharia\par}
   \vspace{0.5cm}
   {\large 2025/2026\par}
+  \endgroup
 \end{titlepage}
 
 \cleardoublepage
@@ -122,6 +164,7 @@
 \setcounter{page}{2}
 
 \begin{titlepage}
+  \begingroup
   \centering
   \thispagestyle{plain}
   \setcounter{page}{2}
@@ -149,19 +192,31 @@
   {\large Instituto Superior de Engenharia\par}
   \vspace{0.5cm}
   {\large 2025/2026\par}
+  \endgroup
 \end{titlepage}
 
 \cleardoublepage
 \setcounter{page}{3}
 
 \chapter*{Dedicatória}
-\vspace*{4cm}
-\begin{flushright}
-A preencher na versão final.
-\end{flushright}
+Dedico este trabalho aos meus pais, Anabela e António Encarnação, e à minha irmã, Ana Sofia, por me apoiarem nos momentos mais difíceis e por nunca terem duvidado de mim.
+
+Sem eles, nunca teria chegado até aqui, nem seria quem sou hoje.
 
 \chapter*{Agradecimentos}
-A preencher na versão final.
+Deixo aqui o meu maior e mais sincero agradecimento ao meu orientador:
+
+\begin{center}
+\textbf{Professor Jorge Semião}
+\end{center}
+
+por me ter dado a oportunidade de trabalhar num projeto tão desafiante e interessante, por ter demonstrado sempre disponibilidade para ajudar e por todo o apoio prestado ao longo do desenvolvimento deste trabalho.
+
+Agradeço também à equipa médica envolvida no projeto, pela disponibilidade demonstrada, pelas reuniões realizadas e pelo contributo fundamental na validação anatómica e funcional do modelo desenvolvido. As observações e sugestões recebidas permitiram aproximar o trabalho das necessidades reais associadas ao treino de broncoscopia.
+
+Gostaria ainda de agradecer a todos os professores, colegas e amigos da Licenciatura em Engenharia de Eletrotecnia e Computadores, por todo o apoio, pela entreajuda e pela presença ao longo deste percurso académico.
+
+Foi um privilégio e uma honra conviver e aprender com todos vós.
 
 \chapter*{Resumo}
 O presente relatório descreve o desenvolvimento de um modelo articulado de uma árvore brônquica para apoio à simulação e ao treino de videobroncofibroscopia, um trabalho que parte da necessidade de criar uma plataforma física de treino capaz de representar, de forma controlada e realista, os movimentos internos observáveis durante o procedimento, combinando técnicas como a impressão 3D, a atuação mecânica, o controlo eletrónico, o software embarcado e a interface homem-máquina.
@@ -184,7 +239,7 @@ Ao longo de todo o desenvolvimento foram validados, testados e modificados os v�
   \item[CA] Corrente Alternada; tipo de alimentação elétrica ligada à entrada da fonte de alimentação do sistema.
   \item[CAD] \textit{Computer-Aided Design}; desenho assistido por computador, usado no tratamento do modelo 3D da árvore brônquica.
   \item[CHUA] Centro Hospitalar Universitário do Algarve; instituição parceira que forneceu os dados clínicos e anatómicos usados no projeto.
-  \item[DEV] \textit{Development}; modo de utilização da HMI que dá acesso a ferramentas de depuração e de envio manual de comandos.
+  \item[DEV] \textit{Development}; modo de utilização da HMI que dá acesso a ferramentas de debugging e de envio manual de comandos.
   \item[DTR] \textit{Data Terminal Ready}; sinal de controlo da porta série que pode provocar o reset do ESP32-S3.
   \item[EEPROM] \textit{Electrically Erasable Programmable Read-Only Memory}; memória não volátil usada para guardar configurações persistentes do firmware.
   \item[ESP32-S3] Microcontrolador usado para executar o firmware, interpretar comandos e gerar os sinais de controlo.
@@ -215,6 +270,7 @@ Ao longo de todo o desenvolvimento foram validados, testados e modificados os v�
   \item[TPU] Filamento de impressão 3D de poliuretano termoplástico, usado em peças flexíveis e elásticas.
   \item[UART] \textit{Universal Asynchronous Receiver/Transmitter}; interface de comunicação série usada entre o Raspberry Pi e o ESP32-S3.
   \item[UPS] \textit{Uninterruptible Power Supply}; sistema de alimentação que mantém o equipamento ligado durante falhas ou interrupções temporárias da alimentação principal.
+  \item[USB-C] \textit{Universal Serial Bus Type-C}; conetor universal usado para alimentação e transferência de dados.
 \end{description}
 
 \cleardoublepage

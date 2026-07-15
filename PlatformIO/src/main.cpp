@@ -101,41 +101,6 @@ Manipulador_Config delta_2_Cfg = {
     .servo3Pulse = 0
 };
 
-/*
-//Motion_test -> Arrays of points for testing the motion functions
-float X_test_calibration[] = {0.0,  0.0,  0.0,  0.0,  5.0, 10.0, 15.0, 0.0, 0.0};
-float Y_test_calibration[] = {0.0,  0.0,  0.0,  0.0,  0.0, 0.0,  0.0,  5.0, 15.0};          // -> teste de movimento linear dos 3 eixos
-float Z_test_calibration[] = {40.0, 40.0, 50.0, 60.0, 60.0, 60.0, 60.0, 60.0, 60.0};
-const int N_test_calibration = 9;
-
-//bat
-float X_test[] = {-0.000, 0.054, 0.601, 1.556, 2.776, 4.074, 5.252, 6.131, 6.578, 6.524, 5.977, 5.022, 3.802, 2.504, 1.326, 0.447};
-float Y_test[] = {0.000, 0.631, 1.347, 2.041, 2.607, 2.957, 3.040, 2.842, 2.394, 1.764, 1.047, 0.353, -0.212, -0.563, -0.646, -0.448};
-float Z_test[] = {0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000};
-const int N_test = 16;
-float T_period = 0.3f; 
-float T_pausedt = 0.6f; 
-
-//resp
-float X_test2[] = {0.000, 1.333, 2.667, 4.000, 5.333, 6.667, 8.000, 9.333, 10.667, 12.000};
-float Y_test2[] = {  0.0,   0.0,   0.0,    0.0,  0.0,   0.0,   0.0,   0.0,   0.0,     0.0};
-float Z_test2[] = {0.000, 0.247, 0.988, 2.222, 3.951, 6.173, 8.889, 12.099, 15.802, 20.000};
-const int N_test2 = 10;
-float T_period2 = 4.0f; 
-float T_pausedt2_Ini = 0.6f; 
-float T_pausedt2_End = 0.1f; 
-
-//tosse vibração
-float X_tosse_vibracao[] = {2.000, 1.618, 0.618, -0.618, -1.618, -2.000, -1.618, -0.618, 0.618, 1.618};
-float Y_tosse_vibracao[] = {0.000, -1.176, -1.902, -1.902, -1.176, 0.000, 1.176, 1.902, 1.902, 1.176};
-float Z_tosse_vibracao[] = {0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000};
-const int N_tosse_vibracao = 10;
-float T_period_tosse_vibracao = 0.5f; 
-float T_pausedt_tosse_vibracao_Ini = 0.0f; 
-float T_pausedt_tosse_vibracao_End = 0.0f; 
-
-*/
-
 //Link lengths (mm)
 #define L1 35
 #define L2 60
@@ -258,76 +223,6 @@ MotionInstance Resp_inst;
 MotionStorage Tosse_move; 
 MotionInstance Tosse_inst;
 
-/*
-void Iniciate_Bat_Move() { //Serve para copiar os valores definidos mais acima para o objeto Bat_move, que é do tipo MotionStorage. 
-                        // ->    Isto é só para facilitar a criação de movimentos de teste, ou seja, para não ter que copiar os valores manualmente para o Bat_move cada vez que quiseres testar algo.
-                        // ->    No futuro será utilizado para copiar os movimentos pré definidos da EPPROM ou do PI
-    Bat_move.n_Points = N_test;
-    Bat_move.period  = T_period;
-    Bat_move.T_pause_End = T_pausedt;
-    for (int i = 0; i < N_test; i++) {
-        Bat_move.X[i] = X_test[i];
-        Bat_move.Y[i] = -1 * Y_test[i];
-        Bat_move.Z[i] = Z_test[i];
-
-    }
-    Bat_move.start_Index = 0;
-    Bat_move.bidirectional = false; // Define o movimento como vai-e-vem 
-    Bat_move.updateDtMs();
-    Bat_move.updateDt_PauseMs();
-    //Serial.print("BAT N_point ->global: ");
-    //Serial.println(Bat_move.N_points);
-}
-
-
-
-
-
-
-void Iniciate_Resp_Move() { //Serve para copiar os valores definidos mais acima para o objeto Resp2_move, que é do tipo MotionStorage. 
-                        // ->    Isto é só para facilitar a criação de movimentos de teste, ou seja, para não ter que copiar os valores manualmente para o Resp2_move cada vez que quiseres testar algo.
-                        // ->    No futuro será utilizado para copiar os movimentos pré definidos da EPPROM ou do PI
-    Resp_move.n_Points = N_test2;
-    Resp_move.period  = T_period2;
-    Resp_move.T_pause_End = T_pausedt2_End;
-    Resp_move.T_pause_Ini = T_pausedt2_Ini;
-    for (int i = 0; i < N_test2; i++) {
-        Resp_move.X[i] = X_test2[i];
-        Resp_move.Y[i] = -1 * Y_test2[i];
-        Resp_move.Z[i] = Z_test2[i];
-    }
-    Resp_move.start_Index = 5;
-    Resp_move.bidirectional = true; // Define o movimento como vai-e-vem
-    Resp_move.updateDtMs();
-    Resp_move.updateDt_PauseMs();
-    //Serial.print("RESP N_point ->global: ");
-    //Serial.println(Resp_move.N_points);
-}
-
-
-void Iniciate_Tosse_Move() { //Serve para copiar os valores definidos mais acima para o objeto Resp2_move, que é do tipo MotionStorage. 
-                        // ->    Isto é só para facilitar a criação de movimentos de teste, ou seja, para não ter que copiar os valores manualmente para o Resp2_move cada vez que quiseres testar algo.
-                        // ->    No futuro será utilizado para copiar os movimentos pré definidos da EPPROM ou do PI
-    Tosse_move.n_Points = N_tosse_vibracao;
-    Tosse_move.period  = T_period_tosse_vibracao;
-    Tosse_move.T_pause_End = T_pausedt_tosse_vibracao_End;
-    Tosse_move.T_pause_Ini = T_pausedt_tosse_vibracao_Ini;
-    for (int i = 0; i < N_tosse_vibracao; i++) {
-        Tosse_move.X[i] = X_tosse_vibracao[i];
-        Tosse_move.Y[i] = -1 * Y_tosse_vibracao[i];
-       Tosse_move.Z[i] = Z_tosse_vibracao[i];
-    }
-    Tosse_move.start_Index = 0;
-    Tosse_move.bidirectional = false; // Define o movimento como vai-e-vem
-    Tosse_move.updateDtMs();
-    Tosse_move.updateDt_PauseMs();
-    //Serial.print("RESP N_point ->global: ");
-    //Serial.println(Resp_move.N_points);
-}
-   
-
-*/
-
 
 void Iniciate_Bat_Instance() { //Serve para arrancar a structure de temporaria de runtime
     Bat_inst.def           = &Bat_move;
@@ -408,11 +303,6 @@ struct Coordinate {
 
 
 
-
-int Clock_loop = 0;
-const float pi = 3.141592653;
-
-
 // ---------Declaração das variaveis------------------
 void LED_LOOP(); //Declaração de funções
 void Servo_test();
@@ -462,8 +352,6 @@ Servo mg90s_5;  // cria objeto servo
 Servo mg90s_6;  // cria objeto servo
 
 
-volatile boolean start_comand = 0;  
-
 Coordinate Lerp_Tosse_OUT;
 Coordinate Lerp_Respi_OUT;
 Coordinate Lerp_Batim_OUT;
@@ -472,7 +360,19 @@ Coordinate Index0;
 Coordinate Index_mult_R;
 
 
+
+
+volatile boolean start_comand = 0; 
+int setup_counter = 0;
+int state_test = 0;
+int state_test2 = 0;
+float Training_Exame_Starttime = 0;
+float Training_Exame_Finishingtime = 0;
+float Training_Exame_Durantiontime = 0;
+int Safe_comand = 0;
 float servo_offset_z = SERVO_OFFSET_Z;
+int Clock_loop = 0;
+const float pi = 3.141592653;
 
 //-----------------Declaração da localização dos pinos para cada objeto ------------------
 //-------------------Servos-----------------
@@ -547,6 +447,8 @@ void loadTosseFromEEPROM() {
 
 
 
+
+
 boolean trig_display_fsm(float at, short int Td){
 static short int state; //state internal to the state machine
 static float pt; //var. internal to the state machine
@@ -565,19 +467,14 @@ return trig;
 return trig;
 }
 
-int setup_counter = 0;
 
 
 
 
 
 
-int state_test = 0;
-int state_test2 = 0;
-float Training_Exame_Starttime = 0;
-float Training_Exame_Finishingtime = 0;
-float Training_Exame_Durantiontime = 0;
-int Safe_comand = 0;
+
+
 
 
 void FSM_Serial_reader(unsigned long nowMs){
@@ -589,14 +486,6 @@ static char ST_BUS[SERIAL_TEXT_BUFFER_SIZE];
 state_test = state;
 static int maxCopy;
 static int c;
-/*
-Têm em atenção constituição de cada caso:
-case x: 
-  - Ações a executar
-  - Condições de transição por hierarquia
-*/
-//Serial.print("Estado atual da FSM de leitura: ");
-//Serial.println(state);
 
 switch (state) {
 
@@ -648,18 +537,7 @@ switch (state) {
 
       if(LineReady_IN == true){state = 0;}
     break;
-/*
-    case 6: 
-      ST_BUS[counter] = Serial.read();
-      Serial.print("ST_Bus: ");
-      Serial.println(ST_BUS[counter]);
-      counter++;
 
-      if(ST_BUS[counter-1] == ' '){state = 6;}
-      //if(Serial.available() > 0 && ST_BUS[counter-1] != '\n'){state = 6;}
-      if(ST_BUS[counter-1] == '\n'){state = 8;}
-    break;
-*/
     case 6: 
       Serial.println("entrei no reader string");
     c = Serial.read();
@@ -699,12 +577,10 @@ switch (state) {
     strncpy(ST_Command_Out, ST_BUS, maxCopy);
   
     ST_ready_out = true;
-    //Serial.println("ST_ready_out ativado");
     if(1){state = 9;}
     break;
 
     case 9:
-    //Serial.println("sai do reader string e voltei ao centro");
     ST_BUS[n] = '\0';   // substitui o '\n'
     //ST_Command_Out[maxCopy] = '\0';
     CH_Command_Out = '\0'; 
@@ -746,14 +622,7 @@ static int len;
 static char* index1 = nullptr;
 static char* index2 = nullptr;
 
-/*
-Têm em atenção constituição de cada caso:
-case x: 
-  - Ações a executar
-  - Condições de transição por hierarquia
-*/
-//Serial.print("Estado atual da FSM de comando: ");
-//Serial.println(state);
+
 
 switch (state) {
 
@@ -1072,13 +941,12 @@ switch (state) {
     break;
 
     case 24: 
-      //Serial.println("state 24");
+      
       ST_ready_out = false;
-     // Serial.println("ST_Bus ST_ready_out desativado");
+    
       n = 0;
 
-      //Serial.print("ST_Command_IN: ");
-     // Serial.println(ST_Command_IN);
+      
 
       if(ST_Command_IN[n] == 'R'){state = 25;}
       if(ST_Command_IN[n] == 'B'){state = 26;}
@@ -1086,7 +954,7 @@ switch (state) {
     break;
 
     case 25: 
-    //Serial.println("state 25");
+    
       currentMove = &Resp_move;
       currentInst = &Resp_inst;
 
@@ -1095,7 +963,7 @@ switch (state) {
 
 
     case 26: 
-    //Serial.println("state 26");
+    
       currentMove = &Bat_move;
       currentInst = &Bat_inst;
 
@@ -1104,7 +972,7 @@ switch (state) {
 
 
     case 27: 
-    //Serial.println("state 27");
+    
       currentMove = &Tosse_move;
       currentInst = &Tosse_inst;
 
@@ -1112,7 +980,7 @@ switch (state) {
     break;
 
     case 28: //procura das Tags
-    //Serial.println("state 28 tags");
+    
       n++;
 
       if(strncmp(&ST_Command_IN[n], "n_pnt", 5) == 0){state = 29;}        //Variavel n_pontos
@@ -1346,14 +1214,6 @@ void setup() {
   debugPrintMove(Bat_move, "Bat_move"); 
   debugPrintMove(Tosse_move, "Tosse_move");
 
-    //Iniciate_Bat_Move();
-    //Iniciate_Resp_Move();
-    //Iniciate_Tosse_Move();
-
-    //saveBatToEEPROM();
-    //saveRespToEEPROM();
-    //saveTosseToEEPROM();
-    //Serial.println("eeprom salvado");
 
   // Nas execuções seguintes, podes preferir:
    loadBatFromEEPROM();
@@ -1376,13 +1236,6 @@ void setup() {
   Serial.println(" ");
   debugPrintMove(Tosse_move, "Tosse_move"); 
   debugPrintInstance(Tosse_inst, "Tosse_inst");
-
-  //  Iniciate_Bat_Move();
-  //  Iniciate_Resp_Move();
-  //  Iniciate_Tosse_Move();
-  //  Iniciate_Bat_Instance();
-  //  Iniciate_Resp_Instance();
-  //  Iniciate_Tosse_Instance();
     Calcular_Index0(Resp_move, Index0);
     
 }
@@ -1391,9 +1244,9 @@ void setup() {
 
 void loop() {
     
-static boolean trig_serial_IN; static boolean trig_serial_OUT;
-float actual_time = millis();
-float tempo_inicial = millis();
+    static boolean trig_serial_IN; static boolean trig_serial_OUT;
+    float actual_time = millis();
+    float tempo_inicial = millis();
 
   
     unsigned long now1 = millis();
@@ -1431,7 +1284,7 @@ float tempo_inicial = millis();
 float tempo_final = millis();
 float demora = tempo_final - tempo_inicial;
 Clock_loop++;
-if(trig_serial_IN == 1 && Safe_comand == 0){
+if(trig_serial_IN == 1 && Safe_comand == 1){
   
     Serial.print("X da tosse: ");
     Serial.print(Lerp_Tosse_OUT.X);
@@ -1441,22 +1294,6 @@ if(trig_serial_IN == 1 && Safe_comand == 0){
     Serial.println(Lerp_Tosse_OUT.Z);
     Serial.println(" ");
     Serial.println(" ");
-    //Serial.print("Estado da vibraçao:");
-    //Serial.println(state_test2);
-    //Serial.print("ST_Command_IN: ");
-    //Serial.println(ST_Command_Out);
-    //Serial.print("ST_ready_out: ");
-    //Serial.println(ST_ready_out);
-    //Serial.print("ST_ready_IN: ");
-    //Serial.println(ST_ready_IN);
-    //Serial.print("X:");
-    //Serial.println(Lerp_Respi_OUT.X);
-    //Serial.print("          Y:");
-    //Serial.println(Lerp_Respi_OUT.Y);
-    //Serial.print("                    Z:");
-    //Serial.println(Lerp_Respi_OUT.Z);
-    //Serial.print("sinal_tossir = ");
-    //Serial.println(sinal_tossir);
   
 
   }
@@ -1518,6 +1355,8 @@ bool attach_servos(void){ //Serve apenas para definir os valores de PWM maixos e
   return true;
 }
 
+
+
 bool inverse_kinematics(Manipulador_Config& cfg, float xt, float yt, float zt){    
     float servo_Theta1_angle; 
     float servo_Theta2_angle;
@@ -1539,6 +1378,8 @@ bool inverse_kinematics(Manipulador_Config& cfg, float xt, float yt, float zt){
 }
 
 
+
+
 bool inverse_kinematics_1(float xt, float yt, float zt, float rotation_offset_Z, float& Servo_angle){
     
     zt -= servo_offset_z; 
@@ -1548,21 +1389,12 @@ bool inverse_kinematics_1(float xt, float yt, float zt, float rotation_offset_Z,
     yt = x * sin(rotation_offset_Z) + y * cos(rotation_offset_Z);
 
     float arm_end_x = xt + L3; 
-    //printf("\n Arm_end_x= %f", arm_end_x);
     float l2p = sqrt(pow(L2, 2) - pow(yt, 2)); 
-    //printf("\n l2p= %f", l2p);
     
     float l2pAngle = asin(yt / L2); 
     //printf("\n rad l2pAngle= %f", radsToDeg(l2pAngle));
     if(!(abs(l2pAngle) < 0.59341194567807205615405486128613f)){ 
         printf("ERROR: Ball joint 1 out of range: l2pAngle = %f", radsToDeg(l2pAngle));
-        Serial.println("");
-        Serial.print("x:");
-    Serial.print(x);
-        Serial.print(" y:");
-        Serial.print(y);
-        Serial.print(" z:");
-        Serial.print(zt);
         return false;
     }
 
@@ -1604,25 +1436,13 @@ bool inverse_kinematics_2(float xt, float yt, float zt, float rotation_offset_Z,
     float l2pAngle = asin(yt / L2);
     if(!(abs(l2pAngle) < 0.59341194567807205615405486128613f)){ 
         //printf("ERROR: Ball joint 2 out of range: l2pAngle = %f", radsToDeg(l2pAngle));
-         Serial.print("ERROR: Ball joint 2 out of range: l2pAngle =");
-        Serial.print(radsToDeg(l2pAngle));
-        Serial.println("");
-        Serial.print(radsToDeg(0.59341194567807205615405486128613f));
-        Serial.println("");
-        Serial.print("x:");
-        Serial.print(xn);
-        Serial.print(" y:");
-        Serial.print(yn);
-        Serial.print(" z:");
-        Serial.print(zn);
-        Serial.println("");
         return false;
     }
     
     float ext = sqrt(pow (zt, 2) + pow(SERVO_OFFSET_X - arm_end_x, 2));
 
     if(ext <= l2p - L1 || ext >= L1 + l2p){ 
-       // printf("ERROR: Extension 2 out of range: ext = ", ext);
+        //printf("ERROR: Extension 2 out of range: ext = ", ext);
         return false;
     }
        
@@ -1631,7 +1451,7 @@ bool inverse_kinematics_2(float xt, float yt, float zt, float rotation_offset_Z,
     float theta = phi + omega;
 
     if(!(theta >= SERVO_ANGLE_MIN && theta <= SERVO_ANGLE_MAX)){
-       // printf("ERROR: Servo angle 2 out of range: Angle = ", radsToDeg(theta));
+        printf("ERROR: Servo angle 2 out of range: Angle = ", radsToDeg(theta));
         return false;
     }
     //printf("\n servo_2_angle = %f", radsToDeg(theta));
@@ -1648,8 +1468,6 @@ bool inverse_kinematics_3(float xt, float yt, float zt, float rotation_offset_Z,
     float angle = 4.1887902047863909846168578443727f + rotation_offset_Z; // 120° + offset
     xt = x * cos(angle) - y * sin(angle);
     yt = x * sin(angle) + y * cos(angle);
-    //xt = x * cos(4.1887902047863909846168578443727f) - y * sin(4.1887902047863909846168578443727f); //Rotate coordinate frame 240 degrees
-    //yt = x * sin(4.1887902047863909846168578443727f) + y * cos(4.1887902047863909846168578443727f);
 
     float arm_end_x = xt + L3;
     float l2p = sqrt(pow(L2, 2) - pow(yt, 2));
@@ -1657,22 +1475,14 @@ bool inverse_kinematics_3(float xt, float yt, float zt, float rotation_offset_Z,
     float l2pAngle = asin(yt / L2);
     if(!(abs(l2pAngle) < 0.59341194567807205615405486128613f)){ //Prevents the angle between the ball joints and link 2 (L2) going out of range.
         printf("ERROR: Ball joint 3 out of range: l2pAngle = ", radsToDeg(l2pAngle));
-        //Serial.println("");
-        //Serial.print("x:");
-        //Serial.print(x);
-        //Serial.print(" y:");
-        //Serial.print(y);
-        //Serial.print(" z:");
-        //Serial.print(zt);
-       // Serial.println("");
         return false;
     }
     
     float ext = sqrt(pow (zt, 2) + pow(SERVO_OFFSET_X - arm_end_x, 2));
 
     if(ext <= l2p - L1 || ext >= L1 + l2p){ //This limit assumes that L2 is greater than L1
-        //printf("ERROR: Extension 3 out of range: ext = ", ext);
-        //Serial.println("");
+        printf("ERROR: Extension 3 out of range: ext = ", ext);
+        Serial.println("");
         return false;
     }
        
@@ -1681,8 +1491,8 @@ bool inverse_kinematics_3(float xt, float yt, float zt, float rotation_offset_Z,
     float theta = phi + omega;
 
     if(!(theta >= SERVO_ANGLE_MIN && theta <= SERVO_ANGLE_MAX)){
-        //printf("ERROR: Servo angle 3 out of range: Angle = ", radsToDeg(theta));
-        //Serial.println("");
+        printf("ERROR: Servo angle 3 out of range: Angle = ", radsToDeg(theta));
+        Serial.println("");
         return false;
     }
     //printf("\n servo_3_angle = %f", radsToDeg(theta));
@@ -1731,6 +1541,7 @@ float lerp(float a, float b, float t) { //Interpolação linear entre dois ponto
 }
 
 
+
 void Intermed_position(boolean start, MotionInstance& inst, unsigned long nowMs, Coordinate& xyz, boolean trig_serial) {
     MotionStorage& m = *(inst.def);
 
@@ -1761,6 +1572,8 @@ void Intermed_position(boolean start, MotionInstance& inst, unsigned long nowMs,
 
     return;
 }
+
+
 
 void Calcular_Index0(MotionStorage& m, Coordinate& idx0) {
     // usa o start_Index já existente no movimento
@@ -1836,10 +1649,7 @@ void FSM_Motion_Update(boolean start, MotionInstance& inst, unsigned long nowMs)
       inst.segmentStartMs = nowMs;
 
       if((inst.iIndex < inst.End_Point && inst.Direction == 1) || (inst.iIndex > inst.End_Point && inst.Direction == -1)) {inst.state = 3;}
-      //if(inst.iIndex > inst.End_Point && inst.Direction == -1) {inst.state = 3;}
       if((inst.iIndex >= inst.End_Point && inst.Direction == 1) || (inst.iIndex <= inst.End_Point && inst.Direction == -1)) {inst.state = 5;}
-      //if(inst.iIndex <= inst.End_Point && inst.Direction == -1) {inst.state = 5;}
-      //if(inst.I_Index == m.N_points && m.bidirectional == true){inst.state = 1;}
       if(m.bidirectional == true && inst.iIndex == m.start_Index && inst.jIndex == m.start_Index + 1){inst.state = 1;}
       if(Tosse_signal == 1 && m.bidirectional == true){inst.state = 14;}
     break;
@@ -1934,11 +1744,7 @@ void FSM_Motion_Update(boolean start, MotionInstance& inst, unsigned long nowMs)
 bool Fusao_plus_IK_D1(const Coordinate& respi, const Coordinate& batim , const Coordinate& tosse) {
     float X_total = 1.0f * respi.X + 1.0f * batim.X + -15.0f + Index0.X*Index_mult_R.X + tosse.X;
     float Y_total = 1.0f * respi.Y + 1.0f * batim.Y + -5.0f + Index0.Y*Index_mult_R.Y + tosse.X;
-    float Z_total = 1.0f * respi.Z * Resp_inst.Z_amp_mult + 1.0f * batim.Z +  45.0f + Index0.Z*Index_mult_R.Z + tosse.X;
-
-    //float X_total = -15.0f;
-    //float Y_total = -10.0f;
-    //float Z_total = 40.0f;
+    float Z_total = 1.0f * respi.Z * Resp_inst.Z_amp_mult + 1.0f * batim.Z +  50.0f + Index0.Z*Index_mult_R.Z + tosse.X;
 
     bool ik_ok = inverse_kinematics(delta_1_Cfg, X_total, Y_total, Z_total);
     return ik_ok;
@@ -1947,138 +1753,73 @@ bool Fusao_plus_IK_D1(const Coordinate& respi, const Coordinate& batim , const C
 bool Fusao_plus_IK_D2(const Coordinate& respi, const Coordinate& batim , const Coordinate& tosse) {
     float X_total = 1.0f * respi.X + 0.0f * batim.X + -25.0f + Index0.X*Index_mult_R.X + tosse.X;
     float Y_total = 1.0f * respi.Y + 0.0f * batim.Y + -5.0f + Index0.Y*Index_mult_R.Y + tosse.X;
-    float Z_total = 1.0f * respi.Z * Resp_inst.Z_amp_mult + 0.0f * batim.Z +  45.0f + Index0.Z*Index_mult_R.Z + tosse.X;
-
-    //float X_total = -15.0f;
-    //float Y_total = -10.0f;
-    //float Z_total = 40.0f;
+    float Z_total = 1.0f * respi.Z * Resp_inst.Z_amp_mult + 0.0f * batim.Z +  50.0f + Index0.Z*Index_mult_R.Z + tosse.X;
 
     bool ik_ok = inverse_kinematics(delta_2_Cfg, -1.0f * X_total, Y_total, Z_total);
     return ik_ok;
 }
 
+
+
 bool PosicaoValidaParaTosse(const MotionInstance& inst, const MotionStorage& m) {
     int i = inst.iIndex;
 
-    // demasiado perto do início
-    if (i <= 2) return false;
 
-    // a subir perto demais do topo
+    if (i <= 2) return false;
     if (inst.Direction == 1 && i >= m.n_Points - 3) return false;
 
-    // todos os outros casos são válidos
     return true;
 }
 
 
 void AtualizarTosseAleatoria(unsigned long nowMs) {
-    // só funciona se programa e respiração estiverem ativos
+  
     if (start_comand == 0) return;
     if (!Resp_inst.active || Resp_inst.def == nullptr) return;
-    if (!Tosse_inst.active) return;   // só quando o modo de tosse estiver ligado
+    if (!Tosse_inst.active) return;   
 
     MotionStorage& m = Resp_move;
 
-    // se já há um sinal de tosse em curso ou em preparação, não marcamos outra
+
     if (sinal_tossir || Tosse_em_preparacao) return;
 
-    // se ainda não há alvo definido, cria um
+
     if (proximaTosseMs == 0) {
-        // intervalo inicial aleatório entre 3 e 8 segundos, por exemplo
+
         unsigned long intervalo = random(4000, 10000);
         proximaTosseMs = nowMs + intervalo;
-        Serial.print("Tempo até á proxima tosse:");
-        Serial.println(proximaTosseMs);
         return;
     }
-
-    // ainda não chegámos ao momento alvo
     if (nowMs < proximaTosseMs) return;
 
-    // chegámos ao momento alvo -> ver se a posição atual permite tosse
     if (!PosicaoValidaParaTosse(Resp_inst, m)) {
-        // posição má; empurra alvo um pouco para a frente (por ex. 200 ms)
         proximaTosseMs = nowMs + 500;
         return;
     }
 
-    // posição boa -> disparar tosse
     sinal_tossir = true;
 
-    // gerir clusters de 1–4 tosses
+   
     if (tossesRestantesNoCluster <= 0) {
-        // novo cluster: probabilidade de 1–4 tosses
         tossesRestantesNoCluster = random(1, 5); // 1,2,3 ou 4
     } else {
         tossesRestantesNoCluster--;
     }
 
-    // definir próximo alvo:
+  
     if (tossesRestantesNoCluster > 0) {
-        // próxima tosse dentro de 0.5–1.5s (mais provável logo a seguir)
+      
         unsigned long intervalo = random(500, 1500);
         proximaTosseMs = nowMs + intervalo;
     } else {
-        // depois de acabar o cluster, maior intervalo até novo cluster (3–10s)
+    
         unsigned long intervalo = random(3000, 10000);
         proximaTosseMs = nowMs + intervalo;
     }
 }
 
 
-/*
-void Preparacao_Tosse() {
-    if (start_comand == 0) {
-        sinal_tossir         = false;
-        Tosse_em_preparacao  = false;
-        Tosse_signal         = 0;
-        Resp_inst.Z_amp_mult = 1.0f;   // garantir reset se programa parar
-        return;
-    }
 
-    short int estadoResp = Resp_inst.state;
-
-    // 1) novo sinal de tosse, ainda não preparado
-    if (sinal_tossir && !Tosse_em_preparacao) {
-        if (!Resp_inst.active || Resp_inst.def == nullptr) {
-            sinal_tossir = false;
-            return;
-        }
-
-        // copiar valores padrão
-        Resp_period_padrao      = Resp_move.period;
-        Resp_T_pause_Ini_padrao = Resp_move.T_pause_Ini;
-
-        // alterar para tosse
-        Resp_move.period      = 0.30f;   // segundos
-        Resp_move.T_pause_Ini = 0.0f;   // segundos
-        Resp_inst.Z_amp_mult  = 1.50f;  // aumentar amplitude em Z
-
-        Resp_move.updateDtMs();
-        Resp_move.updateDt_PauseMs();
-
-        Tosse_signal        = 1;
-        Tosse_em_preparacao = true;
-        
-
-        return;
-    }
-
-    // 2) fim da tosse: FSM voltou ao state 1
-    if (Tosse_em_preparacao && estadoResp == 1) {
-        Resp_move.period      = Resp_period_padrao;
-        Resp_move.T_pause_Ini = Resp_T_pause_Ini_padrao;
-        Resp_inst.Z_amp_mult  = 1.0f;   // volta a 1.0
-
-        Resp_move.updateDtMs();
-        Resp_move.updateDt_PauseMs();
-
-        Tosse_signal        = 0;
-        Tosse_em_preparacao = false;
-        sinal_tossir        = false;
-    }
-}
-*/
 
 void FSM_preparacao_tosse(bool start, unsigned long nowMs) {
     static short int state = 0;

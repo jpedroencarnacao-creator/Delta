@@ -23,17 +23,17 @@ Este projeto pretende investigar, desenvolver, construir e documentar um protót
 
 Os seus objetivos específicos são:
 \begin{itemize}
-  \item estudar requisitos anatómicos, mecânicos e pedagógicos para os simuladores de broncoscopia;
-  \item desenvolver um plano e uma estrutura física compatível com impressão 3D e atuação mecânica;
-  \item integrar sensores ou atuadores e todo um sistema de eletrónica de controlo flexível, para os vários cenários de treino;
-  \item implementar firmware e configurações pré-feitas de controlo para os diferentes perfis de movimento;
-  \item desenvolver uma interface, HMI, para um controlo simples e intuitivo do modelo;
-  \item definir uma estratégia de testes para avaliação da usabilidade, da repetibilidade e da robustez dos sistemas, bem como verificação do sincronismo dos movimentos em termos de tempo e de espaço percorrido pelos manipuladores robóticos;
-  \item documentar as decisões de projeto, limitações e possíveis melhorias futuras.
+  \item Estudar requisitos anatómicos, mecânicos e pedagógicos para os simuladores de broncoscopia;
+  \item Desenvolver um plano e uma estrutura física compatível com impressão 3D e atuação mecânica;
+  \item Integrar sensores ou atuadores e todo um sistema de eletrónica de controlo flexível, para os vários cenários de treino;
+  \item Implementar firmware e configurações pré-feitas de controlo para os diferentes perfis de movimento;
+  \item Desenvolver uma interface, HMI, para um controlo simples e intuitivo do modelo;
+  \item Definir uma estratégia de testes para avaliação da usabilidade, da repetibilidade e da robustez dos sistemas, bem como verificação do sincronismo dos movimentos em termos de tempo e de espaço percorrido pelos manipuladores robóticos;
+  \item Documentar as decisões de projeto, limitações e possíveis melhorias futuras.
 \end{itemize}
 
 \section{Metodologia}
-Este projeto seguiu uma metodologia iterativa de desenvolvimento, começando por uma revisão bibliográfica alargada e pela definição dos requisitos anatómicos, mecânicos e pedagógicos do simulador. A primeira metade do tempo dedicado ao projeto centrou-se no modelo físico da árvore brônquica, a peça impressa em 3D construída e refinada ao longo de várias iterações, validadas em conjunto com a equipa médica responsável pelo projeto, um investimento de tempo que se justifica pela quantidade de tentativas, materiais e geometrias necessárias até se alcançar uma solução anatomicamente fiel e mecanicamente viável. Só a partir daí o restante hardware e o software foram desenvolvidos, ocupando a segunda metade do projeto, em paralelo e por camadas sucessivas, com protótipos intermédios a validar decisões de projeto antes de avançar para a fase seguinte, permitindo corrigir limitações identificadas em cada etapa em vez de as arrastar até ao final do processo. Esta abordagem culminou numa fase de testes e de validação experimental do protótipo final, descrita em detalhe no capítulo 5.
+Este projeto seguiu uma metodologia iterativa de desenvolvimento, começando por uma revisão bibliográfica alargada e pela definição dos requisitos anatómicos, mecânicos e pedagógicos do simulador. A primeira metade do tempo dedicado ao projeto centrou-se no modelo físico da árvore brônquica, a peça impressa em 3D construída e refinada ao longo de várias iterações, validadas em conjunto com a equipa médica responsável pelo projeto, um investimento de tempo que se justifica pela quantidade de tentativas, materiais e geometrias necessárias até se alcançar uma solução anatomicamente fiel e mecanicamente viável. Só a partir daí o restante hardware e o software foram desenvolvidos, ocupando a segunda metade do projeto, em paralelo e por camadas sucessivas, com protótipos intermédios a validar decisões de projeto antes de avançar para a fase seguinte, permitindo corrigir limitações identificadas em cada etapa em vez de as arrastar até ao final do processo. Esta abordagem culminou numa fase de testes e de validação experimental do protótipo final, descrita em detalhe no \cref{chap:testes}.
 
 \section{Organização do relatório}
 O relatório está organizado em seis capítulos. O primeiro apresenta o enquadramento, a motivação e os objetivos do projeto, enquanto o segundo reúne a revisão do estado da arte, abordando o treino por simulação, a impressão 3D e os movimentos observáveis durante a broncoscopia. O terceiro capítulo descreve o desenvolvimento do hardware, seguindo-se no quarto capítulo a apresentação da arquitetura de software, dos movimentos representados no protótipo, da cinemática inversa, das máquinas de estados, da comunicação série e de todo o sistema por detrás da HMI. O quinto capítulo apresenta os testes realizados ao modelo físico e à integração dos movimentos, terminando o relatório no sexto capítulo, onde se sintetizam as conclusões e as melhorias futuras a considerar.

@@ -2,7 +2,7 @@
 \noindent \hfill \textbf {Página}\par \vspace {0.3em}
 \contentsline {chapter}{Lista de Abreviaturas e Termos}{ix}{section*.5}%
 \contentsline {chapter}{Lista de Figuras}{xii}{section*.7}%
-\contentsline {chapter}{Lista de Tabelas}{xiv}{section*.9}%
+\contentsline {chapter}{Lista de Tabelas}{xv}{section*.9}%
 \contentsline {chapter}{\numberline {1}Introdução}{1}{chapter.1}%
 \contentsline {section}{\numberline {1.1}Enquadramento}{1}{section.1.1}%
 \contentsline {section}{\numberline {1.2}Motivação}{2}{section.1.2}%
@@ -12,71 +12,71 @@
 \contentsline {chapter}{\numberline {2}Estado da Arte}{4}{chapter.2}%
 \contentsline {section}{\numberline {2.1}Broncoscopia e treino por simulação}{4}{section.2.1}%
 \contentsline {section}{\numberline {2.2}Fidelidade dos simuladores}{5}{section.2.2}%
-\contentsline {section}{\numberline {2.3}Simuladores de broncoscopia}{5}{section.2.3}%
-\contentsline {section}{\numberline {2.4}Impressão 3D aplicada à simulação médica}{6}{section.2.4}%
-\contentsline {subsection}{\numberline {2.4.1}Técnicas de impressão 3D}{6}{subsection.2.4.1}%
-\contentsline {subsection}{\numberline {2.4.2}Aplicação em simuladores de árvores brônquicas}{8}{subsection.2.4.2}%
-\contentsline {section}{\numberline {2.5}Movimentos observáveis durante a broncoscopia}{8}{section.2.5}%
-\contentsline {subsection}{\numberline {2.5.1}Movimento respiratório}{9}{subsection.2.5.1}%
-\contentsline {subsection}{\numberline {2.5.2}Movimento cardíaco}{9}{subsection.2.5.2}%
-\contentsline {subsection}{\numberline {2.5.3}Tosse e perturbações rápidas}{10}{subsection.2.5.3}%
-\contentsline {subsection}{\numberline {2.5.4}Interação com o broncoscópio}{10}{subsection.2.5.4}%
-\contentsline {subsection}{\numberline {2.5.5}Patologias e deformações locais}{11}{subsection.2.5.5}%
-\contentsline {section}{\numberline {2.6}Síntese crítica}{11}{section.2.6}%
-\contentsline {chapter}{\numberline {3}Desenvolvimento do Hardware}{14}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Requisitos do sistema}{14}{section.3.1}%
-\contentsline {section}{\numberline {3.2}Impressão 3D da árvore brônquica}{15}{section.3.2}%
-\contentsline {subsection}{\numberline {3.2.1}Da tomografia ao modelo STL}{16}{subsection.3.2.1}%
-\contentsline {subsection}{\numberline {3.2.2}Programas utilizados no tratamento do modelo}{16}{subsection.3.2.2}%
-\contentsline {subsection}{\numberline {3.2.3}Seleção de materiais}{18}{subsection.3.2.3}%
-\contentsline {subsection}{\numberline {3.2.4}Disposição do modelo para impressão}{19}{subsection.3.2.4}%
-\contentsline {subsection}{\numberline {3.2.5}Evolução do processo de impressão 3D}{22}{subsection.3.2.5}%
-\contentsline {section}{\numberline {3.3}Seleção do sistema de atuação}{24}{section.3.3}%
-\contentsline {section}{\numberline {3.4}Eletrónica de controlo e alimentação}{26}{section.3.4}%
-\contentsline {subsection}{\numberline {3.4.1}Testes iniciais de eletrónica}{26}{subsection.3.4.1}%
-\contentsline {subsection}{\numberline {3.4.2}Arquitetura de alimentação e avaliação de motores de passo}{27}{subsection.3.4.2}%
-\contentsline {subsection}{\numberline {3.4.3}Dimensionamento da fonte de alimentação}{28}{subsection.3.4.3}%
-\contentsline {subsection}{\numberline {3.4.4}Gestão de energia do Raspberry Pi}{29}{subsection.3.4.4}%
-\contentsline {subsection}{\numberline {3.4.5}Da protoboard à PCB}{29}{subsection.3.4.5}%
-\contentsline {section}{\numberline {3.5}Integração mecânica}{29}{section.3.5}%
-\contentsline {chapter}{\numberline {4}Desenvolvimentos do Software e Configurações}{34}{chapter.4}%
-\contentsline {section}{\numberline {4.1}Arquitetura geral do software e ambiente de desenvolvimento}{34}{section.4.1}%
-\contentsline {section}{\numberline {4.2}Arquitetura do firmware ESP32-S3}{35}{section.4.2}%
-\contentsline {section}{\numberline {4.3}Movimentos representados no protótipo}{40}{section.4.3}%
-\contentsline {section}{\numberline {4.4}Geração de trajetórias (Python/Raspberry Pi)}{41}{section.4.4}%
-\contentsline {subsection}{\numberline {4.4.1}Desenvolvimento e iterações}{42}{subsection.4.4.1}%
-\contentsline {subsection}{\numberline {4.4.2}Módulo final}{43}{subsection.4.4.2}%
-\contentsline {section}{\numberline {4.5}Estruturas de armazenamento de dados}{49}{section.4.5}%
-\contentsline {section}{\numberline {4.6}Máquinas de estados e execução dos movimentos}{51}{section.4.6}%
-\contentsline {subsection}{\numberline {4.6.1}Desenvolvimento e iterações}{52}{subsection.4.6.1}%
-\contentsline {subsection}{\numberline {4.6.2}Módulo final}{56}{subsection.4.6.2}%
-\contentsline {paragraph}{Primeira etapa: intervalo de tempo por segmento.}{57}{section*.36}%
-\contentsline {paragraph}{Segunda etapa: avanço dos índices.}{57}{section*.37}%
-\contentsline {paragraph}{Interação com as estruturas de dados.}{57}{section*.38}%
-\contentsline {paragraph}{Fases de funcionamento.}{59}{section*.40}%
-\contentsline {paragraph}{Terceira etapa: cálculo da posição instantânea.}{59}{section*.41}%
-\contentsline {paragraph}{Quarta etapa: fusão das coordenadas.}{60}{section*.42}%
-\contentsline {section}{\numberline {4.7}Preparação e sincronização da tosse}{60}{section.4.7}%
-\contentsline {section}{\numberline {4.8}Cinemática inversa do manipulador delta}{61}{section.4.8}%
-\contentsline {subsection}{\numberline {4.8.1}Desenvolvimento e iterações}{61}{subsection.4.8.1}%
-\contentsline {subsection}{\numberline {4.8.2}Módulo final}{63}{subsection.4.8.2}%
-\contentsline {section}{\numberline {4.9}Comunicação série}{67}{section.4.9}%
-\contentsline {subsection}{\numberline {4.9.1}Comunicação série no firmware (ESP32)}{67}{subsection.4.9.1}%
-\contentsline {subsubsection}{\numberline {4.9.1.1}Desenvolvimento e iterações}{67}{subsubsection.4.9.1.1}%
-\contentsline {subsubsection}{\numberline {4.9.1.2}Módulo final}{68}{subsubsection.4.9.1.2}%
-\contentsline {subsection}{\numberline {4.9.2}Comunicação série no Python (Raspberry Pi)}{74}{subsection.4.9.2}%
-\contentsline {section}{\numberline {4.10}Interface HMI}{75}{section.4.10}%
-\contentsline {subsection}{\numberline {4.10.1}Escolha da tecnologia e evolução até à versão atual}{75}{subsection.4.10.1}%
-\contentsline {subsection}{\numberline {4.10.2}Arquitetura da aplicação final}{77}{subsection.4.10.2}%
-\contentsline {subsection}{\numberline {4.10.3}Funcionalidades principais}{80}{subsection.4.10.3}%
-\contentsline {subsection}{\numberline {4.10.4}Configurações de movimentos}{80}{subsection.4.10.4}%
-\contentsline {chapter}{\numberline {5}Testes e Análise de Resultados}{82}{chapter.5}%
-\contentsline {section}{\numberline {5.1}Testes do modelo físico}{82}{section.5.1}%
-\contentsline {section}{\numberline {5.2}Testes de integração dos movimentos}{83}{section.5.2}%
-\contentsline {chapter}{\numberline {6}Conclusão}{84}{chapter.6}%
-\contentsline {section}{\numberline {6.1}Síntese do trabalho}{84}{section.6.1}%
-\contentsline {section}{\numberline {6.2}Limitações}{84}{section.6.2}%
-\contentsline {section}{\numberline {6.3}Trabalho futuro}{85}{section.6.3}%
-\contentsline {chapter}{Bibliografia}{86}{chapter*.56}%
-\contentsline {chapter}{Apêndice}{92}{section*.57}%
-\contentsline {chapter}{Anexos}{93}{section*.61}%
+\contentsline {section}{\numberline {2.3}Simuladores de broncoscopia}{6}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Impressão 3D aplicada à simulação médica}{8}{section.2.4}%
+\contentsline {subsection}{\numberline {2.4.1}Técnicas de impressão 3D}{8}{subsection.2.4.1}%
+\contentsline {subsection}{\numberline {2.4.2}Aplicação em simuladores de árvores brônquicas}{10}{subsection.2.4.2}%
+\contentsline {section}{\numberline {2.5}Movimentos observáveis durante a broncoscopia}{12}{section.2.5}%
+\contentsline {subsection}{\numberline {2.5.1}Movimento respiratório}{12}{subsection.2.5.1}%
+\contentsline {subsection}{\numberline {2.5.2}Movimento cardíaco}{13}{subsection.2.5.2}%
+\contentsline {subsection}{\numberline {2.5.3}Tosse e perturbações rápidas}{14}{subsection.2.5.3}%
+\contentsline {subsection}{\numberline {2.5.4}Interação com o broncoscópio}{15}{subsection.2.5.4}%
+\contentsline {subsection}{\numberline {2.5.5}Patologias e deformações locais}{17}{subsection.2.5.5}%
+\contentsline {section}{\numberline {2.6}Síntese crítica}{18}{section.2.6}%
+\contentsline {chapter}{\numberline {3}Desenvolvimento do Hardware}{21}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Requisitos do sistema}{21}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Impressão 3D da árvore brônquica}{23}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.1}Da tomografia ao modelo STL}{24}{subsection.3.2.1}%
+\contentsline {subsection}{\numberline {3.2.2}Programas utilizados no tratamento do modelo}{24}{subsection.3.2.2}%
+\contentsline {subsection}{\numberline {3.2.3}Seleção de materiais}{27}{subsection.3.2.3}%
+\contentsline {subsection}{\numberline {3.2.4}Disposição do modelo para impressão}{28}{subsection.3.2.4}%
+\contentsline {subsection}{\numberline {3.2.5}Evolução do processo de impressão 3D}{33}{subsection.3.2.5}%
+\contentsline {section}{\numberline {3.3}Seleção do sistema de atuação}{37}{section.3.3}%
+\contentsline {section}{\numberline {3.4}Eletrónica de controlo e alimentação}{39}{section.3.4}%
+\contentsline {subsection}{\numberline {3.4.1}Testes iniciais de eletrónica}{40}{subsection.3.4.1}%
+\contentsline {subsection}{\numberline {3.4.2}Gestão de energia do Raspberry Pi}{40}{subsection.3.4.2}%
+\contentsline {subsection}{\numberline {3.4.3}Arquitetura e dimensionamento da fonte de alimentação}{41}{subsection.3.4.3}%
+\contentsline {subsection}{\numberline {3.4.4}Da protoboard à PCB}{42}{subsection.3.4.4}%
+\contentsline {section}{\numberline {3.5}Integração mecânica}{45}{section.3.5}%
+\contentsline {chapter}{\numberline {4}Desenvolvimentos do Software e Configurações}{50}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Arquitetura geral do software e ambiente de desenvolvimento}{50}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Arquitetura do firmware ESP32-S3}{51}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Movimentos representados no protótipo}{56}{section.4.3}%
+\contentsline {section}{\numberline {4.4}Geração de trajetórias (Python/Raspberry Pi)}{58}{section.4.4}%
+\contentsline {subsection}{\numberline {4.4.1}Desenvolvimento e iterações}{59}{subsection.4.4.1}%
+\contentsline {subsection}{\numberline {4.4.2}Módulo final}{60}{subsection.4.4.2}%
+\contentsline {section}{\numberline {4.5}Estruturas de armazenamento de dados}{66}{section.4.5}%
+\contentsline {section}{\numberline {4.6}Máquinas de estados e execução dos movimentos}{68}{section.4.6}%
+\contentsline {subsection}{\numberline {4.6.1}Desenvolvimento e iterações}{68}{subsection.4.6.1}%
+\contentsline {subsection}{\numberline {4.6.2}Módulo final}{72}{subsection.4.6.2}%
+\contentsline {paragraph}{Primeira etapa: intervalo de tempo por segmento.}{72}{section*.73}%
+\contentsline {paragraph}{Segunda etapa: avanço dos índices.}{73}{section*.74}%
+\contentsline {paragraph}{Fases de funcionamento da FSM\_motion\_update.}{75}{section*.76}%
+\contentsline {paragraph}{Terceira etapa: cálculo da posição instantânea.}{75}{section*.77}%
+\contentsline {paragraph}{Quarta etapa: fusão das coordenadas.}{76}{section*.78}%
+\contentsline {section}{\numberline {4.7}Preparação e sincronização da tosse}{76}{section.4.7}%
+\contentsline {paragraph}{Geração aleatória do evento.}{76}{section*.79}%
+\contentsline {paragraph}{Máquina de estados de preparação.}{78}{section*.81}%
+\contentsline {section}{\numberline {4.8}Cinemática inversa do manipulador delta}{80}{section.4.8}%
+\contentsline {subsection}{\numberline {4.8.1}Desenvolvimento e iterações}{80}{subsection.4.8.1}%
+\contentsline {subsection}{\numberline {4.8.2}Módulo final}{82}{subsection.4.8.2}%
+\contentsline {section}{\numberline {4.9}Comunicação série}{87}{section.4.9}%
+\contentsline {subsection}{\numberline {4.9.1}Comunicação série no firmware (ESP32)}{87}{subsection.4.9.1}%
+\contentsline {subsubsection}{\numberline {4.9.1.1}Desenvolvimento e iterações}{88}{subsubsection.4.9.1.1}%
+\contentsline {subsubsection}{\numberline {4.9.1.2}Módulo final}{88}{subsubsection.4.9.1.2}%
+\contentsline {subsection}{\numberline {4.9.2}Comunicação série no Python (Raspberry Pi)}{96}{subsection.4.9.2}%
+\contentsline {section}{\numberline {4.10}Interface HMI}{97}{section.4.10}%
+\contentsline {subsection}{\numberline {4.10.1}Escolha da tecnologia e evolução até à versão atual}{97}{subsection.4.10.1}%
+\contentsline {subsection}{\numberline {4.10.2}Arquitetura da aplicação final}{99}{subsection.4.10.2}%
+\contentsline {subsection}{\numberline {4.10.3}Funcionalidades principais}{102}{subsection.4.10.3}%
+\contentsline {subsection}{\numberline {4.10.4}Configurações de movimentos}{102}{subsection.4.10.4}%
+\contentsline {chapter}{\numberline {5}Testes e Análise de Resultados}{105}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Teste de Laboratório}{105}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Testes clínicos}{110}{section.5.2}%
+\contentsline {chapter}{\numberline {6}Conclusão}{113}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Síntese do trabalho}{113}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Limitações}{114}{section.6.2}%
+\contentsline {section}{\numberline {6.3}Trabalho futuro}{115}{section.6.3}%
+\contentsline {chapter}{Bibliografia}{117}{chapter*.110}%
+\contentsline {chapter}{Anexos}{123}{section*.111}%
+\contentsline {section}{Código do firmware ESP32-S3}{123}{section*.113}%

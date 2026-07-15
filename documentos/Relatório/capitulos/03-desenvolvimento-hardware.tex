@@ -1,9 +1,10 @@
 \chapter{Desenvolvimento do Hardware}
+\setlength{\parskip}{\baselineskip}
 
 Este capítulo documenta a fase que ocupou a primeira metade do tempo dedicado a este projeto e que serviu de alicerce a todo o trabalho descrito nos capítulos seguintes: o desenvolvimento do modelo físico da árvore brônquica impresso em 3D e de toda a estrutura mecânica e eletrónica que viria a sustentar a sua atuação. O capítulo percorre esse desenvolvimento do hardware, desde as primeiras impressões de teste até à montagem final do sistema dos dois manipuladores delta, eletrónica de controlo e suportes para guardar os componentes de forma segura, um processo que não foi linear, uma vez que cada iteração revelou limitações que levaram a novas abordagens do design, dos materiais e da arquitetura mecânica. O que se segue documenta esse caminho de escolhas intermédias, bem como os problemas que as motivaram.
 
 \section{Requisitos do sistema}
-Como já referido o modelo deve permitir o treino de videobroncofibroscopia com um modelo físico de baixo custo, robusto, substituível e fácil de montar, tendo os requisitos principais sido agrupados em quatro eixos:
+Como já referido, o modelo deve permitir o treino de videobroncofibroscopia com um modelo físico de baixo custo, robusto, substituível e fácil de montar, tendo os requisitos principais sido agrupados em quatro eixos:
 \begin{itemize}
   \item $\rightarrow$ Realismo anatómico;
   \item $\rightarrow$ Facilidade de utilização;
@@ -15,39 +16,66 @@ No plano pedagógico, deve ainda permitir a repetição de exercícios e a adapt
 
 Do ponto de vista funcional, o sistema foi separado em dois blocos:
 \begin{itemize}
-  \item 1º  $\rightarrow$ Modelo Físico, constituído pela árvore brônquica impressa em 3D, pelos manipuladores delta, pelos servo-motores e seus respitivos drivers e pelo microcontrolador ESP32-S3, executando fisicamente os movimentos e mantendo um comportamento previsível mesmo quando recebe comandos externos;
+  \item 1º  $\rightarrow$ Modelo Físico, constituído pela árvore brônquica impressa em 3D, pelos manipuladores delta, pelos servo-motores e seus respetivos drivers e pelo microcontrolador ESP32-S3, executando fisicamente os movimentos e mantendo um comportamento previsível mesmo quando recebe comandos externos;
   \item 2º $\rightarrow$ HMI, suportada pelo Raspberry Pi 4B e pelo monitor touchscreen, apresentando ao utilizador, através de botões e menus intuitivos, comandos de alto nível, como iniciar, parar, escolher modo fisiológico ou ajustar parâmetros, ficando a cargo do software a tradução desses comandos, o cálculo e a geração de coordenadas para os movimentos pretendidos e a execução física dos mesmos, o que torna o sistema mais simples e intuitivo para o utilizador;
 \end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth]{fotos/cad_sistema_delta_hmi_crop.png}
+  \caption{Representação CAD do modelo físico e da HMI.}
+  \label{fig:cad-sistema-delta-hmi}
+\end{figure}
 
 Um dos requisitos obrigatórios do desenvolvimento do modelo físico é a capacidade de reproduzir movimentos fisiológicos de forma controlada, com frequências e amplitudes compatíveis com os valores observados em humanos, sendo esta fidelidade de movimento o elemento que distingue este protótipo dos simuladores puramente estáticos já existentes no mercado. Esta exigência tornou-se também o maior desafio de todo o projeto, uma vez que o modelo físico e a HMI têm de funcionar de forma paralela e sincronizada, sem comprometer a precisão temporal dos movimentos sobrepostos nem o sincronismo entre os comandos enviados pela interface e a resposta física do modelo.
 
 \section{Impressão 3D da árvore brônquica}
 Esta secção documenta o processo mais importante de todo o projeto, o processo de impressão 3D da árvore brônquica, desde o modelo STL fornecido pela equipa médica até à peça final, fisicamente impressa e testada. O desenvolvimento deste modelo impresso condicionou diretamente as restantes fases do projeto, uma vez que a atuação mecânica, a eletrónica, o firmware e a HMI foram concebidos a partir das dimensões, da geometria e das limitações mecânicas desta estrutura física. Este processo consumiu grande parte do tempo dedicado ao desenvolvimento do modelo físico, exigindo sucessivas iterações de tratamento de malha, escolha de materiais, orientação de impressão e ajuste dos parâmetros de fabrico, até se alcançar uma solução simultaneamente fiel à anatomia original e mecanicamente viável para a atuação robótica prevista. As técnicas de impressão 3D consideradas para este projeto, FDM, SLA e SLS, foram já comparadas na \cref{subsec:tecnicas-impressao-3d}, sendo o FDM a tecnologia disponível na universidade e por isso a base de todo o processo aqui descrito.
 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.78\textwidth]{fotos/laboratorio_impressao_3d.jpg}
+  \caption{Ambiente de fabrico usado nas primeiras impressões.}
+  \label{fig:laboratorio-impressao-3d}
+\end{figure}
+
 \subsection{Da tomografia ao modelo STL}
 O ponto de partida do projeto foi o modelo tridimensional da árvore brônquica, obtido a partir de dados de uma tomografia computorizada (TAC), a tecnologia de imagem médica utilizada pela equipa clínica para obter o scan 3D, que foi realizada e entregue pelo grupo de médicos encarregues do projeto, em formato de malha 3D (STL). Este tipo de ficheiro define apenas a geometria da superfície do objeto, sob a forma de uma malha de triângulos, sem qualquer volume ou espessura associada, pelo que o modelo obtido correspondia apenas à superfície interna da árvore brônquica, uma espécie de casca oca, sendo por isso necessário atribuir-lhe espessura manualmente antes da impressão 3D.
 
-\subsection{Programas utilizados no tratamento do modelo}
-Esta operação foi feita inicialmente no programa gratuito Tinkercad (da Autodesk), com o objetivo de realizar um teste rápido em PLA e confirmar a viabilidade geométrica da impressão. Depois de uma confirmação visual, passou-se para um programa mais indicado para este trabalho, o Fusion 360, um programa CAD da Autodesk destinado ao desenho 3D de sólidos, superfícies e malhas, que dispõe de uma ferramenta interna chamada ``Forms''. Ao contrário do ambiente normal do Fusion 360, onde se trabalha maioritariamente com objetos sólidos e geometria bem definida, o Forms é exclusivamente indicado para trabalhar diretamente com scans 3D e as suas irregularidades geométricas, o que o tornava particularmente adequado a este caso.
-
-No ambiente Forms, não se edita diretamente o ficheiro de malha. Em vez disso, é criada uma aproximação à superfície do ficheiro através de uma camada virtual, sendo apenas a essa camada que depois é possível atribuir um valor de espessura, criando assim um verdadeiro objeto 3D da árvore brônquica. Esta abordagem permitia editar em tempo real a geometria da camada e corrigir irregularidades existentes na malha, bem como descartar secções consideradas desnecessárias, como por exemplo as extremidades mais pequenas do scan 3D, que não tinham qualquer utilidade para o modelo devido à incompatibilidade entre a largura das vias nessas extremidades e a largura da sonda broncoscópica.
-
-Contudo, observou-se rapidamente que este método era demorado e ineficiente. O ambiente Forms trabalha com formas primitivas do tipo T-Spline, como o cilindro sem base nem topo ou uma superfície do tipo folha, compostas por vértices, arestas e faces que podem ser deslocados, rodados ou escalados através da ferramenta Edit Form, moldando a forma até se aproximar da geometria pretendida. Para este modelo, o cilindro sem tampas foi a forma escolhida, por já se aproximar naturalmente do formato dos ramos da árvore brônquica. Não era, no entanto, possível aplicar esta aproximação ao modelo completo de uma só vez. Era necessário trabalhar ramo a ramo, ajustando individualmente um destes cilindros a cada ramificação através da ferramenta Edit Form, para depois ser fundido aos ramos adjacentes e ter a posição dos pontos novamente afinada, de forma a manter a fidelidade à geometria original do scan. Este processo, repetido ramo a ramo ao longo de toda a árvore brônquica e seguido de sucessivas costuras e correções, tornava o método muito demorado. Por esta razão, optou-se por um outro programa, o MeshMixer, também da Autodesk, direcionado exclusivamente para trabalhar e modificar diretamente ficheiros de malha 3D. Ao contrário do Forms, que edita apenas uma camada virtual de aproximação, o MeshMixer permite selecionar diretamente os triângulos da malha através de ferramentas de pincel e laço, corrigindo na fonte as imperfeições e cortando as secções desnecessárias. A ferramenta Inspector fecha automaticamente as malhas abertas e repara falhas de continuidade na superfície, enquanto o Offset permite atribuir espessura diretamente à malha, sem depender de uma camada intermédia como no Forms. Uma outra vantagem do MeshMixer em relação ao Forms está na forma como lida com sobreposições. Quando, com o aumento de espessura (scale-up), duas malhas ficam sobrepostas, a ferramenta Boolean Union do MeshMixer une-as automaticamente numa só peça, enquanto o Fusion 360 não consegue processar essas sobreposições e obriga a manter uma distância mínima entre elas, exigindo várias iterações e ajustes manuais.
-
-Mesmo depois da transição para o MeshMixer, o Fusion 360 continuou a ser bastante utilizado ao longo da modelação da árvore brônquica, uma vez que continuava a ser necessário desenhar as peças de encaixe que permitiam ligar o modelo à estrutura de suporte dos manipuladores. O fluxo de trabalho consistia em tratar o modelo no MeshMixer, atribuindo-lhe espessura e cortando os limites dos tubos necessários, para depois o exportar em formato STL e importá-lo no Fusion 360, onde não era feita qualquer conversão ou tratamento adicional da malha. Nesse ambiente, desenhavam-se apenas as peças de encaixe como objetos sólidos independentes, posicionados de forma a manterem-se dentro dos limites internos da malha, sem nunca ultrapassar para o lado oco do modelo.
-
-O ficheiro completo, incluindo a malha importada e as peças de encaixe recém-desenhadas, era depois exportado em conjunto como um único STL, de forma a evitar que o programa mantivesse os dois tipos de objeto como entidades distintas, o que poderia criar problemas mais tarde na importação para o slicer. Esta união era possível devido à própria natureza do formato STL, que, ao contrário de formatos como o STEP ou o OBJ, não transporta qualquer informação sobre a estrutura interna ou a separação entre objetos de um ficheiro, sendo composto apenas por coordenadas de vértices e pela sua conectividade em triângulos. Um ficheiro STL binário, em particular, nem sequer tem capacidade para representar mais do que um único conjunto de triângulos, pelo que exportar a malha e as peças sólidas em conjunto resultava sempre numa única superfície contínua, sem qualquer separação reconhecível entre os dois tipos de objeto originais.
-
-\subsection{Seleção de materiais}
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.72\textwidth]{fotos/impressao_inicial_pla.jpg}
-  \caption{Testes de impressão da árvore brônquica com TPU 95A, com suporte em PLA.}
-  \label{fig:impressao-inicial}
+  \includegraphics[width=0.68\textwidth]{fotos/modelo_stl_recovered_v15.png}
+  \caption{Modelo inicial da árvore brônquica em formato STL.}
+  \label{fig:modelo-stl-inicial}
 \end{figure}
 
-A seleção de materiais foi considerada uma decisão crítica ao longo de todo o projeto, tendo sido identificados filamentos flexíveis como PEBA, TPU, TPE e TPC, filamentos especiais de dureza variável utilizados mais tarde no projeto e diferentes durezas comerciais, por exemplo 95A, 85A e 70A.
-Como o objetivo do modelo era aproximar-se o mais possível da realidade anatómica, era necessário utilizar um material suficientemente mole, pelo que foi necessário testar vários materiais, geometrias e durezas ao longo do projeto.
+\subsection{Programas utilizados no tratamento do modelo}
+\indent Esta operação foi feita inicialmente no programa gratuito \textbf{Tinkercad} (da Autodesk), com o objetivo de realizar um teste rápido em PLA e confirmar a viabilidade geométrica da impressão.
+
+Depois de uma confirmação visual, passou-se para um programa mais indicado para este trabalho, o \textbf{Fusion 360}, um programa CAD da Autodesk destinado ao desenho 3D de sólidos, superfícies e malhas, que dispõe de uma ferramenta interna chamada ``Forms''. Ao contrário do ambiente normal do Fusion 360, onde se trabalha maioritariamente com objetos sólidos e geometria bem definida, o Forms é exclusivamente indicado para trabalhar diretamente com scans 3D e as suas irregularidades geométricas, o que o tornava particularmente adequado a este caso.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.58\textwidth]{fotos/fusion_forms_tspline.png}
+  \caption{Tratamento por Forms/T-Spline no Fusion 360.}
+  \label{fig:modelacao-malha-fusion}
+\end{figure}
+
+Neste ambiente, não se edita diretamente o ficheiro de malha: em vez disso, é criada uma aproximação à superfície através de uma camada virtual, sendo apenas a essa camada que depois é possível atribuir um valor de espessura, criando assim um verdadeiro objeto 3D da árvore brônquica. Esta abordagem permitia editar em tempo real a geometria da camada e corrigir irregularidades existentes na malha, bem como descartar secções consideradas desnecessárias, como as extremidades mais pequenas do scan 3D, sem qualquer utilidade para o modelo devido à incompatibilidade entre a largura das vias nessas extremidades e a largura da sonda broncoscópica. Contudo, observou-se rapidamente que este método era demorado e ineficiente: o Forms trabalha com formas primitivas do tipo T-Spline, como o cilindro sem base nem topo, compostas por vértices, arestas e faces deslocáveis, rodáveis ou escaláveis através da ferramenta Edit Form. Não era possível aplicar esta aproximação ao modelo completo de uma só vez, sendo necessário trabalhar ramo a ramo, o que, seguido de sucessivas costuras e correções, tornava o método muito demorado.
+
+Por esta razão, optou-se por um outro programa, o \textbf{MeshMixer}, também da Autodesk, direcionado exclusivamente para trabalhar e modificar diretamente ficheiros de malha 3D. Ao contrário do Forms, que edita apenas uma camada virtual de aproximação, o MeshMixer permite selecionar diretamente os triângulos da malha através de ferramentas de pincel e laço, corrigindo na fonte as imperfeições e cortando as secções desnecessárias. A ferramenta Inspector fecha automaticamente as malhas abertas e repara falhas de continuidade na superfície, enquanto o Offset permite atribuir espessura diretamente à malha, sem depender de uma camada intermédia como no Forms. Uma outra vantagem do MeshMixer está na forma como lida com sobreposições: quando, com o aumento de espessura (scale-up), duas malhas ficam sobrepostas, a ferramenta Boolean Union une-as automaticamente numa só peça, enquanto o Fusion 360 não consegue processar essas sobreposições e obriga a manter uma distância mínima entre elas, exigindo várias iterações e ajustes manuais.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.82\textwidth]{fotos/meshmixer_captura_20260714.png}
+  \caption{Tratamento da malha da árvore brônquica no MeshMixer.}
+  \label{fig:meshmixer-modelo-tratado}
+\end{figure}
+
+Mesmo depois da transição para o MeshMixer, o \textbf{Fusion 360} continuou a ser bastante utilizado ao longo da modelação da árvore brônquica, uma vez que continuava a ser necessário desenhar as peças de encaixe que permitiam ligar o modelo à estrutura de suporte dos manipuladores. O fluxo de trabalho consistia em tratar o modelo no MeshMixer, atribuindo-lhe espessura e cortando os limites dos tubos necessários, para depois o exportar em formato STL e importá-lo no Fusion 360, onde não era feita qualquer conversão ou tratamento adicional da malha. Nesse ambiente, desenhavam-se apenas as peças de encaixe como objetos sólidos independentes, posicionados de forma a manterem-se dentro dos limites internos da malha, sem nunca ultrapassar para o lado oco do modelo. O ficheiro completo, incluindo a malha importada e as peças de encaixe recém-desenhadas, era depois exportado em conjunto como um único STL, de forma a evitar que o programa mantivesse os dois tipos de objeto como entidades distintas, o que poderia criar problemas mais tarde na importação para o slicer. Esta união era possível devido à própria natureza do formato STL, que, ao contrário de formatos como o STEP ou o OBJ, não transporta qualquer informação sobre a estrutura interna ou a separação entre objetos de um ficheiro, sendo composto apenas por coordenadas de vértices e pela sua conectividade em triângulos. Um ficheiro STL binário, em particular, nem sequer tem capacidade para representar mais do que um único conjunto de triângulos, pelo que exportar a malha e as peças sólidas em conjunto resultava sempre numa única superfície contínua, sem qualquer separação reconhecível entre os dois tipos de objeto originais.
+
+\subsection{Seleção de materiais}
+A seleção de materiais foi considerada uma decisão crítica ao longo de todo o projeto. Como o objetivo do modelo era aproximar-se o máximo possível da realidade anatómica, era necessário utilizar materiais suficientemente moles, tendo sido identificados por isso vários filamentos flexíveis como PEBA, TPU, TPE e TPC, bem como diferentes durezas comerciais, por exemplo 95A, 85A e 70A.
 
 \begin{figure}[htbp]
   \centering
@@ -57,18 +85,36 @@ Como o objetivo do modelo era aproximar-se o mais possível da realidade anatóm
 \end{figure}
 
 Nos filamentos maleáveis, quanto menor a dureza do material, mais difícil se torna a sua impressão. 
-Os filamentos mais duros alimentam-se com facilidade através do extrusor, enquanto os mais moles tendem a comprimir-se e a deformar-se nas engrenagens de alimentação em vez de serem corretamente empurrados, o que aumenta significativamente a tendência para entupimentos e para defeitos de impressão, como o stringing. 
-O TPU exige ainda um controlo mais apertado de vários parâmetros de impressão, nomeadamente a temperatura, que deve manter-se numa gama estreita, uma vez que poucos graus a mais podem ser o suficientes para provocar stringing ou distorções mais graves nas secções inclinadas por excesso de fluidez do material, a retração, que deve ser reduzida ao mínimo, já que retrações demasiado longas tendem a provocar entupimentos em vez de os evitar (devido á criação de stress entre a zona do estrusora e a secção de convecção que por sua vez faz com que o material se adere as paredes do bico e crie resistencia) e a velocidade de impressão, que deve ser mantida baixa, para permitir uma extrusão mais controlada. A dureza mais comum no mercado é a 95A, existindo ainda assim empresas que produzem filamentos especializados com durezas tão baixas como 85A ou mesmo 70A, sendo este último especialmente problemático, por se deformar com facilidade durante a impressão e por exigir um extrusor direct-drive dedicado para não encravar. Por esta razão, os testes iniciais foram realizados apenas com TPU 95A, com o objetivo de validar a viabilidade de impressão do modelo em materiais flexíveis, conforme documentado nos primeiros testes de impressão (\cref{fig:impressao-inicial}).
+Os filamentos mais duros alimentam-se com facilidade através do extrusor, enquanto os mais moles tendem a comprimir-se e a deformar-se nas engrenagens de alimentação em vez de serem corretamente empurrados, o que aumenta significativamente a tendência para entupimentos e para defeitos de impressão, como o stringing.
+
+O TPU exige ainda um controlo mais apertado de vários parâmetros de impressão, nomeadamente a temperatura, que deve manter-se numa gama estreita, uma vez que poucos graus a mais podem ser suficientes para provocar stringing ou distorções mais graves nas secções inclinadas por excesso de fluidez do material, a retração, que deve ser reduzida ao mínimo, já que retrações demasiado longas tendem a provocar entupimentos em vez de os evitar (devido à criação de tensão entre a zona do extrusor e a secção de convecção, que por sua vez faz com que o material adira às paredes do bico e crie resistência) e a velocidade de impressão, que deve ser mantida baixa, para permitir uma extrusão mais controlada.
+
+A dureza mais comum no mercado é a 95A, existindo ainda assim empresas que produzem filamentos especializados com durezas tão baixas como 85A ou mesmo 70A, sendo este último especialmente problemático, por se deformar com facilidade durante a impressão e por exigir um extrusor direct-drive dedicado para não encravar. Por esta razão, os testes iniciais foram realizados apenas com TPU 95A, com o objetivo de validar a viabilidade de impressão do modelo em materiais flexíveis antes de se avançar para materiais mais difíceis de processar.
 
 \subsection{Disposição do modelo para impressão}
 \label{sec:disposicao-impressao}
-Um outro desafio foi decidir como dispor o modelo para impressão em FDM, a única tecnologia disponível na universidade. Uma impressora SLA eliminaria alguns destes problemas de suporte, mas acabou por ser descartada, apesar de reunir mais vantagens do que a comparação inicial sugere:
+Um outro desafio foi decidir como dispor o modelo para impressão em FDM, a única tecnologia disponível na universidade. Apesar de não ser uma opção viável devido à inacessibilidade, a impressora SLA eliminaria alguns dos problemas de suporte da impressão em FDM, apresentando ainda mais vantagens, tais como:
 \begin{itemize}
   \item Vantagens do SLA: dispensaria suportes em várias zonas do modelo, simplificando a geometria de impressão e reduzindo o risco de stringing no interior de peças ocas e ramificadas, um dos problemas que mais viria a afetar a impressão em FDM, como descrito mais adiante nesta secção. Permite também obter um acabamento de superfície muito mais fino e sem linhas de camada visíveis, característica relevante para reproduzir com fidelidade a superfície interna lisa da árvore brônquica. Além disso, existe atualmente uma grande variedade de resinas flexíveis e de silicones fotocuráveis compatíveis com esta tecnologia, com durezas Shore A que vão de aproximadamente 80A \parencite{FormlabsFlexible80A} até valores bastante mais baixos, como 70A \parencite{InslogicFlexible70A}, 63A ou 55A \parencite{LiqcreateFlexResins}, 50A \parencite{FormlabsElastic50A} ou mesmo 40A em resinas de silicone puro \parencite{FormlabsSilicone40A}, um intervalo mais alargado e mais fácil de alcançar de forma fiável do que o observado nos filamentos de FDM, em que durezas abaixo de 70A se tornam cada vez mais problemáticas de imprimir, precisamente porque o processo de cura de uma resina líquida não depende da extrusão mecânica de um filamento sólido através de engrenagens e de um bico;
   \item Desvantagens do SLA: equipamento com custo muito superior e dependente de equipamento adicional de pós-processamento, nomeadamente lavagem das peças em álcool isopropílico e cura adicional sob luz ultravioleta, o que tornava a sua aquisição incomportável para o projeto. Os volumes de impressão são também tipicamente mais reduzidos do que os disponíveis em impressoras FDM, o que poderia condicionar a impressão do modelo completo da árvore brônquica numa só peça.
 \end{itemize}
 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.82\textwidth]{artigos/sla_vat_photopolymerization_norra.png}
+  \caption{Exemplo de impressão SLA por fotopolimerização em cuba (fonte: Norra AM).}
+  \label{fig:fdm-regra-45}
+\end{figure}
+
 Mantendo-se a impressão em FDM, foram equacionadas três opções para a disposição do modelo:
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.78\textwidth]{fotos/impressao_bambulab.jpg}
+  \caption{Impressora FDM utilizada nas iterações do modelo.}
+  \label{fig:impressao-bambulab}
+\end{figure}
+
 \begin{enumerate}
   \item \textbf{Impressão em peça única com suportes exteriores.} O modelo seria impresso de uma só vez, com suportes colocados do lado de fora para sustentar as zonas sem apoio inferior, que ficariam essencialmente a ser impressas ``no ar'':
   \begin{itemize}
@@ -83,11 +129,26 @@ Mantendo-se a impressão em FDM, foram equacionadas três opções para a dispos
   \end{itemize}
 
   \item \textbf{Moldagem por enchimento de um molde negativo.} Em vez de imprimir diretamente o modelo, esta opção previa a impressão de um molde negativo, utilizado depois para verter resina ou silicone e obter o positivo da árvore brônquica. Foi uma ideia forte durante grande parte do projeto, funcionando quase sempre como plano secundário:
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.62\textwidth]{artigos/molde_silicone_prusa.jpg}
+    \caption{Molde impresso em 3D para vazamento de silicone (fonte: Prusa Research).}
+    \label{fig:molde-silicone-prusa}
+  \end{figure}
   \begin{itemize}
     \item Vantagens: possibilidade de usar um material mais rígido no molde e um material extremamente mole no modelo positivo, bem como reutilizar o mesmo molde para produzir vários modelos sem o descartar;
     \item Desvantagens: como a árvore brônquica é oca, era necessário produzir um molde negativo tanto para a superfície exterior como para o espaço interior do modelo, ficando o positivo reduzido a uma película fina, com a espessura pretendida, encaixada entre esses dois moldes negativos. Isto obrigava a unir com precisão as três secções de molde em volta dessa película, o negativo interior e os dois lados do negativo exterior. A orientação das ramificações em várias direções dificultava ainda a remoção dos moldes sem danificar o modelo. Por fim, a geometria complexa e extensa não dava garantias de que fosse possível injetar resina ou silicone de forma uniforme em todos os cantos, com risco de inconsistências na espessura das paredes.
   \end{itemize}
 \end{enumerate}
+
+A escolha da orientação de impressão teve ainda de considerar a forma como os suportes seriam gerados e removidos. Em modelos ocos e ramificados, a presença de suportes em zonas internas ou de difícil acesso poderia comprometer o acabamento da superfície e dificultar a limpeza da peça após a impressão, tornando este fator particularmente relevante para a árvore brônquica.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.64\textwidth]{artigos/fdm_suportes_plastico_unionfab.png}
+  \caption{Exemplo de estruturas de suporte em peças impressas \parencite{UnionfabOrientSupport}.}
+  \label{fig:fdm-suportes-plastico}
+\end{figure}
 
 Mais tarde, motivadas pela futura aquisição de uma impressora Bambu Lab com dois bicos de impressão independentes (assunto detalhado mais adiante), foram ainda teorizadas duas variações aos métodos já descritos:
 \begin{enumerate}
@@ -108,11 +169,32 @@ Por estas razões, optou-se por manter o método de impressão em peça única c
 
 \subsection{Evolução do processo de impressão 3D}
 \label{subsec:evolucao-impressao}
-Inicialmente, os suportes eram impressos no mesmo material do modelo, devido às limitações da maquinaria disponível na altura, com apenas um bico de impressão. Este método funcionava razoavelmente bem com filamentos de dureza elevada, como o 95A, mas mostrava-se bastante problemático com materiais mais moles, como o Filaflex TPE 70A. A mesma característica que tornava estes materiais interessantes para o projeto tornava-os também problemáticos. Ao usar o mesmo material para o suporte e para o objeto, toda a impressão se comportava como um único e grande objeto mole, cuja vibração aumentava com a altura já impressa, entrando em ressonância com o próprio movimento da cabeça de impressão e criando grandes inconsistências. Por frações de milissegundo e de milímetro, a posição da cabeça de impressão deixava de corresponder à posição real da última camada impressa. \hl{(vou adicionar imagens sobre isto nesta secção)}
+Inicialmente, os suportes eram impressos no mesmo material do modelo, devido às limitações da maquinaria disponível na altura, com apenas um bico de impressão. Este método funcionava razoavelmente bem com filamentos de dureza elevada, como o 95A, mas mostrava-se bastante problemático com materiais mais moles, como o Filaflex TPE 70A. A mesma característica que tornava estes materiais interessantes para o projeto tornava-os também problemáticos. Ao usar o mesmo material para o suporte e para o objeto, toda a impressão se comportava como um único e grande objeto mole, cuja vibração aumentava com a altura já impressa, entrando em ressonância com o próprio movimento da cabeça de impressão e criando grandes inconsistências. Por frações de milissegundo e de milímetro, a posição da cabeça de impressão deixava de corresponder à posição real da última camada impressa.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.50\textwidth]{fotos/impressao_fdm_suportes_vertical.jpg}
+  \caption{Impressão FDM da árvore brônquica em MorPhlex com suportes exteriores.}
+  \label{fig:impressao-fdm-suportes}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.76\textwidth]{fotos/impressao_fdm_modelo_suportes.jpg}
+  \caption{Modelo em MorPhlex durante a impressão com suportes estruturais.}
+  \label{fig:impressao-fdm-modelo-suportes}
+\end{figure}
 
 Uma das soluções equacionadas para este problema passava por substituir o filamento por um material especial de dureza variável, com um agente expansivo interno que utiliza o próprio calor do bico como catalisador, permitindo teoricamente atingir durezas entre 80A e 50A consoante a temperatura, segundo a informação disponibilizada pela marca. O único inconveniente deste material seriam os resíduos gerados pelo agente expansivo, que poderiam comprometer a qualidade de impressão, ainda que de forma mitigável. Esta solução acabou por nunca ser necessária, pois, sensivelmente na mesma altura, a universidade adquiriu três novas impressoras 3D, entre elas uma Bambu Lab H2D, equipada com dois bicos independentes que permitem imprimir, em simultâneo, materiais com propriedades e compatibilidades distintas, uma aquisição que resolveu o problema.
 
-Passou-se então a um método que mantinha o TPE 70A como material principal do modelo, mas com PLA como material de suporte, funcionando simultaneamente como suporte estrutural e como suporte de amortecimento de vibração para o modelo principal. \hl{(vou adicionar uma imagem sobre isto)}
+Passou-se então a um método que mantinha o MorPhlex como material principal do modelo, mas com PLA como material de suporte, funcionando simultaneamente como suporte estrutural e como suporte de amortecimento de vibração para o modelo principal, como se observa na \cref{fig:impressao-suportes-pla}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.76\textwidth]{fotos/impressao_suportes_pla.jpg}
+  \caption{Modelo em MorPhlex impresso com suportes em PLA.}
+  \label{fig:impressao-suportes-pla}
+\end{figure}
 
 Este método trouxe uma melhoria enorme na qualidade de impressão, mas tornou mais visíveis outros problemas. Como já referido, os materiais flexíveis de dureza muito baixa são especialmente difíceis de imprimir com fiabilidade. Este caso não foi exceção. Detetaram-se, durante e após a impressão, inconsistências de aderência entre camadas e entre paredes do objeto, camadas inteiras com falta de material, tornando-as propensas a quebrar ou rasgar e, o pior de todos os problemas, uma quantidade excessiva de stringing no interior do modelo, precisamente a zona mais importante para este trabalho. Isto persistia mesmo após inúmeras calibrações dos parâmetros de retração, da velocidade de impressão, da temperatura de impressão, do Pressure Advance e dos níveis de humidade do filamento. O Pressure Advance é uma funcionalidade do firmware do slicer que ajusta antecipadamente a pressão de extrusão nas mudanças de velocidade, reduzindo o babar de material e o stringing nos cantos. O TPU é, além disso, frequentemente descrito como uma ``esponja'', por ser um material higroscópico, ou seja, por absorver facilmente humidade do ar, sendo por isso necessário secá-lo constantemente e mantê-lo selado o máximo de tempo possível.
 
@@ -122,27 +204,44 @@ Ainda assim, nada resolvia de forma satisfatória o problema do stringing, nem m
 
 A única forma de resolver, ou melhor, de mitigar este problema, foi escolher outro material como filamento flexível principal, o TPU MorPhlex 95A/75A, da empresa BiQU. Ao contrário dos outros filamentos de dureza variável considerados, apresenta uma transição de dureza fixa, começando com uma dureza de 95A antes de ser impresso e estabilizando permanentemente numa dureza de 75A\,$\pm$\,3A depois de impresso e aquecido. Esta caraterística torna-o muito mais estável, fiável e seguro do que as alternativas anteriores, permitindo, com a calibração correta, atingir uma qualidade de impressão quase perfeita e praticamente sem resíduos. Um outro ponto forte deste filamento é a sua cor, exclusiva da BiQU, muito próxima da cor real do interior do pulmão, o que o tornava ainda mais adequado a este trabalho.
 
-Este material revelou, no entanto, uma deformação predominantemente plástica em vez de elástica quando sujeito a grandes esforços repetidos, como as contrações e expansões constantes que a atuação ativa das paredes exigiria, uma característica que viria a pesar mais tarde na avaliação da viabilidade de atuadores dedicados a essa deformação, discutida na \cref{sec:eletronica-alimentacao}.
+Este material revelou, no entanto, uma deformação predominantemente plástica em vez de elástica quando sujeito a grandes esforços repetidos, como as contrações e expansões constantes que a atuação ativa das paredes exigiria, uma característica que viria a pesar mais tarde na avaliação da viabilidade de atuadores dedicados a essa deformação.
 
 \section{Seleção do sistema de atuação}
 \label{sec:selecao-atuacao}
-A definição do sistema de atuação foi uma das partes que mais evoluiu durante o projeto, sobretudo nas fases iniciais. A descrição dos movimentos pretendidos ainda não estava completamente consolidada e, por isso, foram exploradas soluções que mais tarde se revelaram pouco adequadas ao comportamento real que se pretendia reproduzir. Esta incerteza levou à análise de alternativas bastante diferentes entre si, desde motores de vibração, pensados para criar zonas de pressão localizada que pudessem sugerir o batimento cardíaco ou pequenas compressões das vias aéreas, até micro motores de passo, considerados para apertar gradualmente as paredes do modelo e simular constrangimentos associados ao ciclo respiratório.
+A definição do sistema de atuação foi uma das partes que mais evoluiu durante o projeto, sobretudo nas fases iniciais. A descrição dos movimentos pretendidos ainda não se encontrava completamente consolidada e, por isso, foram exploradas soluções que mais tarde se revelaram pouco adequadas ao comportamento real que se pretendia reproduzir. Esta incerteza levou à análise de alternativas bastante diferentes entre si, desde motores de vibração, pensados para criar zonas de pressão localizada que pudessem sugerir o batimento cardíaco ou pequenas compressões das vias aéreas, até micro motores de passo, considerados para apertar gradualmente as paredes do modelo e simular constrangimentos associados ao ciclo respiratório.
 
 Com a evolução do modelo da árvore brônquica e após a primeira reunião de acompanhamento com a equipa médica, tornou-se mais clara a natureza dos movimentos a implementar. O objetivo principal deixou de ser a criação de deformações locais independentes e passou a ser a reprodução controlada de deslocações globais e perturbações visíveis, associadas à respiração, ao batimento cardíaco e à tosse. Esta clarificação obrigou a rever a arquitetura de atuação inicialmente imaginada, baseada na distribuição de vários atuadores ao longo da árvore brônquica. Embora essa solução pudesse parecer direta para movimentos localizados, acabaria por tornar o sistema pesado do ponto de vista mecânico, aumentando o número de motores, exigindo uma estrutura de suporte muito próxima do modelo e introduzindo dificuldades adicionais de montagem, calibração, sincronização e manutenção.
 
-A solução adotada passou, por isso, pela utilização de manipuladores robóticos capazes de posicionar uma plataforma móvel dentro de um volume de trabalho definido por coordenadas cartesianas. Nesta abordagem, o movimento deixa de depender de vários atuadores distribuídos pela árvore brônquica e passa a ser gerado a partir da trajetória imposta à plataforma. A complexidade é, assim, transferida para a descrição matemática do movimento, em particular para o cálculo da cinemática inversa, permitindo alterar perfis de respiração, batimento cardíaco ou tosse sobretudo por software, sem obrigar a modificar fisicamente a disposição dos motores.
+A solução adotada passou, por isso, para uma utilização de manipuladores robóticos capazes de posicionar uma plataforma móvel dentro de um volume de trabalho definido por coordenadas cartesianas. Nesta abordagem, o movimento deixa de depender de vários atuadores distribuídos pela árvore brônquica e passa a ser gerado a partir da trajetória imposta à plataforma, permitindo atuar sobre a árvore brônquica sem instalar motores diretamente no modelo. A complexidade é, assim, transferida para a descrição matemática do movimento, em particular para o cálculo da cinemática inversa, permitindo alterar perfis de respiração, batimento cardíaco ou tosse sobretudo por software, sem obrigar a modificar fisicamente a disposição dos motores.
 
-Dentro desta lógica, foram estudadas diferentes configurações de manipuladores delta, uma vez que este tipo de robô paralelo utiliza vários braços ligados a uma plataforma móvel comum. Ao contrário de um manipulador serial, em que cada junta depende diretamente da anterior, num manipulador delta os braços trabalham em conjunto para posicionar a plataforma no espaço. Esta geometria permite obter movimentos rápidos, repetíveis e compactos, mantendo os atuadores fixos na base e reduzindo a massa em movimento. Para este projeto, estas características eram particularmente interessantes, pois permitiam atuar sobre a árvore brônquica sem instalar motores diretamente sobre o modelo.
+Dentro desta lógica, foram estudadas diferentes configurações de manipuladores delta, uma vez que este tipo de robô paralelo utiliza vários braços ligados a uma plataforma móvel comum. Ao contrário de um manipulador serial, em que cada junta depende diretamente da anterior, num manipulador delta os braços trabalham em conjunto para posicionar a plataforma no espaço. Esta geometria permite obter movimentos rápidos, repetíveis e compactos, mantendo os atuadores fixos na base e reduzindo a massa em movimento.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{fotos/manipulador_delta_6eixos_jd.png}
+    \caption{Manipulador delta de 6 eixos.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{fotos/manipulador_delta_3eixos_ik.png}
+    \caption{Manipulador delta de 3 eixos.}
+  \end{subfigure}
+  \caption{Configurações de manipuladores delta consideradas.}
+  \label{fig:manipulador-delta-montagem}
+\end{figure}
 
 Foram considerados dois tipos principais de solução. A primeira recorria a seis atuadores, dois por braço, permitindo controlar a translação da plataforma nos eixos \(X\), \(Y\) e \(Z\) e, adicionalmente, a sua orientação através de três graus de rotação. Esta configuração oferecia maior liberdade de movimento, mas introduzia uma complexidade mecânica e matemática superior à necessária para os fenómenos definidos para o protótipo. A segunda opção, posteriormente escolhida, utiliza apenas três atuadores, um por braço, controlando a posição da plataforma nos três eixos cartesianos. Apesar de não permitir comandar diretamente a rotação da plataforma, esta solução revelou-se suficiente para representar os deslocamentos pretendidos, simplificando a montagem, reduzindo o número de componentes e tornando mais direta a implementação da cinemática inversa.
 
-Com esta decisão, a seleção dos atuadores passou a privilegiar servo-motores compactos, acessíveis e fáceis de controlar, tendo sido escolhidos os MG90S para a construção dos manipuladores. Esta escolha foi também reforçada pela comparação direta com motores de passo, avaliados em paralelo durante os testes iniciais de eletrónica. Apesar de os motores de passo garantirem maior capacidade de carga, a sua natureza de controlo em malha aberta obriga a uma rotina de homing sempre que o sistema é ligado, para que o motor recupere a noção da sua posição real, enquanto um servo-motor recebe apenas um comando de posição que pretende atingir (em formato de um sinal PWM) enviado num único sentido, cabendo ao seu controlador interno ajustar automaticamente, através de uma malha de controlo PID, o erro entre a posição atual e essa posição pretendida, até a atingir. Esta diferença simplifica significativamente o arranque e o funcionamento do sistema. A escolha destes servos foi ainda coerente com o objetivo de manter o sistema simples e repetível, concentrando a coordenação dos movimentos no firmware e no cálculo das posições da plataforma. Antes da montagem final, foram realizados testes de encaixe entre os MG90S e as peças impressas, verificando tolerâncias, alinhamento da patilha do servo e liberdade de rotação dos braços. Estes ensaios foram acompanhados por um processo gradual de calibração, no qual se confirmou a posição neutra de cada servo, os limites angulares admissíveis e a correspondência entre o comando PWM enviado pelo firmware e o movimento real observado no manipulador.
+Com esta decisão, a seleção dos atuadores passou a privilegiar servo-motores compactos, acessíveis e fáceis de controlar, tendo sido escolhidos os MG90S para a construção dos manipuladores. Esta escolha foi também reforçada pela comparação direta com motores de passo, avaliados em paralelo durante os testes iniciais de eletrónica. Apesar de os motores de passo garantirem maior capacidade de carga, a sua natureza de controlo em malha aberta obriga a uma rotina de homing sempre que o sistema é ligado, para que o motor recupere a noção da sua posição real, enquanto um servo-motor recebe apenas um comando de posição que pretende atingir (em formato de um sinal PWM) enviado num único sentido, cabendo ao seu controlador interno ajustar automaticamente, através de uma malha de controlo PID. Esta diferença simplificava significativamente o arranque e o funcionamento do sistema, sendo esta escolha ainda coerente com o objetivo de manter o sistema simples e repetível, concentrando a coordenação dos movimentos no firmware e no cálculo das posições da plataforma.
 
-Esta escolha mecânica foi acompanhada, ainda numa fase inicial do projeto, pelo início do desenvolvimento do código de cinemática inversa associado a este tipo de manipulador, descrito em detalhe no capítulo 4.8. Ao longo deste processo, a validação do sistema foi feita de forma cruzada: o comportamento físico dos braços montados em bancada era comparado com as posições calculadas pelo firmware, permitindo ajustar limites, corrigir desvios e garantir que o movimento matematicamente previsto podia ser reproduzido de forma segura pela estrutura real.
+Esta escolha mecânica foi acompanhada, ainda numa fase inicial do projeto, pelo início do desenvolvimento do código de cinemática inversa associado a este tipo de manipulador, descrito em detalhe na \cref{sec:cinematica-inversa}.
 
 \section{Eletrónica de controlo e alimentação}
 \label{sec:eletronica-alimentacao}
-O desenvolvimento da eletrónica teve início a meio do desenvolvimento do hardware, depois de confirmada a viabilidade de impressão do modelo e assim que os componentes eletrónicos chegaram, encontrando-se este passo diretamente ligado à implementação dos movimentos, uma vez que, sem eletrónica funcional, não era possível testar sensores, microcontroladores nem motores. A arquitetura prevista separa a interface de utilizador e o cálculo de alto nível do controlo direto dos atuadores, cabendo ao Raspberry Pi 4B a responsabilidade pela HMI, pela monitorização e pelo envio de comandos ou posições, enquanto o ESP32-S3 atua como microcontrolador de tempo real, recebendo dados por comunicação série e convertendo-os em comandos para os servos.
+O desenvolvimento da eletrónica teve início a meio do desenvolvimento do hardware, depois de confirmada a viabilidade de impressão do modelo e da aquisição dos componentes eletrónicos. A arquitetura de alimentação e eletrónica adotada, ilustrada na \cref{fig:alimentacao-geral}, parte de uma fonte central de \SI{5}{\volt}, distribuída pelo módulo UPS/HAT ao Raspberry Pi 4B, ao monitor e, através de dois drivers dedicados, aos seis servo-motores dos dois manipuladores delta, enquanto o ESP32-S3 comunica com o Raspberry Pi por porta série e envia os sinais PWM que comandam cada driver.
 
 \begin{figure}[H]
   \centering
@@ -205,81 +304,123 @@ O desenvolvimento da eletrónica teve início a meio do desenvolvimento do hardw
 \end{figure}
 
 \subsection{Testes iniciais de eletrónica}
-Os primeiros testes de eletrónica focaram-se exclusivamente na validação individual de cada componente, antes de qualquer tentativa de integração. Começou por se confirmar uma alimentação estável e a comunicação com o ESP32, verificando se este arrancava corretamente e permitia programação, sendo nesta fase alimentado apenas pela porta série do computador, uma solução pensada como temporária mas que viria a manter-se, de forma incidental, durante grande parte do desenvolvimento. \hl{(vou adicionar aqui os esquemas elétricos de cada teste individual)}
+Os primeiros testes de eletrónica focaram-se exclusivamente na validação individual de cada componente, antes de qualquer tentativa de integração. Começou por se confirmar uma alimentação estável e a comunicação com o ESP32, verificando se este arrancava corretamente e se este permitia programar, sendo nesta fase alimentado apenas pela porta série do computador, uma solução pensada como temporária mas que viria a manter-se definitiva, durante grande parte do desenvolvimento.
 
-Em seguida, testaram-se isoladamente os três tipos de atuadores considerados nesta fase, confirmando apenas que cada um podia ser ligado e posto em movimento. O motor de vibração foi ligado diretamente ao ESP32, por se esperar um consumo reduzido, enquanto o servo-motor e o micro motor de passo foram alimentados a partir de uma fonte externa regulável, com limite de corrente definido em \SI{2}{\ampere}. O servo foi testado a \SI{6}{\volt}, próximo do limite superior do intervalo de funcionamento especificado pelo fabricante para o MG90S, entre \SI{4.8}{\volt} e \SI{6}{\volt}, com o objetivo de obter uma velocidade de resposta favorável durante os testes de deformação localizada e concentrada das paredes do modelo, então ainda em avaliação. Já o motor de passo foi testado com um driver dedicado, alimentado a \SI{9}{\volt} a partir da mesma fonte regulável, cujo intervalo de saída ia dos \SI{3}{\volt} aos \SI{9}{\volt}.
+Em seguida, testaram-se isoladamente os servo-motores MG90S, confirmando que estes podiam ser ligados e controlados. Estes testes foram realizados com recurso a uma fonte externa regulável, com um limite de corrente definido em \SI{2}{\ampere}. Os MG90S apresentam um intervalo de funcionamento especificado pelo fabricante entre \SI{4.8}{\volt} e \SI{6}{\volt}, sendo que o tempo de resposta do servo varia em função da tensão escolhida dentro deste intervalo. Por esse motivo, os testes foram realizados alimentando constantemente os servos a \SI{6}{\volt}, de modo a obter uma velocidade de resposta favorável para os movimentos pretendidos.
 
-\subsection{Arquitetura de alimentação e avaliação de motores de passo}
-Foi por esta altura que se consolidou a escolha do manipulador delta e dos servo-motores como atuador principal, pelas razões detalhadas na \cref{sec:selecao-atuacao}, mantendo-se contudo, nesta fase do projeto, a hipótese de recorrer também a motores de passo para reproduzir movimentos de deformação e contração localizada das vias aéreas. Os esquemas iniciais de alimentação previam por isso dois níveis de tensão distintos. Um dos níveis destinava-se ao microcontrolador, aos servos e aos sensores, enquanto o outro seria dedicado exclusivamente aos motores de passo, tendo sido equacionadas duas arquiteturas possíveis para o obter:
-\begin{itemize}
-  \item Partir de uma fonte de \SI{12}{\volt}, alimentando diretamente os drivers dos motores de passo e reduzindo essa tensão através de um conversor step-down para os \SI{5}{\volt} do restante sistema;
-  \item Partir de uma fonte de \SI{5}{\volt} e elevar a tensão através de conversores step-up dedicados aos drivers dos motores de passo, uma opção descartada devido ao consumo de potência e às perdas energéticas associadas a este tipo de conversão.
-\end{itemize}
-Por exclusão, a primeira arquitetura, baseada numa fonte de \SI{12}{\volt} e num conversor step-down, tornou-se a opção mais viável.
-
-Foi também nesta fase que surgiu a decisão de acrescentar uma interface dedicada ao sistema, inicialmente pensada como um pequeno ecrã OLED mas rapidamente substituída pela solução final, um Raspberry Pi associado a um monitor integrado. Esta escolha trouxe consigo a necessidade de proteger o Raspberry Pi de perdas de alimentação inesperadas, um cuidado já conhecido de experiência anterior, uma vez que a perda de energia durante a escrita no cartão SD onde reside o sistema operativo pode corromper esse cartão ou, em casos mais graves, danificá-lo de forma permanente. Como o Raspberry Pi é tipicamente alimentado através de uma porta de \SI{5}{\volt} e \SI{3}{\ampere}, esta necessidade era compatível com a arquitetura de \SI{12}{\volt} e conversor step-down já equacionada para os motores de passo.
-
-\subsection{Dimensionamento da fonte de alimentação}
-O dimensionamento da fonte teve por base o cenário então previsto de três manipuladores delta, correspondendo a nove servos MG90S. Este servo apresenta um consumo nominal entre 150 e \SI{250}{\milli\ampere}, mas pode atingir cerca de \SI{700}{\milli\ampere} em condição de bloqueio (stall), pelo que, ainda que fosse pouco provável que todos os nove servos entrassem em stall em simultâneo, se optou por dimensionar sempre para o pior caso possível, de forma a garantir o funcionamento do sistema mesmo nas condições mais exigentes, resultando este valor de bloqueio numa corrente total próxima dos \SI{6.3}{\ampere} para os nove servos, contra apenas \SI{2.6}{\ampere} em regime nominal. Os motores de passo, por sua vez, foram teorizados num total de seis unidades distribuídas pelo modelo, cada uma com um consumo máximo de \SI{150}{\milli\ampere}, o que acrescentava cerca de \SI{900}{\milli\ampere} ao total. Somando ainda o consumo do Raspberry Pi, estimado em \SI{3}{\ampere}, o cenário de \SI{12}{\volt} resultava numa corrente total próxima dos \SI{10.5}{\ampere}, sendo expectável que, com recurso a um conversor step-down, a corrente efetivamente exigida à fonte pelos servos e pelo Raspberry Pi fosse consideravelmente menor do que este valor calculado diretamente a \SI{5}{\volt}.
-
-Esta arquitetura acabou, no entanto, por não avançar. Após várias discussões, concluiu-se que a utilização de motores de passo para reproduzir contrações e dilatações localizadas das vias aéreas seria uma implementação de elevada complexidade, sobretudo devido ao comportamento do filamento MorPhlex então em uso, que revelava uma deformação predominantemente plástica em vez de elástica sob grandes esforços repetidos, como as contrações e expansões constantes que este tipo de atuação exigiria, conforme já referido na \cref{subsec:evolucao-impressao}. Com a exclusão dos motores de passo, deixou de haver justificação para manter os dois níveis de tensão e para a fonte de \SI{12}{\volt}, tendo o sistema sido simplificado para um único nível de \SI{5}{\volt}, com uma corrente total estimada, para o pior caso possível, de cerca de \SI{9.6}{\ampere}. Foi por isso escolhida uma fonte de alimentação de \SI{5}{\volt} e \SI{10}{\ampere}, com margem suficiente acima do valor estimado.
-
-Com a fonte selecionada, foram realizados testes com os dois manipuladores a funcionar em simultâneo, tendo-se observado uma pequena variação de tensão, entre 100 e \SI{200}{\milli\volt}, associada aos picos de corrente na comutação dos servos. Ainda que este valor não pareça elevado, procurou-se minimizá-lo ao máximo, uma vez que o Raspberry Pi é particularmente sensível a variações na sua alimentação, podendo sofrer reinícios inesperados mesmo com uma placa UPS a atuar como filtro adicional contra este tipo de perturbação. A pesquisa realizada confirmou ser prática comum a colocação de condensadores de desacoplamento junto à alimentação de cada servo, para atenuar precisamente este tipo de queda de tensão transitória, com a documentação e os fóruns consultados a recomendarem valores tipicamente entre os 230 e os \SI{700}{\micro\farad}. Optou-se por condensadores de \SI{470}{\micro\farad} junto de cada servo. \hl{(vou adicionar imagens sobre isto)}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.72\textwidth]{fotos/protoboard_circuito_geral.jpg}
+  \caption{Circuito de teste montado em protoboard.}
+  \label{fig:protoboard-circuito-geral}
+\end{figure}
 
 \subsection{Gestão de energia do Raspberry Pi}
-Mais tarde, o projeto passou de três para apenas dois manipuladores delta, reduzindo a complexidade face aos resultados pretendidos e diminuindo ainda mais a carga total sobre a fonte de alimentação. Em contrapartida, foi selecionada a UPS/HAT Suptronics X1209, que dispõe de duas entradas de alimentação distintas, uma de \SI{5}{\volt} e \SI{5}{\ampere} e outra entre os \SI{6}{\volt} e os \SI{18}{\volt} até \SI{3}{\ampere}, uma flexibilidade que permitiu continuar a utilizar a mesma fonte de \SI{5}{\volt} e \SI{10}{\ampere} já escolhida anteriormente. Ao contrário de grande parte das alternativas pesquisadas, que ou se limitavam a placas de gestão de energia bastante dispendiosas, ou eram placas de bateria incapazes de assegurar uma transição fiável entre a alimentação de rede e a alimentação por bateria, por serem pensadas apenas para funcionar a partir da bateria, esta HAT combina simultaneamente as funções de UPS e de gestão de energia, o que justificou a sua escolha. Foi associada a uma bateria LiPo de \SI{2100}{\milli\ampere\hour} e \SI{3.7}{\volt}.
+Durante os testes foi ainda determinada a transição de três manipuladores para apenas dois manipuladores delta, reduzindo a complexidade face aos resultados pretendidos e diminuindo ainda mais a carga total sobre a fonte de alimentação. A esta simplificação juntou-se a necessidade de proteger o Raspberry Pi de perdas de alimentação inesperadas, um cuidado já conhecido de experiência anterior, uma vez que a perda de energia durante a escrita no cartão SD onde reside o sistema operativo pode corromper esse cartão ou, em casos mais graves, danificá-lo de forma permanente. Por esse motivo, foi selecionada a UPS/HAT Suptronics X1209, que dispõe de duas entradas de alimentação distintas, uma de \SI{5}{\volt} e \SI{5}{\ampere} e outra entre os \SI{6}{\volt} e os \SI{18}{\volt} até \SI{3}{\ampere}, permitindo uma maior flexibilidade na escolha e dimensionamento do sistema elétrico e eletrónico. Ao contrário de grande parte das alternativas pesquisadas, que ou se limitavam a placas de gestão de energia bastante dispendiosas, ou eram placas incapazes de assegurar uma transição fiável entre a alimentação de rede e a alimentação por bateria, por serem pensadas apenas para funcionar a partir da bateria, esta HAT combina simultaneamente as funções de UPS e de gestão de energia, o que justificou a sua escolha. Foi associada a uma bateria LiPo de \SI{2100}{\milli\ampere\hour} e \SI{3.7}{\volt}, para permitir suportar o Raspberry Pi por tempo suficiente para encerrar corretamente.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.58\textwidth]{artigos/ups_hat_x1209_thepihut.jpg}
+  \caption{UPS/HAT SupTronics X1209 \parencite{ThePiHutX1209}.}
+  \label{fig:ups-hat-x1209}
+\end{figure}
+
+\subsection{Arquitetura e dimensionamento da fonte de alimentação}
+O dimensionamento da fonte teve por base o consumo dos seis servos MG90S então considerados. Este servo apresenta um consumo nominal entre 150 e \SI{250}{\milli\ampere}, mas pode atingir cerca de \SI{700}{\milli\ampere} em condição de bloqueio (stall), pelo que, ainda que fosse pouco provável que todos os seis servos entrassem em stall em simultâneo, se optou por dimensionar sempre para o pior caso possível, de forma a garantir o funcionamento do sistema mesmo nas condições mais exigentes, resultando este valor de bloqueio numa corrente total próxima dos \SI{4.2}{\ampere} para os seis servos, contra apenas \SI{1.7}{\ampere} em regime nominal. Somando ainda o consumo da UPS/HAT Suptronics X1209, responsável por alimentar o Raspberry Pi, estimado em \SI{5}{\ampere}, a corrente total estimada para o pior caso possível rondava os \SI{9.2}{\ampere}, tendo sido por isso escolhida uma fonte de alimentação de \SI{5}{\volt} e \SI{10}{\ampere}, com margem suficiente acima do valor estimado.
+
+Com a fonte selecionada, foram realizados testes com os dois manipuladores a funcionar em simultâneo, tendo-se observado uma pequena variação de tensão, entre 100 e \SI{200}{\milli\volt}, associada aos picos de corrente na comutação dos servos. Ainda que este valor não pareça elevado, procurou-se minimizá-lo ao máximo, uma vez que o Raspberry Pi é particularmente sensível a variações na sua alimentação. Normalmente, a placa UPS filtra este tipo de perturbação antes que esta afete o Raspberry Pi, mas procurou-se mesmo assim reduzi-la, para evitar os casos raros em que a própria UPS perdesse essa capacidade de filtragem, ainda que por apenas alguns segundos. A pesquisa realizada confirmou ser prática comum a colocação de condensadores de desacoplamento junto à alimentação de cada servo, para atenuar precisamente este tipo de queda de tensão transitória, com a documentação e os fóruns consultados a recomendarem valores tipicamente entre os 230 e os \SI{700}{\micro\farad}. Optou-se por condensadores de \SI{470}{\micro\farad} junto de cada servo.
 
 \subsection{Da protoboard à PCB}
 Depois de concluídos os testes do circuito numa protoboard, o mesmo foi transferido para uma PCB pré-furada, onde foram implementados os drivers referidos anteriormente, um por cada manipulador delta, cada um responsável por controlar os três servos correspondentes. Foi também montada e soldada uma PCB própria para alojar o microcontrolador ESP32-S3. Cada driver recebe os comandos enviados pelo ESP32 e a alimentação diretamente da fonte principal, distribuída através de um barramento comum a cada um dos três servos, sempre por intermédio do respetivo condensador de desacoplamento. O ESP32, por sua vez, pode ser alimentado pelo Raspberry Pi através de USB-C, mantendo simultaneamente a ligação série necessária à comunicação.
 
-A lista completa dos componentes principais previstos para o sistema encontra-se na \cref{tab:componentes-hardware}, no Apêndice.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.74\textwidth]{fotos/protoboard_testes_eletronica.jpg}
+  \caption{Testes eletrónicos iniciais em protoboard.}
+  \label{fig:protoboard-testes-eletronica}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.74\textwidth]{fotos/pcb_drivers_servos.jpg}
+  \caption{PCB dos drivers dos servo-motores.}
+  \label{fig:pcb-drivers-servos}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.46\textwidth]{fotos/pcb_driver_montagem_vertical.jpg}
+  \caption{Montagem de uma PCB de driver.}
+  \label{fig:pcb-driver-closeup}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.70\textwidth]{fotos/pcb_esp32_montagem.jpg}
+  \caption{PCB de suporte do ESP32-S3.}
+  \label{fig:pcb-esp32-closeup}
+\end{figure}
 
 \section{Integração mecânica}
 \label{sec:integracao-mecanica}
-A integração mecânica deve garantir que o movimento é transmitido à árvore brônquica sem esforços excessivos, folgas significativas ou interferência com a passagem do broncoscópio, permitindo ainda um acesso fácil para manutenção, limpeza e substituição de peças. Para proteger o modelo e os atuadores, os limites de curso do manipulador e os limites angulares dos servos são definidos diretamente no firmware, evitando posições impossíveis ou capazes de danificar o modelo.
+Esta secção aborda a integração mecânica final do sistema, que passou pela união entre o modelo físico da árvore brônquica e os dois manipuladores delta, através de encaixes e estruturas de suporte dedicadas, bem como pela construção de uma caixa própria para a HMI. Em ambos os casos, procurou-se obter um produto final mais acabado, com cavidades próprias para embutir toda a eletrónica associada, tanto no modelo físico como na HMI.
 
-A estrutura de suporte do modelo passou por várias iterações ao longo do projeto, evoluindo de soluções simples e estáticas, pensadas apenas como apoio temporário para os primeiros testes, até uma estrutura única e mais complexa, capaz de alojar os dois manipuladores delta, as PCBs de controlo e o próprio modelo impresso da árvore brônquica, permitindo uma montagem simples e compacta de todo o sistema. Nas primeiras fases, cada manipulador foi montado sobre uma base independente, sem qualquer ligação entre si, servindo apenas para validar isoladamente a montagem mecânica e o funcionamento elétrico básico de cada braço (\cref{fig:suporte-estrutura-simples}). Esta abordagem, ainda que suficiente para os primeiros testes, tornava a integração posterior mais trabalhosa, obrigando a ligar e a posicionar manualmente cada manipulador sempre que se pretendia testar o conjunto.
+Antes de qualquer integração com os manipuladores, o modelo físico da árvore brônquica dispunha apenas de um suporte simples, sem qualquer função de teste, cujo propósito se limitava a permitir a sua validação individual e, junto da equipa médica, a avaliação da representação anatómica do modelo 3D.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=0.72\textwidth]{fotos/suporte_estrutura_simples.jpg}
-  \caption{Primeira iteração da estrutura de suporte, com cada manipulador delta assente sobre uma base independente, sem integração entre si.}
+  \includegraphics[width=0.72\textwidth]{fotos/suporte_validacao_20260515.jpg}
+  \caption{Suporte simples usado nas primeiras validações do modelo.}
   \label{fig:suporte-estrutura-simples}
 \end{figure}
 
-A estrutura final resolveu esta limitação ao unificar os dois manipuladores numa única peça impressa, com encaixes dedicados para as PCBs dos drivers e pontos de fixação para o modelo da árvore brônquica, tal como ilustrado na \cref{fig:suporte-estrutura-integrada}. Esta solução reduziu significativamente o tempo de montagem e desmontagem do sistema completo, além de manter fixa a posição relativa entre os dois manipuladores, um requisito importante para a repetibilidade dos movimentos representados no modelo.
+A integração com os manipuladores delta seguiu depois um percurso próprio ao longo do projeto. Numa primeira fase, cada manipulador foi montado sobre uma base independente, sem qualquer ligação entre si, o que permitiu conduzir testes individuais de encaixe para validar a estrutura, aproveitando e adaptando parte do trabalho já disponível no repositório de código aberto \textit{How to Build Your Robot} \parencite{DeltaRobotOne2019}.
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.72\textwidth]{fotos/suporte_estrutura_integrada.jpg}
-  \caption{Estrutura de suporte final, integrando os dois manipuladores delta, os encaixes para as PCBs de controlo e os pontos de fixação do modelo da árvore brônquica numa única peça impressa.}
-  \label{fig:suporte-estrutura-integrada}
-\end{figure}
-
-A fase de montagem começou pela impressão das peças estruturais em PLA preto, incluindo a base circular, os braços superiores, os elos de ligação e a plataforma móvel central. Numa primeira fase, a estrutura foi montada sem servos para verificar folgas, alinhamento das articulações e comportamento geométrico do conjunto (\cref{fig:delta-estrutura-mecanica}), etapa que permitiu identificar zonas onde era necessário rever tolerâncias e confirmar que os braços articulados rodavam sem bloqueio.
-
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.72\textwidth]{fotos/delta_estrutura_mecanica.jpg}
-  \caption{Estrutura mecânica de um manipulador delta em PLA preto, antes da instalação dos servos. A base circular e os três braços articulados estão já montados.}
+  \caption{Estrutura mecânica inicial dos manipuladores delta.}
   \label{fig:delta-estrutura-mecanica}
 \end{figure}
 
-A instalação dos servos foi feita de forma gradual, com validação individual de cada canal, tendo os dois manipuladores sido testados, numa fase intermédia, com ligações diretas ao ESP32 sem PCB de interface, usando jumpers para confirmar o funcionamento elétrico básico antes de qualquer ligação definitiva. A \cref{fig:delta-dois-manipuladores} mostra os dois manipuladores montados com todos os servos instalados, prontos para a fase de calibração de firmware.
+Nas iterações seguintes, os manipuladores passaram a dispor de encaixes próprios, desenhados e montados separadamente da base principal do suporte, de modo a permitir substituir apenas um dos lados caso fosse necessária alguma modificação futura, sem afetar o restante conjunto. Esta unificação numa base comum reduziu significativamente o tempo de montagem e desmontagem do sistema completo, além de manter fixa a posição relativa entre os dois manipuladores, um requisito importante para a repetibilidade dos movimentos representados no modelo. Nessa mesma altura foi ainda incluída uma cavidade destinada a toda a eletrónica (fonte de alimentação, drivers e microcontrolador), uma solução que se revelou pouco versátil, por exigir uma estrutura demasiado larga para os acomodar a todos.
 
-\begin{figure}[htbp]
+Na versão final, o suporte passou a incluir apenas o espaço necessário para os encaixes dos manipuladores, um suporte vertical para o modelo impresso e uma cavidade destinada exclusivamente ao microcontrolador e aos drivers, tendo a fonte de alimentação e as respetivas ligações sido transferidas para a caixa da HMI. Esta estrutura foi sendo constantemente iterada, de modo a compactar cada vez mais o conjunto completo do modelo físico e da HMI. Todo este processo foi acompanhado de testes de encaixe e calibrações sucessivas, de modo a alcançar uma estrutura mais limpa e acabada.
+
+Os componentes estruturais próprios de cada manipulador delta, como a base circular, os braços superiores, os elos de ligação e a plataforma móvel central, foram inicialmente impressos em PLA para uma primeira verificação de encaixes e tolerâncias, tendo sido mais tarde substituídos por PETG preto. A montagem final do conjunto, representada na \cref{fig:sistema-final-delta}, concentrou os dois manipuladores, o modelo brônquico e a base de suporte numa estrutura única, reduzindo folgas e tornando a posição relativa entre os atuadores mais repetível.
+
+\begin{figure}[H]
   \centering
-  \includegraphics[width=0.72\textwidth]{fotos/delta_dois_manipuladores.jpg}
-  \caption{Os dois manipuladores delta montados com os servos Waveshare instalados, prontos para calibração de firmware. Os cabos dos servos são visíveis mas ainda sem organização final de cablagem.}
-  \label{fig:delta-dois-manipuladores}
+  \includegraphics[width=0.72\textwidth]{fotos/base_delta_20260524.jpg}
+  \caption{Montagem mecânica da base dos manipuladores delta.}
+  \label{fig:base-delta-montagem}
 \end{figure}
 
-Para acomodar o Raspberry Pi 4B e a fonte de alimentação de forma compacta e robusta, foi projetada e impressa uma caixa em PLA branco. Esta estrutura, visível na \cref{fig:raspberry-pi-caixa}, agrupa o Raspberry Pi com a fonte de alimentação comutada numa única unidade que pode ser posicionada independentemente do modelo físico.
+Depois de validada a base comum, avançou-se para a instalação dos servo-motores e para a primeira organização da cablagem. Esta etapa permitiu confirmar o alinhamento dos atuadores, o curso livre dos braços e a compatibilidade entre a posição dos servos e a geometria final do suporte.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=0.72\textwidth]{fotos/raspberry_pi_caixa.jpg}
-  \caption{Caixa impressa em PLA branco que aloja o Raspberry Pi 4B e a fonte de alimentação comutada.}
-  \label{fig:raspberry-pi-caixa}
+  \includegraphics[width=0.72\textwidth]{fotos/delta_servos_20260616.jpg}
+  \caption{Manipuladores delta com os servos instalados.}
+  \label{fig:delta-montado-servos}
 \end{figure}
+
+Concluída a validação mecânica dos manipuladores, o modelo da árvore brônquica foi acoplado ao suporte final. Esta montagem permitiu avaliar o conjunto já como simulador integrado, incluindo a posição relativa entre os manipuladores, a fixação do modelo e o espaço disponível para a passagem do broncoscópio.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.72\textwidth]{fotos/sistema_final_delta.jpg}
+  \caption{Sistema final montado com a árvore brônquica.}
+  \label{fig:sistema-final-delta}
+\end{figure}
+
+Para acomodar o Raspberry Pi 4B e a fonte de alimentação de forma compacta e robusta, foi projetada e impressa uma caixa em PETG. Esta estrutura agrupa o Raspberry Pi 4B, o monitor de 7 polegadas, a fonte de alimentação de \SI{5}{\volt} e \SI{10}{\ampere}, a placa UPS com a respetiva bateria LiPo, um adaptador para os pinos GPIO do Raspberry Pi, o adaptador USB-C e toda a cablagem existente para sustentar a HMI.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.72\textwidth]{fotos/eletronica_integracao_final.jpg}
+  \caption{Montagem da eletrónica na estrutura da HMI.}
+  \label{fig:hmi-caixa-eletronica}
+\end{figure}
+\setlength{\parskip}{0pt}
 \clearpage

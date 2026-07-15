@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.6.13)  30 JUN 2026 12:03
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.6.13)  14 JUL 2026 23:38
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -557,7 +557,8 @@ tex.def
 File: l3backend-pdftex.def 2025-10-09 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count321
 )
-No file teste_figura_4.2.aux.
+(C:\Users\jpedr\Documents\GiitHub\Delta\documentos\Relatório\build\figuras_tes
+te\teste_figura_4.2.aux)
 \openout1 = `teste_figura_4.2.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 15.
@@ -574,6 +575,7 @@ LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 15.
 LaTeX Font Info:    ... okay on input line 15.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 15.
 LaTeX Font Info:    ... okay on input line 15.
+
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
 *geometry* verbose mode - [ preamble ] result:
@@ -636,66 +638,58 @@ File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
 ))
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: End \AtBeginDocument code.
-LaTeX Font Info:    Trying to load font information for OML+lmm on input line 2
-8.
+LaTeX Font Info:    Trying to load font information for OML+lmm on input line 1
+13.
  (C:\Users\jpedr\AppData\Local\Programs\MiKTeX\tex/latex/lm\omllmm.fd
 File: omllmm.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 
-28.
+113.
 
 (C:\Users\jpedr\AppData\Local\Programs\MiKTeX\tex/latex/lm\omslmsy.fd
 File: omslmsy.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 
-28.
+113.
 
 (C:\Users\jpedr\AppData\Local\Programs\MiKTeX\tex/latex/lm\omxlmex.fd
 File: omxlmex.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10.95> on input line 28.
+(Font)              <8> on input line 113.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 28.
+(Font)              <6> on input line 113.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 28.
+(Font)              <5> on input line 113.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <12> on input line 50.
+(Font)              <12> on input line 114.
  [1{C:/Users/jpedr/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}{C:/Users/j
 pedr/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-rm.enc}{C:/Users/jpedr
-/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathit.enc}{C:/Users/jpedr
-/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathsy.enc}]
+/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathit.enc}]
 (C:\Users\jpedr\Documents\GiitHub\Delta\documentos\Relatório\build\figuras_tes
 te\teste_figura_4.2.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-12-24>
  ***********
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
  ) 
 Here is how much of TeX's memory you used:
- 15727 strings out of 467871
- 326372 string characters out of 5418376
- 732682 words of memory out of 5000000
- 44350 multiletter control sequences out of 15000+600000
- 645595 words of font info for 55 fonts, out of 8000000 for 9000
+ 15776 strings out of 467871
+ 327203 string characters out of 5418376
+ 753938 words of memory out of 5000000
+ 44398 multiletter control sequences out of 15000+600000
+ 642625 words of font info for 54 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 84i,10n,94p,544b,1008s stack positions out of 10000i,1000n,20000p,200000b,200000s
-<C:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx10.pf
-b><C:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi10.pf
-b><C:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi12.pf
+ 84i,10n,94p,544b,938s stack positions out of 10000i,1000n,20000p,200000b,200000s
+<C:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi12.pf
 b><C:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi8.pfb
-><C:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr10.pfb>
-<C:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr12.pfb><
-C:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr8.pfb><C:
-/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy10.pfb>
+><C:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr12.pfb>
+<C:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr6.pfb><C
+:/Users/jpedr/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr8.pfb>
 Output written on C:\Users\jpedr\Documents\GiitHub\Delta\documentos\Relatório\
-build\figuras_teste\teste_figura_4.2.pdf (1 page, 138498 bytes).
+build\figuras_teste\teste_figura_4.2.pdf (1 page, 103596 bytes).
 PDF statistics:
- 52 PDF objects out of 1000 (max. 8388607)
+ 36 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  13 words of extra memory for PDF output out of 10000 (max. 10000000)
 

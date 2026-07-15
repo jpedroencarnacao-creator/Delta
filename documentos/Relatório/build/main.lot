@@ -3,13 +3,15 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {4.1}{\ignorespaces Movimentos considerados para o projeto.}}{40}{table.caption.22}%
-\contentsline {table}{\numberline {4.2}{\ignorespaces Parâmetros ajustáveis usados no cálculo dos movimentos na HMI.}}{48}{table.caption.29}%
-\contentsline {table}{\numberline {4.3}{\ignorespaces Pontos calculados para os movimentos usados nos testes da interface.}}{49}{table.caption.30}%
-\contentsline {table}{\numberline {4.4}{\ignorespaces Comandos simples disponíveis na comunicação série.}}{72}{table.caption.48}%
-\contentsline {table}{\numberline {4.5}{\ignorespaces Subcomandos do menu de leitura, teste e depuração.}}{72}{table.caption.49}%
-\contentsline {table}{\numberline {4.6}{\ignorespaces Subcomandos de seleção do modo fisiológico.}}{72}{table.caption.50}%
-\contentsline {table}{\numberline {4.7}{\ignorespaces Etiquetas dos comandos longos e variáveis internas correspondentes.}}{73}{table.caption.51}%
+\contentsline {table}{\numberline {4.1}{\ignorespaces Movimentos considerados para o projeto.}}{56}{table.caption.58}%
+\contentsline {table}{\numberline {4.2}{\ignorespaces Parâmetros ajustáveis usados no cálculo dos movimentos na HMI.}}{65}{table.caption.66}%
+\contentsline {table}{\numberline {4.3}{\ignorespaces Pontos calculados para os movimentos usados nos testes da interface.}}{66}{table.caption.67}%
+\contentsline {table}{\numberline {4.4}{\ignorespaces Comandos simples disponíveis na comunicação série.}}{91}{table.caption.90}%
+\contentsline {table}{\numberline {4.5}{\ignorespaces Subcomandos do menu de leitura, teste e depuração.}}{91}{table.caption.91}%
+\contentsline {table}{\numberline {4.6}{\ignorespaces Subcomandos de seleção do modo fisiológico.}}{92}{table.caption.92}%
+\contentsline {table}{\numberline {4.7}{\ignorespaces Etiquetas dos comandos longos e variáveis internas correspondentes.}}{92}{table.caption.93}%
 \addvspace {10\p@ }
+\contentsline {table}{\numberline {5.1}{\ignorespaces Resultados do ensaio de deslocamento linear do manipulador delta nos eixos \(X\), \(Y\) e \(Z\).}}{106}{table.caption.101}%
+\contentsline {table}{\numberline {5.2}{\ignorespaces Resultados do ensaio temporal do movimento de batimento cardíaco.}}{108}{table.caption.103}%
+\contentsline {table}{\numberline {5.3}{\ignorespaces Resultados do ensaio temporal do movimento de respiração.}}{109}{table.caption.105}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {A.1}{\ignorespaces Componentes principais previstos para o sistema.}}{92}{table.caption.60}%

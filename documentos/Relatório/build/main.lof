@@ -1,39 +1,89 @@
 \babel@toc {portuguese}{}\relax 
 \addvspace {10\p@ }
 \addvspace {10\p@ }
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Modelos de treino em broncoscopia \blx@tocontentsinit {0}\parencite {Kronborg2024}.}}{5}{figure.caption.11}%
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Dimensões de fidelidade consideradas num simulador físico.}}{5}{figure.caption.12}%
+\contentsline {figure}{\numberline {2.3}{\ignorespaces Exemplo de simulação virtual em broncoscopia \blx@tocontentsinit {0}\parencite {DunnBeltran2026}.}}{7}{figure.caption.13}%
+\contentsline {figure}{\numberline {2.4}{\ignorespaces Biossimulador para treino de broncoscopia \blx@tocontentsinit {0}\parencite {Garner2019}.}}{8}{figure.caption.14}%
+\contentsline {figure}{\numberline {2.5}{\ignorespaces Fluxo de produção e validação de modelos anatómicos impressos em 3D \blx@tocontentsinit {0}\parencite {Schulze2024}.}}{10}{figure.caption.15}%
+\contentsline {figure}{\numberline {2.6}{\ignorespaces Modelos brônquicos impressos em multi-material \blx@tocontentsinit {0}\parencite {Ho2019}.}}{10}{figure.caption.16}%
+\contentsline {figure}{\numberline {2.7}{\ignorespaces Modelo de vias aéreas segmentado por cor \blx@tocontentsinit {0}\parencite {Leba2023}.}}{11}{figure.caption.17}%
+\contentsline {figure}{\numberline {2.8}{\ignorespaces Planeamento de stent personalizado para vias aéreas \blx@tocontentsinit {0}\parencite {Aravena2023}.}}{11}{figure.caption.18}%
+\contentsline {figure}{\numberline {2.9}{\ignorespaces Representação esquemática do movimento respiratório da árvore brônquica.}}{13}{figure.caption.19}%
+\contentsline {figure}{\numberline {2.10}{\ignorespaces Modelo computacional do movimento respiratório \blx@tocontentsinit {0}\parencite {Kim2023}.}}{13}{figure.caption.20}%
+\contentsline {figure}{\numberline {2.11}{\ignorespaces Representação esquemática de um ciclo cardíaco através da onda de ECG.}}{14}{figure.caption.21}%
+\contentsline {figure}{\numberline {2.12}{\ignorespaces Variação de pressão e fluxo durante o reflexo da tosse \blx@tocontentsinit {0}\parencite {Andrani2018}.}}{15}{figure.caption.22}%
+\contentsline {figure}{\numberline {2.13}{\ignorespaces Forças de contacto em endoscopia robótica \blx@tocontentsinit {0}\parencite {Hosseinabadi2021}.}}{16}{figure.caption.23}%
+\contentsline {figure}{\numberline {2.14}{\ignorespaces Broncoscópio robótico com balão \blx@tocontentsinit {0}\parencite {Li2022}.}}{17}{figure.caption.24}%
+\contentsline {figure}{\numberline {2.15}{\ignorespaces Modelo impresso com expansão passiva por insuflação \blx@tocontentsinit {0}\parencite {Fu2023}.}}{18}{figure.caption.25}%
+\contentsline {figure}{\numberline {2.16}{\ignorespaces Posicionamento da lacuna identificada na literatura revista.}}{18}{figure.caption.26}%
+\contentsline {figure}{\numberline {2.17}{\ignorespaces Critérios reunidos na proposta desenvolvida.}}{20}{figure.caption.27}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {3.1}{\ignorespaces Testes de impressão da árvore brônquica com TPU 95A, com suporte em PLA.}}{18}{figure.caption.11}%
-\contentsline {figure}{\numberline {3.2}{\ignorespaces Escala de dureza Shore aplicada a filamentos flexíveis, com exemplos de objetos do dia a dia em pontos equivalentes da escala (fonte: Recreus).}}{18}{figure.caption.12}%
-\contentsline {figure}{\numberline {3.3}{\ignorespaces Esquema consolidado de alimentação, comunicação e comando dos dois manipuladores delta.}}{26}{figure.caption.13}%
-\contentsline {figure}{\numberline {3.4}{\ignorespaces Primeira iteração da estrutura de suporte, com cada manipulador delta assente sobre uma base independente, sem integração entre si.}}{30}{figure.caption.14}%
-\contentsline {figure}{\numberline {3.5}{\ignorespaces Estrutura de suporte final, integrando os dois manipuladores delta, os encaixes para as PCBs de controlo e os pontos de fixação do modelo da árvore brônquica numa única peça impressa.}}{31}{figure.caption.15}%
-\contentsline {figure}{\numberline {3.6}{\ignorespaces Estrutura mecânica de um manipulador delta em PLA preto, antes da instalação dos servos. A base circular e os três braços articulados estão já montados.}}{32}{figure.caption.16}%
-\contentsline {figure}{\numberline {3.7}{\ignorespaces Os dois manipuladores delta montados com os servos Waveshare instalados, prontos para calibração de firmware. Os cabos dos servos são visíveis mas ainda sem organização final de cablagem.}}{32}{figure.caption.17}%
-\contentsline {figure}{\numberline {3.8}{\ignorespaces Caixa impressa em PLA branco que aloja o Raspberry Pi 4B e a fonte de alimentação comutada.}}{33}{figure.caption.18}%
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Representação CAD do modelo físico e da HMI.}}{22}{figure.caption.28}%
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Ambiente de fabrico usado nas primeiras impressões.}}{23}{figure.caption.29}%
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Modelo inicial da árvore brônquica em formato STL.}}{24}{figure.caption.30}%
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Tratamento por Forms/T-Spline no Fusion 360.}}{25}{figure.caption.31}%
+\contentsline {figure}{\numberline {3.5}{\ignorespaces Tratamento da malha da árvore brônquica no MeshMixer.}}{26}{figure.caption.32}%
+\contentsline {figure}{\numberline {3.6}{\ignorespaces Escala de dureza Shore aplicada a filamentos flexíveis, com exemplos de objetos do dia a dia em pontos equivalentes da escala (fonte: Recreus).}}{27}{figure.caption.33}%
+\contentsline {figure}{\numberline {3.7}{\ignorespaces Exemplo de impressão SLA por fotopolimerização em cuba (fonte: Norra AM).}}{29}{figure.caption.34}%
+\contentsline {figure}{\numberline {3.8}{\ignorespaces Impressora FDM utilizada nas iterações do modelo.}}{30}{figure.caption.35}%
+\contentsline {figure}{\numberline {3.9}{\ignorespaces Molde impresso em 3D para vazamento de silicone (fonte: Prusa Research).}}{31}{figure.caption.36}%
+\contentsline {figure}{\numberline {3.10}{\ignorespaces Exemplo de estruturas de suporte em peças impressas \blx@tocontentsinit {0}\parencite {UnionfabOrientSupport}.}}{32}{figure.caption.37}%
+\contentsline {figure}{\numberline {3.11}{\ignorespaces Impressão FDM da árvore brônquica em MorPhlex com suportes exteriores.}}{34}{figure.caption.38}%
+\contentsline {figure}{\numberline {3.12}{\ignorespaces Modelo em MorPhlex durante a impressão com suportes estruturais.}}{34}{figure.caption.39}%
+\contentsline {figure}{\numberline {3.13}{\ignorespaces Modelo em MorPhlex impresso com suportes em PLA.}}{35}{figure.caption.40}%
+\contentsline {figure}{\numberline {3.14}{\ignorespaces Configurações de manipuladores delta consideradas.}}{38}{figure.caption.41}%
+\contentsline {figure}{\numberline {3.15}{\ignorespaces Esquema consolidado de alimentação, comunicação e comando dos dois manipuladores delta.}}{39}{figure.caption.42}%
+\contentsline {figure}{\numberline {3.16}{\ignorespaces Circuito de teste montado em protoboard.}}{40}{figure.caption.43}%
+\contentsline {figure}{\numberline {3.17}{\ignorespaces UPS/HAT SupTronics X1209 \blx@tocontentsinit {0}\parencite {ThePiHutX1209}.}}{41}{figure.caption.44}%
+\contentsline {figure}{\numberline {3.18}{\ignorespaces Testes eletrónicos iniciais em protoboard.}}{43}{figure.caption.45}%
+\contentsline {figure}{\numberline {3.19}{\ignorespaces PCB dos drivers dos servo-motores.}}{43}{figure.caption.46}%
+\contentsline {figure}{\numberline {3.20}{\ignorespaces Montagem de uma PCB de driver.}}{44}{figure.caption.47}%
+\contentsline {figure}{\numberline {3.21}{\ignorespaces PCB de suporte do ESP32-S3.}}{44}{figure.caption.48}%
+\contentsline {figure}{\numberline {3.22}{\ignorespaces Suporte simples usado nas primeiras validações do modelo.}}{45}{figure.caption.49}%
+\contentsline {figure}{\numberline {3.23}{\ignorespaces Estrutura mecânica inicial dos manipuladores delta.}}{46}{figure.caption.50}%
+\contentsline {figure}{\numberline {3.24}{\ignorespaces Montagem mecânica da base dos manipuladores delta.}}{47}{figure.caption.51}%
+\contentsline {figure}{\numberline {3.25}{\ignorespaces Manipuladores delta com os servos instalados.}}{48}{figure.caption.52}%
+\contentsline {figure}{\numberline {3.26}{\ignorespaces Sistema final montado com a árvore brônquica.}}{48}{figure.caption.53}%
+\contentsline {figure}{\numberline {3.27}{\ignorespaces Montagem da eletrónica na estrutura da HMI.}}{49}{figure.caption.54}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {4.1}{\ignorespaces Esquema global de comunicação entre o firmware do ESP32-S3 e a HMI no Raspberry Pi 4B.}}{34}{figure.caption.19}%
-\contentsline {figure}{\numberline {4.2}{\ignorespaces Estrutura global das máquinas de estados e blocos de controlo do firmware.}}{37}{figure.caption.20}%
-\contentsline {figure}{\numberline {4.3}{\ignorespaces Desenvolvimento da arquitetura principal do ESP32.}}{39}{figure.caption.21}%
-\contentsline {figure}{\numberline {4.4}{\ignorespaces Trajetória calculada para o movimento de batimento cardíaco, representação 2D dos pontos de passagem.}}{45}{figure.caption.23}%
-\contentsline {figure}{\numberline {4.5}{\ignorespaces Trajetória calculada para o movimento de batimento cardíaco, representação 3D dos pontos de passagem.}}{45}{figure.caption.24}%
-\contentsline {figure}{\numberline {4.6}{\ignorespaces Trajetória calculada para o movimento respiratório, representação 2D no plano \(ZX\).}}{46}{figure.caption.25}%
-\contentsline {figure}{\numberline {4.7}{\ignorespaces Trajetória calculada para o movimento respiratório, visualização 3D.}}{47}{figure.caption.26}%
-\contentsline {figure}{\numberline {4.8}{\ignorespaces Trajetória calculada para a vibração associada à tosse, representação 2D dos pontos de passagem.}}{48}{figure.caption.27}%
-\contentsline {figure}{\numberline {4.9}{\ignorespaces Trajetória calculada para a vibração associada à tosse, representação 3D dos pontos de passagem.}}{48}{figure.caption.28}%
-\contentsline {figure}{\numberline {4.10}{\ignorespaces Estrutura \texttt {Manipulador\_Config}, com os parâmetros de geometria, calibração de PWM e o estado atual dos pulsos gerados pela cinemática inversa.}}{50}{figure.caption.31}%
-\contentsline {figure}{\numberline {4.11}{\ignorespaces Estruturas \texttt {MotionStorage} e \texttt {MotionInstance}, com a ligação por ponteiro entre a definição estática da trajetória e o estado dinâmico de execução.}}{51}{figure.caption.32}%
-\contentsline {figure}{\numberline {4.12}{\ignorespaces Andamento variável obtido apenas por densidade de pontos: o intervalo de tempo \(\Delta t\) entre pontos consecutivos mantém-se sempre igual, sendo o espaçamento espacial menor junto a curvas (andamento mais lento) e maior nos troços retos (andamento mais rápido).}}{54}{figure.caption.33}%
-\contentsline {figure}{\numberline {4.13}{\ignorespaces Comparação entre a interpolação linear e a interpolação polinomial testadas.}}{55}{figure.caption.34}%
-\contentsline {figure}{\numberline {4.14}{\ignorespaces Sequência final de processamento, repetida a cada ciclo e para cada manipulador.}}{55}{figure.caption.35}%
-\contentsline {figure}{\numberline {4.15}{\ignorespaces Esquema da FSM\_Motion\_Update.}}{58}{figure.caption.39}%
-\contentsline {figure}{\numberline {4.16}{\ignorespaces Convenção de ângulo referenciada ao horizonte exterior do manipulador, usada na \textit {Delta-Kinematics-Library} \blx@tocontentsinit {0}\parencite {TinkersProjects2018}: a amplitude positiva fica limitada a \(180^\circ \) abaixo desse horizonte, com o restante percurso representado no sentido negativo.}}{62}{figure.caption.43}%
-\contentsline {figure}{\numberline {4.17}{\ignorespaces Representação lateral das variáveis usadas na cinemática inversa do manipulador delta.}}{63}{figure.caption.44}%
-\contentsline {figure}{\numberline {4.18}{\ignorespaces Relação linear de referência entre o ângulo calculado pela cinemática inversa e o pulso PWM aplicado aos servos nos dois manipuladores.}}{66}{figure.caption.45}%
-\contentsline {figure}{\numberline {4.19}{\ignorespaces Esquema da FSM\_Serial\_Reader.}}{69}{figure.caption.46}%
-\contentsline {figure}{\numberline {4.20}{\ignorespaces FSM\_Serial\_Command responsável pela interpretação dos comandos recebidos por comunicação série.}}{71}{figure.caption.47}%
-\contentsline {figure}{\numberline {4.21}{\ignorespaces Esquema global dos ficheiros e clientes que interagem com a interface HMI.}}{77}{figure.caption.52}%
-\contentsline {figure}{\numberline {4.22}{\ignorespaces Esquema interno do \texttt {RB\_PI4B\_Main\_PI.py}: rotas Flask, estado partilhado, threads de comunicação série e distribuição de atualizações por SocketIO.}}{79}{figure.caption.53}%
-\contentsline {figure}{\numberline {4.23}{\ignorespaces Esquema interno do \texttt {calculo\_movimentos.py}: cálculo das três curvas de referência, projeção 3D e geração dos gráficos e pontos devolvidos à interface.}}{81}{figure.caption.54}%
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Esquema global de comunicação entre o firmware do ESP32-S3 e a HMI no Raspberry Pi 4B.}}{50}{figure.caption.55}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Estrutura global das máquinas de estados e blocos de controlo do firmware, com os atrasos de um ciclo representados por \(\Delta t\).}}{53}{figure.caption.56}%
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Desenvolvimento da arquitetura principal do ESP32.}}{55}{figure.caption.57}%
+\contentsline {figure}{\numberline {4.4}{\ignorespaces Representação do movimento respiratório usado como referência.}}{57}{figure.caption.59}%
+\contentsline {figure}{\numberline {4.5}{\ignorespaces Trajetória calculada para o movimento de batimento cardíaco, representação 2D dos pontos de passagem.}}{61}{figure.caption.60}%
+\contentsline {figure}{\numberline {4.6}{\ignorespaces Trajetória calculada para o movimento de batimento cardíaco, representação 3D dos pontos de passagem.}}{62}{figure.caption.61}%
+\contentsline {figure}{\numberline {4.7}{\ignorespaces Trajetória calculada para o movimento respiratório, representação 2D no plano \(ZX\).}}{63}{figure.caption.62}%
+\contentsline {figure}{\numberline {4.8}{\ignorespaces Trajetória calculada para o movimento respiratório, visualização 3D.}}{63}{figure.caption.63}%
+\contentsline {figure}{\numberline {4.9}{\ignorespaces Trajetória calculada para a vibração associada à tosse, representação 2D dos pontos de passagem.}}{64}{figure.caption.64}%
+\contentsline {figure}{\numberline {4.10}{\ignorespaces Trajetória calculada para a vibração associada à tosse, representação 3D dos pontos de passagem.}}{65}{figure.caption.65}%
+\contentsline {figure}{\numberline {4.11}{\ignorespaces Estrutura \texttt {Manipulador\_Config}.}}{67}{figure.caption.68}%
+\contentsline {figure}{\numberline {4.12}{\ignorespaces Estruturas \texttt {MotionStorage} e \texttt {MotionInstance}.}}{68}{figure.caption.69}%
+\contentsline {figure}{\numberline {4.13}{\ignorespaces Andamento variável obtido apenas por densidade de pontos.}}{69}{figure.caption.70}%
+\contentsline {figure}{\numberline {4.14}{\ignorespaces Comparação entre a interpolação linear e a interpolação polinomial testadas.}}{71}{figure.caption.71}%
+\contentsline {figure}{\numberline {4.15}{\ignorespaces Sequência final de processamento, repetida a cada ciclo e para cada manipulador.}}{71}{figure.caption.72}%
+\contentsline {figure}{\numberline {4.16}{\ignorespaces Esquema da FSM\_Motion\_Update.}}{74}{figure.caption.75}%
+\contentsline {figure}{\numberline {4.18}{\ignorespaces Esquema da \texttt {FSM\_preparacao\_tosse}.}}{78}{figure.caption.82}%
+\contentsline {figure}{\numberline {4.17}{\ignorespaces Fluxograma da função \texttt {AtualizarTosseAleatoria()}.}}{79}{figure.caption.80}%
+\contentsline {figure}{\numberline {4.19}{\ignorespaces Convenção de ângulo referenciada ao horizonte exterior do manipulador, usada na \textit {Delta-Kinematics-Library} \blx@tocontentsinit {0}\parencite {TinkersProjects2018}.}}{81}{figure.caption.83}%
+\contentsline {figure}{\numberline {4.20}{\ignorespaces Terminologia usada para os componentes do manipulador delta: base, braço, antebraço e plataforma móvel.}}{82}{figure.caption.84}%
+\contentsline {figure}{\numberline {4.21}{\ignorespaces Representação lateral das variáveis usadas na cinemática inversa do manipulador delta.}}{83}{figure.caption.85}%
+\contentsline {figure}{\numberline {4.22}{\ignorespaces Distribuição a \(120^\circ \) dos três servos em torno do centro da base do manipulador delta.}}{84}{figure.caption.86}%
+\contentsline {figure}{\numberline {4.23}{\ignorespaces Projeção do braço passivo \(L_2\) no plano lateral do servo, resultante do deslocamento lateral da plataforma móvel.}}{85}{figure.caption.87}%
+\contentsline {figure}{\numberline {4.24}{\ignorespaces Relação linear de referência entre o ângulo calculado pela cinemática inversa e o pulso PWM aplicado aos servos nos dois manipuladores.}}{86}{figure.caption.88}%
+\contentsline {figure}{\numberline {4.25}{\ignorespaces Esquema da FSM\_Serial\_Reader.}}{90}{figure.caption.89}%
+\contentsline {figure}{\numberline {4.26}{\ignorespaces FSM\_Serial\_Command (parte 1 de 3): comandos simples e submenu \texttt {L}.}}{93}{figure.caption.94}%
+\contentsline {figure}{\numberline {4.27}{\ignorespaces FSM\_Serial\_Command (parte 2 de 3): submenu \texttt {M} e entrada no comando longo \texttt {W}.}}{94}{figure.caption.95}%
+\contentsline {figure}{\numberline {4.28}{\ignorespaces FSM\_Serial\_Command (parte 3 de 3): seleção de campo, escrita do valor e comandos de EEPROM.}}{95}{figure.caption.96}%
+\contentsline {figure}{\numberline {4.29}{\ignorespaces Ecrã principal da HMI no Raspberry Pi.}}{98}{figure.caption.97}%
+\contentsline {figure}{\numberline {4.30}{\ignorespaces Esquema global dos ficheiros e clientes que interagem com a interface HMI.}}{99}{figure.caption.98}%
+\contentsline {figure}{\numberline {4.31}{\ignorespaces Esquema interno do \texttt {RB\_PI4B\_Main\_PI.py}.}}{101}{figure.caption.99}%
+\contentsline {figure}{\numberline {4.32}{\ignorespaces Esquema interno do \texttt {calculo\_movimentos.py}.}}{104}{figure.caption.100}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {5.1}{\ignorespaces Sessão de observação preliminar com profissional de saúde: broncoscópio introduzido no modelo de árvore brônquica impresso em 3D enquanto o sistema de controlo estava ativo.}}{83}{figure.caption.55}%
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Comparação entre deslocamento pretendido e deslocamento obtido no ensaio linear do manipulador delta.}}{107}{figure.caption.102}%
+\contentsline {figure}{\numberline {5.2}{\ignorespaces Comparação entre a frequência de batimento cardíaco configurada e a frequência medida no vídeo do ensaio.}}{109}{figure.caption.104}%
+\contentsline {figure}{\numberline {5.3}{\ignorespaces Comparação entre a frequência respiratória configurada e a frequência medida no vídeo do ensaio.}}{110}{figure.caption.106}%
+\contentsline {figure}{\numberline {5.4}{\ignorespaces Ensaios clínicos no CHUA.}}{111}{figure.caption.107}%
 \addvspace {10\p@ }
+\contentsline {figure}{\numberline {6.1}{\ignorespaces Comparação entre a validação inicial e o comportamento observado no modelo final.}}{113}{figure.caption.108}%
+\contentsline {figure}{\numberline {6.2}{\ignorespaces Representação CAD do conjunto final previsto.}}{114}{figure.caption.109}%

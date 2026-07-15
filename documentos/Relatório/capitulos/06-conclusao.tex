@@ -1,20 +1,54 @@
 \chapter{Conclusão}
 
 \section{Síntese do trabalho}
-Este projeto tem como objetivo desenvolver um modelo articulado de uma árvore brônquica para treino de videobroncofibroscopia, cuja solução proposta combina impressão 3D, atuação mecânica, controlo por ESP32, comunicação com Raspberry Pi 4B, interface HMI e perfis de movimento inspirados em fenómenos fisiológicos.
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{fotos/conclusao_inicio_modelo_video.jpg}
+    \caption{Fase inicial de validação.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{fotos/conclusao_final_modelo_video.jpg}
+    \caption{Vista interna no ensaio final.}
+  \end{subfigure}
+  \caption{Comparação entre a validação inicial e o comportamento observado no modelo final.}
+  \label{fig:comparacao-inicio-final-projeto}
+\end{figure}
 
-O desenvolvimento realizado permitiu consolidar os requisitos do sistema, segundo os quais o modelo deve ser acessível, modular, fácil de montar e capaz de reproduzir movimentos relevantes durante uma broncoscopia flexível. Para esta versão, foram priorizados três fenómenos, respiração, batimento cardíaco e tosse, tendo outros efeitos, como deformação localizada do lúmen, estenose e resistência ao contacto com o broncoscópio, sido identificados como importantes mas reservados para trabalho futuro devido à maior complexidade mecânica.
+Este projeto teve como objetivo desenvolver um modelo físico e articulado de uma árvore brônquica para apoio ao treino de videobroncofibroscopia. A solução desenvolvida combinou a reconstrução anatómica a partir de dados clínicos, impressão 3D, atuação mecânica por manipuladores delta, controlo eletrónico com ESP32, comunicação com Raspberry Pi 4B, uma interface HMI e perfis de movimento inspirados em fenómenos fisiológicos observáveis durante o exame.
+
+Ao longo do desenvolvimento, foi possível consolidar os requisitos principais do sistema e transformar uma ideia inicial ainda pouco definida num protótipo funcional, modular e capaz de reproduzir, de forma controlada, três movimentos considerados relevantes para a simulação: respiração, batimento cardíaco e tosse. A opção por manipuladores delta permitiu concentrar a atuação fora do modelo anatómico, evitando a instalação de motores diretamente na árvore brônquica e transferindo grande parte da flexibilidade do sistema para o software, através da geração de trajetórias e da cinemática inversa.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.82\textwidth]{fotos/cad_sistema_final.png}
+  \caption{Representação CAD do conjunto final previsto.}
+  \label{fig:cad-sistema-final-conclusao}
+\end{figure}
+
+Os ensaios laboratoriais permitiram caracterizar o comportamento do manipulador e avaliar a resposta temporal dos movimentos implementados. Embora tenham sido observadas discrepâncias entre os deslocamentos pretendidos e os deslocamentos obtidos, sobretudo em amplitudes maiores e em posições mais afastadas da zona central de trabalho, os resultados mostraram que o sistema era capaz de executar movimentos coerentes com os comandos aplicados. Nos testes de frequência, tanto o batimento cardíaco como a respiração acompanharam de forma consistente os valores configurados, confirmando a viabilidade da arquitetura de controlo adotada para os perfis fisiológicos previstos.
+
+Os testes realizados com a equipa médica permitiram ainda validar qualitativamente a utilidade do modelo enquanto ferramenta de treino. A geometria da árvore brônquica foi considerada próxima da realidade anatómica e o comportamento dinâmico introduzido pelo sistema foi visto como um contributo relevante para aproximar o simulador de um ambiente broncoscópico real. O trabalho desenvolvido cumpriu, assim, o objetivo principal de demonstrar a viabilidade de um simulador físico, acessível e evolutivo, capaz de combinar anatomia impressa em 3D com movimento controlado.
 
 \section{Limitações}
-O protótipo ainda apresenta limitações importantes, desde logo porque o realismo material é limitado pelos processos de impressão disponíveis e pelos filamentos acessíveis. A solução de movimento em três eixos simplifica a dinâmica real da árvore traqueobrônquica, que inclui deformações locais, variações de calibre e interação com o broncoscópio, e a validação quantitativa dos movimentos também depende de medições experimentais futuras, nomeadamente amplitudes reais, repetibilidade, ruído, aquecimento e estabilidade da alimentação.
+Apesar dos resultados obtidos, o protótipo apresentou limitações importantes. A primeira esteve relacionada com o próprio modelo impresso em 3D, que não foi concebido para lavagem interna. Esta limitação reduz a capacidade de reutilização em cenários onde seja necessário aplicar lubrificantes, introduzir líquidos ou simular procedimentos que exijam limpeza posterior do interior da árvore brônquica. Além disso, a geometria atual não permite ainda a colocação simples e controlada de objetos no interior do modelo, o que limita a simulação de corpos estranhos ou de situações clínicas mais específicas.
 
-\hl{(ainda tenho de terminar esta parte)}
+Outra limitação relevante esteve associada à precisão dos movimentos. Os servo-motores utilizados permitiram construir uma solução compacta e de baixo custo, mas não garantiram uma correspondência perfeita entre a posição calculada e o deslocamento real da plataforma. Esta diferença resulta da resolução e repetibilidade dos atuadores, das folgas mecânicas, da fricção nas juntas impressas e das próprias aproximações usadas na cinemática inversa. Em movimentos de pequena amplitude, estas discrepâncias foram menos críticas, mas tornaram-se mais visíveis em deslocamentos maiores ou próximos dos limites mecânicos.
+
+Foi também observada a presença de vibrações e pequenas irregularidades, sobretudo em movimentos de baixa velocidade. Estas vibrações podem introduzir inconsistências na suavidade do movimento respiratório e alterar ligeiramente a perceção externa do comportamento do modelo. Embora, durante os testes clínicos, estas vibrações se tenham revelado menos evidentes na visão interna do broncoscópio do que na observação exterior, continuam a representar uma limitação importante para futuras versões que procurem maior fidelidade e repetibilidade.
+
+Por fim, o protótipo ainda simplifica vários fenómenos presentes numa árvore traqueobrônquica real. O modelo não reproduz deformações locais do lúmen, variações de calibre ao longo do ciclo respiratório, estenoses dinâmicas, resistência ao contacto com o broncoscópio ou alterações provocadas diretamente pela interação entre o instrumento e as paredes internas. Estes aspetos foram identificados como relevantes, mas ficaram fora do âmbito desta versão devido à complexidade mecânica, material e de controlo que implicariam.
 
 \section{Trabalho futuro}
-A linha mais importante de evolução diz respeito ao modelo físico da árvore brônquica. A versão atual não simula deformação ativa do lúmen, variação de calibre ao longo do ciclo respiratório, estenoses localizadas ou resistência ao avanço do broncoscópio. Estes fenómenos têm impacto direto na perceção visual e tátil durante o procedimento real, mas exigem materiais com propriedades mecânicas controladas, atuadores distribuídos ao longo da estrutura e uma estratégia de controlo mais complexa. A integração de filamentos com diferentes durezas em zonas específicas do modelo, combinada com pequenos atuadores de deformação local, constitui a principal direção técnica para uma segunda versão. Esta direção já foi parcialmente explorada durante o desenvolvimento da eletrónica, tendo sido equacionada a utilização de motores de passo dedicados à deformação das paredes, conforme descrito na \cref{sec:eletronica-alimentacao}. A abordagem foi, no entanto, abandonada nesta versão, sobretudo devido ao comportamento predominantemente plástico do filamento MorPhlex utilizado e à complexidade acrescida de uma arquitetura de alimentação com dois níveis de tensão, permanecendo por isso como uma direção válida para uma futura iteração, idealmente associada a materiais com comportamento mais elástico.
+Como trabalho futuro, poderá ser aprofundada a evolução do modelo físico da árvore brônquica, explorando novas tecnologias e materiais de impressão que permitam obter maior flexibilidade, melhor recuperação elástica e uma resposta mecânica mais próxima dos tecidos reais. Esta evolução poderá passar pela utilização de filamentos flexíveis com diferentes durezas, resinas elásticas, silicones ou processos híbridos de fabrico, procurando combinar uma geometria anatómica detalhada com paredes mais deformáveis e resistentes ao uso repetido.
 
-\hl{(ainda tenho de terminar esta parte)}
+Dentro dessa evolução construtiva, poderá também ser considerada a lavagem interna do modelo. Para esse efeito, seria útil introduzir soluções que facilitem a drenagem e reduzam a acumulação de resíduos no interior dos ramos, aproximando a utilização do simulador de condições de treino mais completas e aumentando a robustez do modelo em sessões repetidas.
 
-A interface gráfica no Raspberry Pi tem margem de evolução significativa: personalização de cenários, envio completo de trajetórias para o ESP32 por comunicação série, armazenamento de perfis de treino em ficheiro e monitorização mais detalhada do estado interno do firmware. A arquitetura Flask/SocketIO já utilizada facilita a adição de novas páginas e funcionalidades sem alterar a lógica de baixo nível.
+Outra possibilidade de desenvolvimento será a introdução de objetos ou elementos substituíveis no interior da árvore brônquica, permitindo simular corpos estranhos, obstruções ou outros cenários clínicos. Esta capacidade tornaria o modelo mais versátil, sobretudo para médicos em fase inicial de aprendizagem, ao permitir exercícios de navegação, identificação e eventual remoção de elementos colocados em posições específicas.
 
-Por fim, a validação com profissionais de saúde, iniciada de forma qualitativa numa fase preliminar, deve ser aprofundada com uma metodologia estruturada. Esta avaliação é essencial para perceber se o movimento gerado tem valor pedagógico real, que aspetos do simulador são mais importantes para o treino de videobroncofibroscopia e que limitações da versão atual têm mais impacto na usabilidade clínica.
+No sistema de atuação e controlo, poderão ser otimizados tanto o firmware do ESP32 como a interface HMI. Do lado do firmware, futuras versões poderão melhorar a suavização dos movimentos, a calibração dos atuadores, a gestão de limites mecânicos e a sincronização entre respiração, batimento cardíaco e tosse. Do lado da HMI, poderá ser desenvolvida uma interface mais intuitiva e interativa, com melhor organização dos modos de treino, maior controlo sobre os parâmetros dos movimentos, armazenamento de perfis e uma visualização mais clara do estado interno do sistema.
+
+Por último, poderá ser vantajoso melhorar as condições de avaliação e treino disponibilizadas aos médicos. Para além da validação qualitativa já iniciada, poderão ser definidos testes e exames mais estruturados para avaliar o modelo físico, envolvendo diferentes utilizadores, níveis de experiência e cenários clínicos. Esta etapa permitiria perceber com maior rigor que componentes do simulador têm maior valor pedagógico, que limitações afetam mais a experiência de utilização e que melhorias poderiam ser priorizadas para transformar o protótipo numa ferramenta de treino mais completa e clinicamente útil.

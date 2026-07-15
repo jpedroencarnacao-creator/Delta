@@ -1,22 +1,201 @@
 \chapter{Testes e Análise de Resultados}
+\label{chap:testes}
 
-Este capítulo apresenta os testes realizados até ao momento, focados nas duas áreas já validadas de forma mais consistente: o comportamento do modelo físico impresso e a integração dos movimentos representados no protótipo.
+De forma a avaliar a capacidade do modelo, foram realizados e documentados dois tipos de teste: o Teste de Laboratório, que avaliou o desempenho mecânico e de software dos movimentos fisiológicos em estudo, de forma individual e em conjunto, e os Testes clínicos, que envolveram a equipa médica e a observação de cenários específicos que simulavam a realidade do exame.
 
-\section{Testes do modelo físico}
-Os primeiros testes confirmaram se o modelo impresso mantém a geometria pretendida e se permite a passagem adequada do broncoscópio, observando-se ainda deformações, zonas frágeis, arestas, dificuldade de limpeza e resistência ao manuseamento. No caso de materiais flexíveis, foi também avaliada a relação entre flexibilidade e estabilidade dimensional.
+\section{Teste de Laboratório}
+Os testes de laboratório serviram para verificar se o sistema integrado, tanto ao nível mecânico como de software, correspondia às expectativas técnicas e motoras definidas para os movimentos do protótipo. Para isso, foram realizados dois ensaios extensos: um teste de deslocamento, dedicado a registar e avaliar de forma independente a precisão dos pedidos de movimento nos três eixos cartesianos, e um teste de frequência, dedicado a registar os movimentos de batimento cardíaco e de respiração às várias frequências em que estes podem ser observados durante um exame médico, confirmando a capacidade do sistema para gerir diferentes velocidades de movimento.
 
-O teste inicial em PLA serviu como prova de conceito da geometria e da montagem, ainda que, por ser um material rígido, não representasse a solução final para realismo mecânico. Por isso, os ensaios posteriores com TPU, TPE ou outros filamentos flexíveis compararam facilidade de impressão, acabamento, deformação elástica e resistência à repetição dos movimentos.
+No teste de deslocamento, a plataforma do manipulador delta foi deslocada em linha reta, de forma independente, nos três eixos cartesianos, com o objetivo de avaliar a correspondência entre o deslocamento pedido por software e o deslocamento efetivamente observado na plataforma móvel. Nos eixos \(X\) e \(Y\), foram aplicadas posições pretendidas entre \(-30~mm\) e \(30~mm\), com incrementos de \(5~mm\). Já no eixo \(Z\), o ensaio decorreu entre \(45~mm\) e \(105~mm\), também com incrementos de \(5~mm\), por esta ser a gama vertical relevante para a zona de trabalho usada no protótipo.
 
-Foi ainda realizada uma sessão preliminar de observação com um profissional de saúde, em que o broncoscópio foi introduzido no modelo impresso em 3D enquanto o sistema estava ativo (\cref{fig:teste-medico}). Esta sessão permitiu obter uma primeira avaliação qualitativa da disposição dos ramos, do espaço disponível para a progressão da sonda e da perceção de movimento durante o funcionamento do manipulador. As observações desta sessão ajudaram a identificar aspetos a melhorar na geometria do modelo e no comportamento do sistema, ainda que os dados quantitativos não tenham sido recolhidos de forma sistemática.
+Os valores registados encontram-se na \cref{tab:teste-linear-delta}. Para cada eixo é apresentado o valor pretendido, o valor obtido por medição e o erro percentual absoluto entre ambos. Nos eixos \(X\) e \(Y\), o ponto \(0~mm\) foi usado como referência central; neste caso, o erro percentual não é definido por corresponder a uma referência nula, sendo por isso assinalado com ``--''. Já no eixo \(Z\), a série de medições começou diretamente à distância de \(45~mm\), distância esta que equivale ao valor mínimo permitido para esta configuração do manipulador.
+
+\begin{table}[!htbp]
+  \centering
+  \caption{Resultados do ensaio de deslocamento linear do manipulador delta nos eixos \(X\), \(Y\) e \(Z\).}
+  \label{tab:teste-linear-delta}
+  \scriptsize
+  \setlength{\tabcolsep}{4pt}
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{rrrrrrrrr}
+    \toprule
+    \multicolumn{3}{c}{Eixo \(X\)} & \multicolumn{3}{c}{Eixo \(Y\)} & \multicolumn{3}{c}{Eixo \(Z\)}\\
+    \cmidrule(lr){1-3}\cmidrule(lr){4-6}\cmidrule(lr){7-9}
+    \multicolumn{1}{c}{Pretendido} & \multicolumn{1}{c}{Obtido} & \multicolumn{1}{c}{Erro}
+    & \multicolumn{1}{c}{Pretendido} & \multicolumn{1}{c}{Obtido} & \multicolumn{1}{c}{Erro}
+    & \multicolumn{1}{c}{Pretendido} & \multicolumn{1}{c}{Obtido} & \multicolumn{1}{c}{Erro}\\
+    \multicolumn{1}{c}{[mm]} & \multicolumn{1}{c}{[mm]} & \multicolumn{1}{c}{[\%]}
+    & \multicolumn{1}{c}{[mm]} & \multicolumn{1}{c}{[mm]} & \multicolumn{1}{c}{[\%]}
+    & \multicolumn{1}{c}{[mm]} & \multicolumn{1}{c}{[mm]} & \multicolumn{1}{c}{[\%]}\\
+    \midrule
+    -30 & -26,0 & 13,3 & -30 & -22,5 & 25,0 & 45  & 45,8 & 1,8\\
+    -25 & -21,5 & 14,0 & -25 & -18,5 & 26,0 & 50  & 50,0 & 0,0\\
+    -20 & -18,0 & 10,0 & -20 & -15,0 & 25,0 & 55  & 54,0 & 1,8\\
+    -15 & -13,5 & 10,0 & -15 & -11,0 & 26,7 & 60  & 58,0 & 3,3\\
+    -10 & -10,0 & 0,0  & -10 & -7,5  & 25,0 & 65  & 63,5 & 2,3\\
+    -5  & -4,0  & 20,0 & -5  & -3,5  & 30,0 & 70  & 68,0 & 2,9\\
+    0   & 0,0   & --   & 0   & 0,0   & --   & 75  & 72,5 & 3,3\\
+    5   & 5,0   & 0,0  & 5   & 5,0   & 0,0  & 80  & 78,0 & 2,5\\
+    10  & 8,0   & 20,0 & 10  & 8,5   & 15,0 & 85  & 84,0 & 1,2\\
+    15  & 12,0  & 20,0 & 15  & 12,0  & 20,0 & 90  & 86,5 & 3,9\\
+    20  & 15,5  & 22,5 & 20  & 16,5  & 17,5 & 95  & 90,0 & 5,3\\
+    25  & 19,0  & 24,0 & 25  & 20,5  & 18,0 & 100 & 95,0 & 5,0\\
+    30  & 19,4  & 35,3 & 30  & 24,5  & 18,3 & 105 & 98,5 & 6,2\\
+    \bottomrule
+  \end{tabular}}
+\end{table}
+
+Em cada gráfico, a linha tracejada representa a resposta ideal, isto é, uma relação direta em que o deslocamento medido coincide com o deslocamento pedido. A leitura conjunta da \cref{tab:teste-linear-delta} e da \cref{fig:teste-delta-linear} mostra que o eixo \(Z\) foi o mais estável, com erros percentuais entre \(0,0~\%\) e \(6,2~\%\). Nos eixos \(X\) e \(Y\), os erros foram superiores, sobretudo nas posições mais afastadas da referência central. No eixo \(X\), o erro máximo ocorreu em \(30~mm\), com \(35,3~\%\), enquanto no eixo \(Y\) o valor mais elevado ocorreu em \(-5~mm\), com \(30,0~\%\). Estes resultados indicam que a resposta do manipulador é mais consistente no movimento vertical do que nos deslocamentos laterais de maior amplitude.
+
+\begin{figure}[!htbp]
+  \centering
+  \begin{subfigure}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{resultados/teste_delta_linear_x.png}
+    \caption{Eixo \(X\).}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{resultados/teste_delta_linear_y.png}
+    \caption{Eixo \(Y\).}
+  \end{subfigure}
+
+  \vspace{0.45cm}
+
+  \begin{subfigure}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{resultados/teste_delta_linear_z.png}
+    \caption{Eixo \(Z\).}
+  \end{subfigure}
+  \caption{Comparação entre deslocamento pretendido e deslocamento obtido no ensaio linear do manipulador delta.}
+  \label{fig:teste-delta-linear}
+\end{figure}
+
+Com estes resultados, foi possível confirmar que o manipulador executa os deslocamentos pedidos, mas com perda de precisão nos movimentos laterais. Esta limitação poderá estar associada à cinemática inversa simplificada, à resolução angular limitada dos servos MG90S e à fricção existente nas juntas impressas. Como os movimentos fisiológicos implementados no protótipo recorrem sobretudo a amplitudes reduzidas e a trajetórias suavizadas, os erros observados não impediram a validação funcional do sistema, mas indicam a necessidade de calibração adicional em versões futuras.
+
+O teste de frequência avaliou a componente temporal dos movimentos de batimento cardíaco e de respiração, reproduzindo as diferentes velocidades a que estes podem surgir num exame real. Para ambos os movimentos, foram realizados ensaios em vídeo, filmados a \(60~fps\), nos quais a frequência configurada foi aumentada de forma progressiva, entre \(60~bpm\) e \(200~bpm\) no caso do batimento cardíaco. Cada vídeo foi analisado e documentado frame a frame, permitindo construir os gráficos e as tabelas de resultados apresentados de seguida.
+
+Os resultados deste ensaio são apresentados na \cref{tab:teste-frequencia-batimento}. A tabela inclui a frequência configurada, a frequência medida a partir do vídeo, o período teórico associado ao comando, o período medido e o erro percentual absoluto entre a frequência configurada e a frequência medida. Esta leitura é particularmente importante porque, no modelo implementado, o batimento cardíaco não é apenas uma oscilação contínua: cada ciclo é composto por uma contração rápida e curta, seguida de uma pausa cuja duração varia com a frequência cardíaca configurada.
+
+\begin{table}[!htbp]
+  \centering
+  \caption{Resultados do ensaio temporal do movimento de batimento cardíaco.}
+  \label{tab:teste-frequencia-batimento}
+  \footnotesize
+  \setlength{\tabcolsep}{8pt}
+  \begin{tabular}{ccccc}
+    \toprule
+    \shortstack{Frequência\\configurada\\{[bpm]}}
+    & \shortstack{Frequência\\medida\\{[bpm]}}
+    & \shortstack{Período\\teórico\\{[s]}}
+    & \shortstack{Período\\medido\\{[s]}}
+    & \shortstack{Erro\\{[\%]}}\\
+    \midrule
+    60  & 57,1  & 1,000 & 1,051 & 4,8\\
+    70  & 66,5  & 0,857 & 0,902 & 5,0\\
+    80  & 77,2  & 0,750 & 0,777 & 3,5\\
+    90  & 90,7  & 0,667 & 0,662 & 0,8\\
+    100 & 100,3 & 0,600 & 0,598 & 0,3\\
+    110 & 109,8 & 0,545 & 0,546 & 0,2\\
+    120 & 119,1 & 0,500 & 0,504 & 0,8\\
+    130 & 128,3 & 0,462 & 0,468 & 1,3\\
+    140 & 138,1 & 0,429 & 0,434 & 1,4\\
+    150 & 146,7 & 0,400 & 0,409 & 2,2\\
+    160 & 156,1 & 0,375 & 0,384 & 2,4\\
+    170 & 174,5 & 0,353 & 0,344 & 2,6\\
+    180 & 182,9 & 0,333 & 0,328 & 1,6\\
+    190 & 188,4 & 0,316 & 0,318 & 0,8\\
+    200 & 192,0 & 0,300 & 0,313 & 4,0\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+A \cref{fig:teste-batimento-frequencia} representa graficamente a mesma comparação. A linha tracejada corresponde ao comportamento ideal, no qual a frequência medida coincidiria exatamente com a frequência configurada. Entre \(90~bpm\) e \(190~bpm\), o erro manteve-se entre \(0,2~\%\) e \(2,6~\%\). Os maiores erros ocorreram nos extremos do ensaio, com \(4,8~\%\) a \(60~bpm\), \(5,0~\%\) a \(70~bpm\) e \(4,0~\%\) a \(200~bpm\). Assim, o movimento de batimento cardíaco acompanhou a frequência configurada, apresentando menor precisão apenas nos limites inferior e superior da gama testada.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.74\textwidth]{resultados/teste_batimento_frequencia.png}
+  \caption{Comparação entre a frequência de batimento cardíaco configurada e a frequência medida no vídeo do ensaio.}
+  \label{fig:teste-batimento-frequencia}
+\end{figure}
+
+O movimento de respiração foi avaliado através de um segundo ensaio de frequência, realizado com a câmara reposicionada para tornar mais visível a deslocação global da árvore brônquica durante o ciclo respiratório. Neste ensaio, a frequência configurada foi aumentada progressivamente entre \(12\) e \(20\) respirações por minuto, mantendo pausas entre patamares para facilitar a separação dos intervalos de análise.
+
+Os resultados obtidos encontram-se na \cref{tab:teste-frequencia-respiracao}. A tabela apresenta a frequência configurada, a frequência medida, os períodos teórico e medido, e o erro percentual absoluto entre o valor configurado e o valor obtido.
+
+\begin{table}[!htbp]
+  \centering
+  \caption{Resultados do ensaio temporal do movimento de respiração.}
+  \label{tab:teste-frequencia-respiracao}
+  \footnotesize
+  \setlength{\tabcolsep}{8pt}
+  \begin{tabular}{ccccc}
+    \toprule
+    \shortstack{Frequência\\configurada\\{[resp/min]}}
+    & \shortstack{Frequência\\medida\\{[resp/min]}}
+    & \shortstack{Período\\teórico\\{[s]}}
+    & \shortstack{Período\\medido\\{[s]}}
+    & \shortstack{Erro\\{[\%]}}\\
+    \midrule
+    12 & 12,0 & 5,000 & 5,002 & 0,0\\
+    13 & 12,9 & 4,615 & 4,648 & 0,8\\
+    14 & 14,0 & 4,286 & 4,294 & 0,0\\
+    15 & 14,9 & 4,000 & 4,025 & 0,7\\
+    16 & 15,9 & 3,750 & 3,783 & 0,6\\
+    17 & 16,8 & 3,529 & 3,563 & 1,2\\
+    18 & 17,8 & 3,333 & 3,364 & 1,1\\
+    19 & 18,8 & 3,158 & 3,198 & 1,1\\
+    20 & 19,8 & 3,000 & 3,030 & 1,0\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+A \cref{fig:teste-respiracao-frequencia} apresenta a mesma comparação de forma gráfica. O erro percentual manteve-se entre \(0,0~\%\) e \(1,2~\%\) em toda a gama ensaiada, confirmando maior estabilidade temporal do movimento respiratório face ao batimento cardíaco. A frequência medida acompanhou de forma consistente a frequência configurada, sem desvios relevantes para a representação do ciclo respiratório.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.74\textwidth]{resultados/teste_respiracao_frequencia.png}
+  \caption{Comparação entre a frequência respiratória configurada e a frequência medida no vídeo do ensaio.}
+  \label{fig:teste-respiracao-frequencia}
+\end{figure}
+
+O movimento de tosse não foi incluído no teste de frequência. Este perfil foi implementado como um evento transitório e não como um movimento periódico contínuo, pelo que não possui um ciclo completo comparável aos ciclos de respiração ou de batimento cardíaco. Além disso, a sua ocorrência pode ser gerada de forma aleatória pelo sistema, o que inviabiliza a definição de patamares estáveis e repetíveis para análise temporal. Por estes motivos, a tosse foi avaliada apenas como perturbação dinâmica durante os testes de funcionamento do sistema.
+
+\section{Testes clínicos}
+Todos os testes realizados com o modelo físico tiveram lugar no Centro Hospitalar Universitário do Algarve (CHUA), em conjunto com a equipa médica do Serviço de Pneumologia responsável pelos exames de broncoscopia, médicos internos e residentes incluídos, que disponibilizou os seus próprios instrumentos de exame para avaliar o desempenho do modelo. Estes testes permitiram avaliar, de forma conjunta, a fidelidade fisiológica do modelo, o comportamento dos movimentos nele implementados e o funcionamento do sistema completo, reunindo assim numa só sessão a validação anatómica, funcional e integrada do protótipo.
+
+Nos primeiros ensaios, a equipa médica confirmou que a geometria da árvore brônquica, no seu todo, se revelava bastante fiel à realidade anatómica, tanto no aspeto exterior da estrutura impressa como no revestimento interno reconstruído a partir da TAC, chegando mesmo a equipa médica a descrever este último como um aspeto que os ``impressionou muito'', por estarem bastante familiarizados com as imagens endoscópicas reais que recolhem no seu dia a dia clínico. Foi, no entanto, necessário reajustar ligeiramente as dimensões do modelo ao longo dos vários testes seguintes, ampliando o diâmetro interno em alguns milímetros, de modo a facilitar a progressão do broncoscópio sem comprometer o realismo da simulação, já que o diâmetro inicial gerava algum conflito de espaço, sobretudo nos brônquios mais distais, face ao instrumento de treino utilizado pela equipa, um broncoscópio Pentax EB 19-J10, com 6,4~mm de diâmetro na extremidade distal.
+
+Foi também notada uma diferença relevante entre o impacto dos movimentos numa perspetiva externa e interna do modelo: na visão proporcionada pelo próprio broncoscópio, as vibrações indesejadas provocadas pelos movimentos respiratórios de baixa frequência não se revelavam tão notórias quanto do lado de fora do modelo, um resultado que a equipa médica considerou positivo para a simulação.
+
+Entre a equipa médica foi ainda discutida a eventual necessidade de alterar o posicionamento do modelo, de modo a simular a posição sentada ou deitada do utente. Apesar de o modelo poder ser adaptado para acomodar essas alterações, concluiu-se que a posição do utente não era suficientemente significativa para comprometer as imagens do exame, pelo que os testes decorreram sempre com o modelo colocado na vertical, como registado na \cref{fig:testes-clinicos-chua}.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.82\textwidth]{fotos/teste_medico_broncoscopio.jpg}
-  \caption{Sessão de observação preliminar com profissional de saúde: broncoscópio introduzido no modelo de árvore brônquica impresso em 3D enquanto o sistema de controlo estava ativo.}
-  \label{fig:teste-medico}
+  \begin{subfigure}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{fotos/ensaio_clinico_geral.jpg}
+    \caption{Sessão de teste.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{fotos/ensaio_clinico_endoscopia.jpg}
+    \caption{Imagem endoscópica.}
+  \end{subfigure}
+  \caption{Ensaios clínicos no CHUA.}
+  \label{fig:testes-clinicos-chua}
 \end{figure}
 
-\section{Testes de integração dos movimentos}
-A integração foi feita por etapas. Primeiro executou-se apenas a respiração, verificando periodicidade, amplitude e suavidade. Depois foi adicionado o batimento cardíaco, que deve aparecer como pequena oscilação sobreposta. Por fim, testou-se a tosse, que altera temporariamente o comportamento da respiração e ativa uma vibração ou perturbação curta.
+Ao longo das diferentes iterações do protótipo, foram surgindo problemas adicionais e as respetivas sugestões de melhoria. A passagem para materiais mais flexíveis foi bem recebida pela equipa médica, que classificou esta opção como ``mais vantajosa e mais real''. Contudo, um dos aspetos mais referidos pela equipa médica foi precisamente a presença de filamentos e resíduos no interior da árvore brônquica, resultantes tanto de pequenas imprecisões no processo de impressão como da própria flexibilidade deste tipo de material, que em certas versões dificultaram a progressão do broncoscópio e reduziram a perceção do detalhe anatómico interno. Uma das últimas alterações introduzidas foi, precisamente, um ligeiro aumento adicional do diâmetro interno, de modo a facilitar a deslocação do broncoscópio pelos canais da árvore brônquica e, por consequência, a aprendizagem inicial dos médicos internos.
 
-O modo combinado é o mais importante para avaliar o realismo, pois aproxima o comportamento de um ambiente broncoscópico dinâmico. Neste modo, foram observados conflitos entre movimentos, saturação dos servos, perda de suavidade e eventuais posições impossíveis da cinemática inversa.
+Das sugestões recolhidas junto da equipa médica ao longo destas sessões, destacam-se ainda as seguintes:
+\begin{itemize}
+  \item A introdução de pequenos orifícios nas extremidades dos ramos mais distais, para evitar a acumulação de líquido lubrificante no interior do modelo.
+  \item A criação de orifícios ou fendas em alguns brônquios, onde pudessem ser colocados materiais simulando corpos estranhos ou corpos patológicos a retirar com outros instrumentos médicos.
+  \item O reforço da base de sustentação, tendo a equipa médica sugerido que ``maior peso e maior largura dariam maior estabilidade'' ao conjunto.
+  \item A possibilidade de, no futuro, acoplar qualquer modelo de árvore brônquica a uma base única equipada com os atuadores, facilitando a substituição entre diferentes versões impressas.
+\end{itemize}
+
+O feedback global da equipa médica foi, ao longo de toda a extensão dos testes, bastante positivo, elogiando tanto o realismo do modelo como a facilidade com que este podia ser manipulado para acomodar diferentes cenários de simulação. Motivada por estes resultados, a equipa médica avançou ainda com a integração de um médico interno do Serviço de Pneumologia, ainda no início da sua formação em broncofibroscopia, como piloto de testes, com o objetivo de medir a evolução da sua curva de aprendizagem com recurso ao modelo, documentando e validando assim a eficácia do projeto também do ponto de vista pedagógico.
